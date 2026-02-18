@@ -25,7 +25,8 @@ import { createGraph } from "./lib/create-graph";
 import { createGraphProjection } from "./lib/create-graph-projection";
 import {
   createWorkletFileSystem,
-  getWorkletProcessorBoilerplate,
+  getSourceBoilerplate,
+  getWorkletEntry,
 } from "./lib/worklet-file-system";
 import { HorizontalSlider } from "./ui/HorizontalSlider";
 
@@ -162,7 +163,7 @@ const App: Component = () => {
                 const newCode = e.currentTarget.value;
                 props.setState("code", newCode);
                 workletFS.writeFile(
-                  `/${props.state.name}/worklet.js`,
+                  `/${props.state.name}/source.js`,
                   newCode,
                 );
               }}
@@ -419,8 +420,12 @@ const App: Component = () => {
                 .replace(/[^a-z0-9-]/g, "");
               if (!safeName) return;
 
-              const boilerplate = getWorkletProcessorBoilerplate(safeName);
-              workletFS.writeFile(`/${safeName}/worklet.js`, boilerplate);
+              const boilerplate = getSourceBoilerplate();
+              workletFS.writeFile(`/${safeName}/source.js`, boilerplate);
+              workletFS.writeFile(
+                `/${safeName}/worklet.js`,
+                getWorkletEntry(safeName),
+              );
 
               const nodeId = graph.addNode(type, position);
               const entry = graph.nodeStates.get(nodeId);

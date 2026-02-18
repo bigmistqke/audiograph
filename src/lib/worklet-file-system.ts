@@ -31,16 +31,26 @@ export function createWorkletFileSystem(): WorkletFileSystem {
     extensions: {
       js: {
         type: "javascript",
-        transform: ({ source, path }) => {
+        transform: ({ source, path, fileUrls: urls }) => {
           const match = path.match(/^\/([^/]+)\/worklet\.js$/);
           if (!match) return source;
+
           const name = match[1];
-          const [ver] = getOrCreateVersion(name);
-          const v = ver();
-          return source.replace(
-            /registerProcessor\s*\(\s*["'][^"']*["']/,
-            `registerProcessor("${name}_v${v}"`,
-          );
+          // Return an accessor so dependencies (source.js blob URL, version) are tracked reactively
+          return () => {
+            const sourceUrl = urls.get(`/${name}/source.js`);
+            if (!sourceUrl) return source;
+
+            const [ver] = getOrCreateVersion(name);
+            const v = ver();
+
+            return source
+              .replace(`'./source.js'`, `'${sourceUrl}'`)
+              .replace(
+                /registerProcessor\s*\(\s*["'][^"']*["']/,
+                `registerProcessor("${name}_v${v}"`,
+              );
+          };
         },
       },
     },
@@ -50,7 +60,7 @@ export function createWorkletFileSystem(): WorkletFileSystem {
     files,
     fileUrls,
     writeFile(path: string, content: string) {
-      const match = path.match(/^\/([^/]+)\/worklet\.js$/);
+      const match = path.match(/^\/([^/]+)\/source\.js$/);
       if (match) {
         const name = match[1];
         const [, setVer] = getOrCreateVersion(name);
@@ -72,16 +82,8 @@ export function createWorkletFileSystem(): WorkletFileSystem {
   };
 }
 
-function pascalCase(str: string): string {
-  return str
-    .split(/[-_\s]+/)
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
-    .join("");
-}
-
-export function getWorkletProcessorBoilerplate(name: string): string {
-  const className = pascalCase(name) + "Processor";
-  return `class ${className} extends AudioWorkletProcessor {
+export function getSourceBoilerplate(): string {
+  return `export default class extends AudioWorkletProcessor {
   process(inputs, outputs) {
     const input = inputs[0];
     const output = outputs[0];
@@ -91,7 +93,11 @@ export function getWorkletProcessorBoilerplate(name: string): string {
     return true;
   }
 }
+`;
+}
 
-registerProcessor("${name}", ${className});
+export function getWorkletEntry(name: string): string {
+  return `import Processor from './source.js';
+registerProcessor("${name}", Processor);
 `;
 }
