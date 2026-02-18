@@ -11,6 +11,7 @@ export interface RenderProps<S extends Record<string, any> = Record<string, any>
   state: S;
   setState: SetStoreFunction<S>;
   dimensions: { x: number; y: number };
+  setDimensions(dimensions: Partial<{ x: number; y: number }>): void;
 }
 
 export interface NodeTypeDef<S extends Record<string, any> = Record<string, any>> {
@@ -30,6 +31,7 @@ export interface NodeInstance {
   type: string;
   x: number;
   y: number;
+  dimensions: { x: number; y: number };
 }
 
 export interface EdgeHandle {
@@ -81,7 +83,13 @@ export function createGraph<T extends GraphConfig>(config: T) {
       setGraph(
         "nodes",
         produce((nodes) => {
-          nodes.push({ id, type, x: position.x, y: position.y });
+          nodes.push({
+            id,
+            type,
+            x: position.x,
+            y: position.y,
+            dimensions: { ...typeDef.dimensions },
+          });
         }),
       );
 
@@ -133,12 +141,20 @@ export function createGraph<T extends GraphConfig>(config: T) {
         produce((edges) => edges.push({ from, to })),
       );
     },
-    updateNode(id: string, update: Partial<Pick<NodeInstance, "x" | "y">>) {
+    updateNode(
+      id: string,
+      update: Partial<Pick<NodeInstance, "x" | "y">> & {
+        dimensions?: Partial<{ x: number; y: number }>;
+      },
+    ) {
       setGraph(
         "nodes",
         produce((nodes) => {
           const idx = nodes.findIndex((n) => n.id === id);
-          if (idx !== -1) Object.assign(nodes[idx], update);
+          if (idx === -1) return;
+          const { dimensions, ...rest } = update;
+          Object.assign(nodes[idx], rest);
+          if (dimensions) Object.assign(nodes[idx].dimensions, dimensions);
         }),
       );
     },

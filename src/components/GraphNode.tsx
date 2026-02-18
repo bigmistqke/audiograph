@@ -14,7 +14,9 @@ export function GraphNode(props: { node: NodeInstance }) {
     return typeDef.render({
       state: entry?.state,
       setState: entry?.setState,
-      dimensions: typeDef.dimensions,
+      dimensions: props.node.dimensions,
+      setDimensions: (dims: Partial<{ x: number; y: number }>) =>
+        graph.updateNode(props.node.id, { dimensions: dims }),
     });
   };
 
@@ -24,8 +26,8 @@ export function GraphNode(props: { node: NodeInstance }) {
         <rect
           fill="white"
           stroke="black"
-          width={typeDef.dimensions.x}
-          height={typeDef.dimensions.y}
+          width={props.node.dimensions.x}
+          height={props.node.dimensions.y}
           onPointerDown={async (event) => {
             const startPos = { x: props.node.x, y: props.node.y };
             setDragging(true);
@@ -39,7 +41,7 @@ export function GraphNode(props: { node: NodeInstance }) {
           }}
         />
         {rendered()}
-        <g transform={`translate(${typeDef.dimensions.x - 20}, 5)`}>
+        <g transform={`translate(${props.node.dimensions.x - 20}, 5)`}>
           <foreignObject width="15" height="15">
             <button
               class={styles.deleteButton}

@@ -39,7 +39,7 @@ export function GraphEdge(props: { from: EdgeHandle; to: EdgeHandle }) {
         pointer-events="none"
         x1={
           fromNode()!.x +
-          graph.config[fromNode()!.type].dimensions.x -
+          fromNode()!.dimensions.x -
           PORT_INSET
         }
         y1={fromNode()!.y + portY(fromPortIndex())}

@@ -32,7 +32,7 @@ export function GraphTemporaryEdge(props: TemporaryEdge) {
             n().x +
             (props.kind === "in"
               ? PORT_INSET
-              : graph.config[n().type].dimensions.x - PORT_INSET)
+              : n().dimensions.x - PORT_INSET)
           }
           y1={n().y + portY(portIndex())}
           x2={props.x}

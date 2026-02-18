@@ -25,7 +25,7 @@ export function GraphPort(props: {
   } = useGraph();
 
   const cx = () =>
-    props.kind === "in" ? PORT_INSET : typeDef.dimensions.x - PORT_INSET;
+    props.kind === "in" ? PORT_INSET : node.dimensions.x - PORT_INSET;
   const cy = () => props.index * PORT_SPACING + PORT_OFFSET;
 
   return (
