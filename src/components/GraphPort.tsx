@@ -7,7 +7,7 @@ import {
   PORT_SPACING,
 } from "../constants";
 import { useGraph, useNode } from "../context";
-import type { EdgeHandle } from "../create-graph";
+import type { EdgeHandle } from "../lib/create-graph";
 
 export function GraphPort(props: {
   name: string;

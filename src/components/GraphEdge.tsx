@@ -1,7 +1,7 @@
 import { createMemo, Show } from "solid-js";
 import { PORT_INSET, PORT_OFFSET, PORT_SPACING } from "../constants";
 import { useGraph } from "../context";
-import type { EdgeHandle } from "../create-graph";
+import type { EdgeHandle } from "../lib/create-graph";
 
 function portY(index: number) {
   return index * PORT_SPACING + PORT_OFFSET;
@@ -37,11 +37,7 @@ export function GraphEdge(props: { from: EdgeHandle; to: EdgeHandle }) {
     <Show when={fromNode() && toNode()}>
       <line
         pointer-events="none"
-        x1={
-          fromNode()!.x +
-          fromNode()!.dimensions.x -
-          PORT_INSET
-        }
+        x1={fromNode()!.x + fromNode()!.dimensions.x - PORT_INSET}
         y1={fromNode()!.y + portY(fromPortIndex())}
         x2={toNode()!.x + PORT_INSET}
         y2={toNode()!.y + portY(toPortIndex())}

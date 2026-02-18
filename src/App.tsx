@@ -1,4 +1,5 @@
 import { minni } from "@bigmistqke/minni";
+import type { JSX } from "solid-js";
 import {
   createEffect,
   createSignal,
@@ -12,10 +13,43 @@ import styles from "./App.module.css";
 import { GraphEdge } from "./components/GraphEdge";
 import { GraphNode } from "./components/GraphNode";
 import { GraphTemporaryEdge } from "./components/GraphTemporaryEdge";
+import {
+  PORT_INSET,
+  PORT_OFFSET,
+  PORT_RADIUS,
+  PORT_SPACING,
+} from "./constants";
 import { GraphContext, type TemporaryEdge } from "./context";
-import { createGraph } from "./create-graph";
-import { createGraphProjection } from "./create-graph-projection";
-import { createNodeComponent } from "./create-node-component";
+import type { RenderProps } from "./lib/create-graph";
+import { createGraph } from "./lib/create-graph";
+import { createGraphProjection } from "./lib/create-graph-projection";
+
+function createNodeComponent<S extends Record<string, any>>(
+  title: string,
+  content?: (props: RenderProps<S>) => JSX.Element,
+) {
+  return (props: RenderProps<S>) => {
+    const inset = PORT_INSET + PORT_SPACING - PORT_RADIUS;
+    return (
+      <>
+        <text x={inset} y={17} font-size="12" fill="black">
+          {title}
+        </text>
+        {content && (
+          <foreignObject
+            x={inset}
+            y={PORT_OFFSET - PORT_RADIUS}
+            width={props.dimensions.x - inset * 2}
+            height={props.dimensions.y - (PORT_OFFSET - PORT_RADIUS) - 5}
+            class={styles.foreignObject}
+          >
+            {content(props)}
+          </foreignObject>
+        )}
+      </>
+    );
+  };
+}
 
 const App: Component = () => {
   const ctx = new AudioContext();
@@ -72,15 +106,14 @@ const App: Component = () => {
       dimensions: { x: 120, y: 60 },
       ports: {
         in: [{ name: "audio" }],
-        out: [],
       },
       render: createNodeComponent("Output"),
     },
   });
 
   // Audio projection
-  createGraphProjection(graph, ctx, {
-    oscillator: (ctx, state) => {
+  createGraphProjection(graph, {
+    oscillator(state) {
       const osc = ctx.createOscillator();
       osc.start();
 
@@ -103,7 +136,7 @@ const App: Component = () => {
         },
       };
     },
-    gain: (ctx, state) => {
+    gain(state) {
       const gainNode = ctx.createGain();
 
       createEffect(() => {
@@ -120,12 +153,11 @@ const App: Component = () => {
         },
       };
     },
-    destination: (ctx) => {
+    destination() {
       return {
         in: {
           audio: ctx.destination,
         },
-        out: {},
       };
     },
   });

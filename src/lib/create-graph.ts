@@ -1,24 +1,28 @@
+import { ReactiveMap } from "@solid-primitives/map";
 import { type JSX } from "solid-js";
 import { createStore, produce, type SetStoreFunction } from "solid-js/store";
-import { ReactiveMap } from "@solid-primitives/map";
 
 export interface PortDef {
   name: string;
   [key: string]: unknown;
 }
 
-export interface RenderProps<S extends Record<string, any> = Record<string, any>> {
+export interface RenderProps<
+  S extends Record<string, any> = Record<string, any>,
+> {
   state: S;
   setState: SetStoreFunction<S>;
   dimensions: { x: number; y: number };
   setDimensions(dimensions: Partial<{ x: number; y: number }>): void;
 }
 
-export interface NodeTypeDef<S extends Record<string, any> = Record<string, any>> {
+export interface NodeTypeDef<
+  S extends Record<string, any> = Record<string, any>,
+> {
   dimensions: { x: number; y: number };
   ports: {
-    in: PortDef[];
-    out: PortDef[];
+    in?: PortDef[];
+    out?: PortDef[];
   };
   state?: S;
   render?: (props: RenderProps<S>) => JSX.Element;
@@ -63,8 +67,8 @@ export function createGraph<T extends GraphConfig>(config: T) {
     if (!node) return undefined;
     const typeDef = config[node.type];
     return (
-      typeDef.ports.in.find((p) => p.name === portName) ??
-      typeDef.ports.out.find((p) => p.name === portName)
+      typeDef.ports.in?.find((p) => p.name === portName) ??
+      typeDef.ports.out?.find((p) => p.name === portName)
     );
   }
 

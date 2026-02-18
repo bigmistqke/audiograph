@@ -1,7 +1,7 @@
 import { minni } from "@bigmistqke/minni";
 import styles from "../App.module.css";
 import { NodeContext, useGraph } from "../context";
-import type { NodeInstance } from "../create-graph";
+import type { NodeInstance } from "../lib/create-graph";
 import { GraphPort } from "./GraphPort";
 
 export function GraphNode(props: { node: NodeInstance }) {

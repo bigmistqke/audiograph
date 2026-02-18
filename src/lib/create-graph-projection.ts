@@ -8,8 +8,8 @@ interface Connectable {
 }
 
 export type ProjectionResult = {
-  in: Record<string, any>;
-  out: Record<string, Connectable>;
+  in?: Record<string, any>;
+  out?: Record<string, Connectable>;
 };
 
 /** Extract the state type from a NodeTypeDef, defaulting to empty object */
@@ -37,10 +37,12 @@ export function createGraphProjection<T extends GraphConfig>(
       projectedNodes.set(node.id, result);
 
       onCleanup(() => {
-        for (const port of Object.values(result.out)) {
-          port.disconnect();
+        if (result.out) {
+          for (const port of Object.values(result.out)) {
+            port.disconnect();
+          }
+          projectedNodes.delete(node.id);
         }
-        projectedNodes.delete(node.id);
       });
 
       return result;
@@ -58,8 +60,8 @@ export function createGraphProjection<T extends GraphConfig>(
 
         if (!from || !to) return;
 
-        const outPort = from.out[edge.from.port];
-        const inPort = to.in[edge.to.port];
+        const outPort = from.out?.[edge.from.port];
+        const inPort = to.in?.[edge.to.port];
 
         if (!outPort || !inPort) return;
 

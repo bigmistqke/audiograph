@@ -1,5 +1,5 @@
 import { createContext, useContext } from "solid-js";
-import type { createGraph, NodeInstance } from "./create-graph";
+import type { createGraph, NodeInstance } from "./lib/create-graph";
 
 export interface TemporaryEdge {
   kind: "in" | "out";
@@ -25,7 +25,10 @@ export function useGraph() {
   return context;
 }
 
-export const NodeContext = createContext<{ node: NodeInstance; typeDef: any }>();
+export const NodeContext = createContext<{
+  node: NodeInstance;
+  typeDef: any;
+}>();
 
 export function useNode() {
   const context = useContext(NodeContext);
