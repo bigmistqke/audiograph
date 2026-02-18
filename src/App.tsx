@@ -144,7 +144,7 @@ const App: Component = () => {
       },
       state: { name: "", code: "" },
       render: (props) => (
-        <NodeUI title={`Custom: ${props.state.name}`} {...props}>
+        <NodeUI title="Custom" {...props}>
           {(props) => (
             <textarea
               style={{
@@ -412,25 +412,19 @@ const App: Component = () => {
             };
 
             if (type === "custom") {
-              const name = window.prompt("Enter a name for the custom worklet:");
-              if (!name) return;
-              const safeName = name
-                .toLowerCase()
-                .replace(/\s+/g, "-")
-                .replace(/[^a-z0-9-]/g, "");
-              if (!safeName) return;
+              const nodeId = graph.addNode(type, position);
+              const name = `custom-${nodeId}`;
 
               const boilerplate = getSourceBoilerplate();
-              workletFS.writeFile(`/${safeName}/source.js`, boilerplate);
+              workletFS.writeFile(`/${name}/source.js`, boilerplate);
               workletFS.writeFile(
-                `/${safeName}/worklet.js`,
-                getWorkletEntry(safeName),
+                `/${name}/worklet.js`,
+                getWorkletEntry(name),
               );
 
-              const nodeId = graph.addNode(type, position);
               const entry = graph.nodeStates.get(nodeId);
               if (entry) {
-                entry.setState("name", safeName);
+                entry.setState("name", name);
                 entry.setState("code", boilerplate);
               }
             } else {
