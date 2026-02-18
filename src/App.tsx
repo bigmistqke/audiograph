@@ -1,4 +1,5 @@
 import { minni } from "@bigmistqke/minni";
+import { ReactiveMap } from "@solid-primitives/map";
 import type { JSX } from "solid-js";
 import {
   createEffect,
@@ -8,18 +9,12 @@ import {
   Show,
   type Component,
 } from "solid-js";
-import { ReactiveMap } from "@solid-primitives/map";
 import { createStore } from "solid-js/store";
 import styles from "./App.module.css";
 import { GraphEdge } from "./components/GraphEdge";
 import { GraphNode } from "./components/GraphNode";
 import { GraphTemporaryEdge } from "./components/GraphTemporaryEdge";
-import {
-  PORT_INSET,
-  PORT_OFFSET,
-  PORT_RADIUS,
-  PORT_SPACING,
-} from "./constants";
+import { PORT_OFFSET, PORT_RADIUS, PORT_SPACING } from "./constants";
 import { GraphContext, type TemporaryEdge } from "./context";
 import type { RenderProps } from "./lib/create-graph";
 import { createGraph } from "./lib/create-graph";
@@ -37,17 +32,16 @@ function NodeUI<S extends Record<string, any>>(
     children?: (props: RenderProps<S>) => JSX.Element;
   },
 ) {
-  const inset = PORT_INSET * 2 + PORT_SPACING - PORT_RADIUS;
   return (
     <>
-      <text x={PORT_INSET - PORT_RADIUS} y={17} font-size="12" fill="black">
+      <text x={PORT_RADIUS} y={17} font-size="12" fill="black">
         {props.title}
       </text>
       {props.children && (
         <foreignObject
-          x={inset}
+          x={PORT_SPACING - PORT_RADIUS}
           y={PORT_OFFSET - PORT_RADIUS}
-          width={props.dimensions.x - inset * 2}
+          width={props.dimensions.x - PORT_SPACING * 2 + PORT_RADIUS}
           height={props.dimensions.y - (PORT_OFFSET - PORT_RADIUS) - 5}
           class={styles.foreignObject}
         >
@@ -165,39 +159,22 @@ const App: Component = () => {
               >
                 <For each={params()}>
                   {([name, param]) => {
-                    const min =
-                      param.minValue < -1e30 ? 0 : param.minValue;
-                    const max =
-                      param.maxValue > 1e30 ? 1 : param.maxValue;
-                    const [value, setValue] = createSignal(
-                      param.defaultValue,
-                    );
+                    const min = param.minValue < -1e30 ? 0 : param.minValue;
+                    const max = param.maxValue > 1e30 ? 1 : param.maxValue;
+                    const [value, setValue] = createSignal(param.defaultValue);
                     return (
-                      <label
-                        style={{
-                          "font-size": "10px",
-                          color: "black",
-                          display: "flex",
-                          "flex-direction": "column",
+                      <HorizontalSlider
+                        title={name}
+                        output={value().toFixed(2)}
+                        value={value()}
+                        min={min}
+                        max={max}
+                        step={(max - min) / 1000}
+                        onInput={(value) => {
+                          setValue(value);
+                          param.value = value;
                         }}
-                      >
-                        <span>
-                          {name}: {value().toFixed(2)}
-                        </span>
-                        <input
-                          type="range"
-                          min={min}
-                          max={max}
-                          step={(max - min) / 1000}
-                          value={value()}
-                          onInput={(e) => {
-                            const v = +e.currentTarget.value;
-                            setValue(v);
-                            param.value = v;
-                          }}
-                          style={{ width: "100%", "margin-inline": 0 }}
-                        />
-                      </label>
+                      />
                     );
                   }}
                 </For>
@@ -476,10 +453,7 @@ const App: Component = () => {
 
               const boilerplate = getSourceBoilerplate();
               workletFS.writeFile(`/${name}/source.js`, boilerplate);
-              workletFS.writeFile(
-                `/${name}/worklet.js`,
-                getWorkletEntry(name),
-              );
+              workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
 
               const entry = graph.nodeStates.get(nodeId);
               if (entry) {

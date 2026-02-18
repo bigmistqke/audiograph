@@ -4,6 +4,9 @@ export function HorizontalSlider(props: {
   output: string;
   disabled?: boolean;
   onInput: (value: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
 }) {
   return (
     <>
@@ -21,8 +24,9 @@ export function HorizontalSlider(props: {
 
       <input
         type="range"
-        min={20}
-        max={2000}
+        min={props.min ?? 20}
+        max={props.max ?? 2000}
+        step={props.step}
         value={props.value}
         disabled={props.disabled}
         onInput={(e) => props.onInput(+e.currentTarget.value)}
