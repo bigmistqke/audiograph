@@ -30,15 +30,14 @@ body {
 }
 
 .deleteButton {
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.15s;
+    position: absolute;
+    inset: 0px;
+    padding: 0px;
 }
 
-.deleteButton:hover line {
-    stroke: #e03131;
-}
-
-g:hover > .deleteButton {
-    opacity: 1;
+.foreignObject {
+    pointer-events: none;
+    & > * {
+        pointer-events: all;
+    }
 }

@@ -58,9 +58,9 @@ function useNode() {
 // --- Port ---
 
 const PORT_SPACING = 20;
-const PORT_OFFSET = 25;
+const PORT_OFFSET = 35;
 const PORT_RADIUS = 5;
-const PORT_INSET = 15;
+const PORT_INSET = 12.5;
 
 function Port(props: {
   name: string;
@@ -116,10 +116,7 @@ function Port(props: {
                 y: position.y,
               });
               await minni(event, (delta) => {
-                updateTemporaryEdge(
-                  position.x + delta.x,
-                  position.y - delta.y,
-                );
+                updateTemporaryEdge(position.x + delta.x, position.y - delta.y);
               });
               setTemporaryEdge(undefined);
               setDragging(false);
@@ -171,11 +168,11 @@ function Node(props: { node: NodeInstance }) {
   const { graph, setDragging } = useGraph();
   const typeDef = graph.config[props.node.type];
 
-  const rendered = (() => {
+  const rendered = () => {
     if (!typeDef.render) return null;
     const entry = graph.nodeStates.get(props.node.id);
     return typeDef.render(entry?.state, entry?.setState);
-  })();
+  };
 
   return (
     <NodeContext.Provider value={{ node: props.node, typeDef }}>
@@ -197,24 +194,28 @@ function Node(props: { node: NodeInstance }) {
             setDragging(false);
           }}
         />
-        {rendered}
-        <g
-          class={styles.deleteButton}
-          transform={`translate(${typeDef.dimensions.x - 16}, 4)`}
-          onPointerDown={(event) => {
-            event.stopPropagation();
-            graph.deleteNode(props.node.id);
-          }}
-        >
-          <rect width={12} height={12} rx={2} fill="transparent" />
-          <line x1={2} y1={2} x2={10} y2={10} stroke="black" stroke-width={1.5} />
-          <line x1={10} y1={2} x2={2} y2={10} stroke="black" stroke-width={1.5} />
+        {rendered()}
+        <g transform={`translate(${typeDef.dimensions.x - 20}, 5)`}>
+          <foreignObject width="15" height="15">
+            <button
+              class={styles.deleteButton}
+              onPointerDown={(event) => {
+                event.stopPropagation();
+                graph.deleteNode(props.node.id);
+              }}
+            ></button>
+          </foreignObject>
         </g>
         {typeDef.ports.in.map((port: any, index: number) => (
           <Port name={port.name} index={index} kind="in" dataKind={port.kind} />
         ))}
         {typeDef.ports.out.map((port: any, index: number) => (
-          <Port name={port.name} index={index} kind="out" dataKind={port.kind} />
+          <Port
+            name={port.name}
+            index={index}
+            kind="out"
+            dataKind={port.kind}
+          />
         ))}
       </g>
     </NodeContext.Provider>
@@ -330,10 +331,21 @@ const App: Component = () => {
       state: { frequency: 440, type: "sine" as OscillatorType },
       render: (state, setState) => (
         <>
-          <text x={40} y={18} font-size="12" fill="black">
+          <text
+            x={PORT_INSET + PORT_SPACING - PORT_RADIUS}
+            y={17}
+            font-size="12"
+            fill="black"
+          >
             Oscillator
           </text>
-          <foreignObject x={15} y={55} width={170} height={60}>
+          <foreignObject
+            x={PORT_INSET + PORT_SPACING - PORT_RADIUS}
+            y={PORT_OFFSET - PORT_RADIUS}
+            width={200 - (PORT_INSET + PORT_SPACING - PORT_RADIUS) * 2}
+            height={60}
+            class={styles.foreignObject}
+          >
             <div
               style={{
                 display: "flex",
@@ -349,7 +361,10 @@ const App: Component = () => {
                   max={2000}
                   value={state.frequency}
                   onInput={(e) => setState("frequency", +e.currentTarget.value)}
-                  style={{ width: "100%" }}
+                  style={{
+                    width: "100%",
+                    "margin-inline": 0,
+                  }}
                 />
               </label>
             </div>
@@ -534,7 +549,8 @@ const App: Component = () => {
         viewBox={`${-store.origin.x} ${store.origin.y} ${store.dimensions.width} ${store.dimensions.height}`}
         class={styles.svg}
         data-dragging={store.dragging || undefined}
-        onMouseDown={async (event) => {
+        onPointerDown={async (event) => {
+          console.log("this happens?");
           if (event.target !== event.currentTarget) return;
           const _origin = { ...store.origin };
           const start = performance.now();
