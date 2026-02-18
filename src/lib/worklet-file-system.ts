@@ -84,12 +84,18 @@ export function createWorkletFileSystem(): WorkletFileSystem {
 
 export function getSourceBoilerplate(): string {
   return `export default class extends AudioWorkletProcessor {
-  process(inputs, outputs) {
+  static get parameterDescriptors() {
+    return [{ name: "gain", defaultValue: 1, minValue: 0, maxValue: 1 }];
+  }
+  process(inputs, outputs, parameters) {
     const input = inputs[0];
     const output = outputs[0];
+    const gain = parameters.gain;
     for (let channel = 0; channel < output.length; ++channel) {
       if (input?.[channel]) {
-        output[channel].set(input[channel]);
+        for (let i = 0; i < output[channel].length; i++) {
+          output[channel][i] = input[channel][i] * (gain.length > 1 ? gain[i] : gain[0]);
+        }
       }
     }
     return true;

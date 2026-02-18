@@ -8,6 +8,7 @@ import {
   Show,
   type Component,
 } from "solid-js";
+import { ReactiveMap } from "@solid-primitives/map";
 import { createStore } from "solid-js/store";
 import styles from "./App.module.css";
 import { GraphEdge } from "./components/GraphEdge";
@@ -60,6 +61,7 @@ function NodeUI<S extends Record<string, any>>(
 const App: Component = () => {
   const ctx = new AudioContext();
   const workletFS = createWorkletFileSystem();
+  const workletNodes = new ReactiveMap<string, AudioWorkletNode>();
   const [selectedType, setSelectedType] = createSignal<string>("oscillator");
 
   const graph = createGraph({
@@ -145,30 +147,85 @@ const App: Component = () => {
       state: { name: "", code: "" },
       render: (props) => (
         <NodeUI title="Custom" {...props}>
-          {(props) => (
-            <textarea
-              style={{
-                width: "100%",
-                height: "100%",
-                "font-family": "monospace",
-                "font-size": "9px",
-                resize: "none",
-                border: "1px solid #ccc",
-                "box-sizing": "border-box",
-                "tab-size": "2",
-              }}
-              spellcheck={false}
-              value={props.state.code}
-              onInput={(e) => {
-                const newCode = e.currentTarget.value;
-                props.setState("code", newCode);
-                workletFS.writeFile(
-                  `/${props.state.name}/source.js`,
-                  newCode,
-                );
-              }}
-            />
-          )}
+          {(props) => {
+            const params = () => {
+              const node = workletNodes.get(props.state.name);
+              if (!node) return [];
+              return Array.from(node.parameters.entries());
+            };
+
+            return (
+              <div
+                style={{
+                  display: "flex",
+                  "flex-direction": "column",
+                  height: "100%",
+                  gap: "2px",
+                }}
+              >
+                <For each={params()}>
+                  {([name, param]) => {
+                    const min =
+                      param.minValue < -1e30 ? 0 : param.minValue;
+                    const max =
+                      param.maxValue > 1e30 ? 1 : param.maxValue;
+                    const [value, setValue] = createSignal(
+                      param.defaultValue,
+                    );
+                    return (
+                      <label
+                        style={{
+                          "font-size": "10px",
+                          color: "black",
+                          display: "flex",
+                          "flex-direction": "column",
+                        }}
+                      >
+                        <span>
+                          {name}: {value().toFixed(2)}
+                        </span>
+                        <input
+                          type="range"
+                          min={min}
+                          max={max}
+                          step={(max - min) / 1000}
+                          value={value()}
+                          onInput={(e) => {
+                            const v = +e.currentTarget.value;
+                            setValue(v);
+                            param.value = v;
+                          }}
+                          style={{ width: "100%", "margin-inline": 0 }}
+                        />
+                      </label>
+                    );
+                  }}
+                </For>
+                <textarea
+                  style={{
+                    flex: 1,
+                    width: "100%",
+                    "font-family": "monospace",
+                    "font-size": "9px",
+                    resize: "none",
+                    border: "1px solid #ccc",
+                    "box-sizing": "border-box",
+                    "tab-size": "2",
+                  }}
+                  spellcheck={false}
+                  value={props.state.code}
+                  onInput={(e) => {
+                    const newCode = e.currentTarget.value;
+                    props.setState("code", newCode);
+                    workletFS.writeFile(
+                      `/${props.state.name}/source.js`,
+                      newCode,
+                    );
+                  }}
+                />
+              </div>
+            );
+          }}
         </NodeUI>
       ),
     },
@@ -271,6 +328,7 @@ const App: Component = () => {
             currentWorkletNode = workletNode;
             inputGain.connect(workletNode);
             workletNode.connect(outputGain);
+            workletNodes.set(state.name, workletNode);
           })
           .catch((err) => {
             console.error(`Failed to load worklet "${processorName}":`, err);
@@ -284,6 +342,7 @@ const App: Component = () => {
         }
         inputGain.disconnect();
         outputGain.disconnect();
+        workletNodes.delete(state.name);
       });
 
       return {
