@@ -50,10 +50,21 @@ export function createGraph<T extends GraphConfig>(config: T) {
     { state: any; setState: SetStoreFunction<any> }
   >();
 
+  function getPortDef(nodeId: string, portName: string) {
+    const node = graph.nodes.find((n) => n.id === nodeId);
+    if (!node) return undefined;
+    const typeDef = config[node.type];
+    return (
+      typeDef.ports.in.find((p) => p.name === portName) ??
+      typeDef.ports.out.find((p) => p.name === portName)
+    );
+  }
+
   return {
     config,
     graph,
     nodeStates,
+    getPortDef,
     addNode(type: keyof T & string, position: { x: number; y: number }) {
       const id = (ID++).toString();
       const typeDef = config[type];
@@ -91,6 +102,11 @@ export function createGraph<T extends GraphConfig>(config: T) {
           e.to.port === to.port,
       );
       if (exists) return;
+
+      const fromPort = getPortDef(from.node, from.port);
+      const toPort = getPortDef(to.node, to.port);
+      if (fromPort?.kind !== toPort?.kind) return;
+
       setGraph(
         "edges",
         produce((edges) => edges.push({ from, to })),
