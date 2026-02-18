@@ -26,6 +26,7 @@ export interface NodeTypeDef<
     out?: PortDef[];
   };
   state?: S;
+  resizable?: boolean;
   render?: (props: RenderProps<S>) => JSX.Element;
 }
 

@@ -134,6 +134,7 @@ const App: Component = () => {
     },
     custom: {
       dimensions: { x: 280, y: 250 },
+      resizable: true,
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -153,7 +154,7 @@ const App: Component = () => {
                 style={{
                   display: "flex",
                   "flex-direction": "column",
-                  height: "100%",
+                  height: `calc(100% - ${PORT_RADIUS}px)`,
                   gap: "2px",
                 }}
               >

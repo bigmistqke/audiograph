@@ -9,7 +9,8 @@ import { GraphPort } from "./GraphPort";
 const PROXIMITY_THRESHOLD = 60;
 
 export function GraphNode(props: { node: NodeInstance }) {
-  const { graph, setDragging, getCursorPosition, getTemporaryEdge } = useGraph();
+  const { graph, setDragging, getCursorPosition, getTemporaryEdge } =
+    useGraph();
   const typeDef = graph.config[props.node.type];
 
   const isNearby = createMemo(() => {
@@ -88,9 +89,46 @@ export function GraphNode(props: { node: NodeInstance }) {
             dataKind={port.kind}
           />
         ))}
+        {typeDef.resizable && (
+          <>
+            <polygon
+              points={`${props.node.dimensions.x},${props.node.dimensions.y - 10} ${props.node.dimensions.x},${props.node.dimensions.y} ${props.node.dimensions.x - 10},${props.node.dimensions.y}`}
+              fill="transparent"
+              stroke="none"
+              style={{ cursor: "nwse-resize" }}
+              onPointerDown={async (event) => {
+                event.stopPropagation();
+                const startDims = { ...props.node.dimensions };
+                setDragging(true);
+                await minni(event, (delta) => {
+                  graph.updateNode(props.node.id, {
+                    dimensions: {
+                      x: Math.max(80, startDims.x + delta.x),
+                      y: Math.max(60, startDims.y - delta.y),
+                    },
+                  });
+                });
+                setDragging(false);
+              }}
+            />
+            <line
+              x1={props.node.dimensions.x}
+              y1={props.node.dimensions.y - 10}
+              x2={props.node.dimensions.x - 10}
+              y2={props.node.dimensions.y}
+              stroke="black"
+              stroke-width="1.5"
+              pointer-events="none"
+            />
+          </>
+        )}
         <g
           class={styles.portLabels}
-          data-visible={isNearby() || getTemporaryEdge()?.node === props.node.id || undefined}
+          data-visible={
+            isNearby() ||
+            getTemporaryEdge()?.node === props.node.id ||
+            undefined
+          }
         >
           {typeDef.ports.in.map((port: any, index: number) => (
             <text

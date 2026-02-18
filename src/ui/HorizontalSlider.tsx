@@ -21,7 +21,6 @@ export function HorizontalSlider(props: {
         <span>{props.title}</span>
         <output>{props.output}</output>
       </label>
-
       <input
         type="range"
         min={props.min ?? 20}
