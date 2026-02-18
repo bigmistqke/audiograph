@@ -1,353 +1,21 @@
 import { minni } from "@bigmistqke/minni";
 import {
-  createContext,
   createEffect,
-  createMemo,
   createSignal,
   For,
   onCleanup,
   Show,
-  useContext,
   type Component,
-  type JSX,
 } from "solid-js";
 import { createStore } from "solid-js/store";
 import styles from "./App.module.css";
-import {
-  createGraph,
-  type EdgeHandle,
-  type NodeInstance,
-  type RenderProps,
-} from "./create-graph";
+import { GraphEdge } from "./components/GraphEdge";
+import { GraphNode } from "./components/GraphNode";
+import { GraphTemporaryEdge } from "./components/GraphTemporaryEdge";
+import { GraphContext, type TemporaryEdge } from "./context";
+import { createGraph } from "./create-graph";
 import { createGraphProjection } from "./create-graph-projection";
-
-// --- Types ---
-
-interface TemporaryEdge {
-  kind: "in" | "out";
-  node: string;
-  port: string;
-  x?: number;
-  y?: number;
-}
-
-// --- Contexts ---
-
-type GraphAPI = ReturnType<typeof createGraph<any>>;
-
-const GraphContext = createContext<{
-  graph: GraphAPI;
-  setTemporaryEdge(edge: TemporaryEdge | undefined): void;
-  getTemporaryEdge(): TemporaryEdge | undefined;
-  updateTemporaryEdge(x: number, y: number): void;
-  setDragging(dragging: boolean): void;
-}>();
-
-function useGraph() {
-  const context = useContext(GraphContext);
-  if (!context) throw new Error("useGraph must be used within GraphContext");
-  return context;
-}
-
-const NodeContext = createContext<{ node: NodeInstance; typeDef: any }>();
-
-function useNode() {
-  const context = useContext(NodeContext);
-  if (!context) throw new Error("useNode must be used within a Node");
-  return context;
-}
-
-// --- Port ---
-
-const PORT_SPACING = 20;
-const PORT_OFFSET = 35;
-const PORT_RADIUS = 5;
-const PORT_INSET = 12.5;
-
-function Port(props: {
-  name: string;
-  index: number;
-  kind: "in" | "out";
-  dataKind?: string;
-}) {
-  const { node, typeDef } = useNode();
-  const {
-    graph,
-    setTemporaryEdge,
-    getTemporaryEdge,
-    updateTemporaryEdge,
-    setDragging,
-  } = useGraph();
-
-  const cx = () =>
-    props.kind === "in" ? PORT_INSET : typeDef.dimensions.x - PORT_INSET;
-  const cy = () => props.index * PORT_SPACING + PORT_OFFSET;
-
-  return (
-    <circle
-      cx={cx()}
-      cy={cy()}
-      r={PORT_RADIUS}
-      data-kind={props.dataKind}
-      class={styles.port}
-      onPointerDown={async (event) => {
-        event.stopPropagation();
-        setDragging(true);
-
-        // If dragging from an in-port with an existing edge, detach it
-        if (props.kind === "in") {
-          const existingEdge = graph.graph.edges.find(
-            (e) => e.to.node === node.id && e.to.port === props.name,
-          );
-          if (existingEdge) {
-            graph.unlink(existingEdge.from, existingEdge.to);
-            // Start dragging from the original out-port
-            const fromNode = graph.graph.nodes.find(
-              (n) => n.id === existingEdge.from.node,
-            );
-            if (fromNode) {
-              const position = {
-                x: node.x + cx(),
-                y: node.y + cy(),
-              };
-              setTemporaryEdge({
-                node: fromNode.id,
-                kind: "out",
-                port: existingEdge.from.port,
-                x: position.x,
-                y: position.y,
-              });
-              await minni(event, (delta) => {
-                updateTemporaryEdge(position.x + delta.x, position.y - delta.y);
-              });
-              setTemporaryEdge(undefined);
-              setDragging(false);
-              return;
-            }
-          }
-        }
-
-        setTemporaryEdge({
-          node: node.id,
-          kind: props.kind,
-          port: props.name,
-        });
-        const position = {
-          x: node.x + cx(),
-          y: node.y + cy(),
-        };
-        await minni(event, (delta) => {
-          updateTemporaryEdge(position.x + delta.x, position.y - delta.y);
-        });
-        setTemporaryEdge(undefined);
-        setDragging(false);
-      }}
-      onPointerUp={(event) => {
-        event.stopPropagation();
-        const edgeHandle = getTemporaryEdge();
-        if (!edgeHandle) return;
-        if (edgeHandle.kind === props.kind) return;
-
-        const from: EdgeHandle =
-          props.kind === "in"
-            ? { node: edgeHandle.node, port: edgeHandle.port }
-            : { node: node.id, port: props.name };
-
-        const to: EdgeHandle =
-          props.kind === "out"
-            ? { node: edgeHandle.node, port: edgeHandle.port }
-            : { node: node.id, port: props.name };
-
-        graph.link(from, to);
-      }}
-    />
-  );
-}
-
-// --- Node ---
-
-function Node(props: { node: NodeInstance }) {
-  const { graph, setDragging } = useGraph();
-  const typeDef = graph.config[props.node.type];
-
-  const rendered = () => {
-    if (!typeDef.render) return null;
-    const entry = graph.nodeStates.get(props.node.id);
-    return typeDef.render({
-      state: entry?.state,
-      setState: entry?.setState,
-      dimensions: typeDef.dimensions,
-    });
-  };
-
-  return (
-    <NodeContext.Provider value={{ node: props.node, typeDef }}>
-      <g transform={`translate(${props.node.x}, ${props.node.y})`}>
-        <rect
-          fill="white"
-          stroke="black"
-          width={typeDef.dimensions.x}
-          height={typeDef.dimensions.y}
-          onPointerDown={async (event) => {
-            const startPos = { x: props.node.x, y: props.node.y };
-            setDragging(true);
-            await minni(event, (delta) => {
-              graph.updateNode(props.node.id, {
-                x: startPos.x + delta.x,
-                y: startPos.y - delta.y,
-              });
-            });
-            setDragging(false);
-          }}
-        />
-        {rendered()}
-        <g transform={`translate(${typeDef.dimensions.x - 20}, 5)`}>
-          <foreignObject width="15" height="15">
-            <button
-              class={styles.deleteButton}
-              onPointerDown={(event) => {
-                event.stopPropagation();
-                graph.deleteNode(props.node.id);
-              }}
-            ></button>
-          </foreignObject>
-        </g>
-        {typeDef.ports.in.map((port: any, index: number) => (
-          <Port name={port.name} index={index} kind="in" dataKind={port.kind} />
-        ))}
-        {typeDef.ports.out.map((port: any, index: number) => (
-          <Port
-            name={port.name}
-            index={index}
-            kind="out"
-            dataKind={port.kind}
-          />
-        ))}
-      </g>
-    </NodeContext.Provider>
-  );
-}
-
-// --- Edge ---
-
-function portY(index: number) {
-  return index * PORT_SPACING + PORT_OFFSET;
-}
-
-function EdgeView(props: { from: EdgeHandle; to: EdgeHandle }) {
-  const { graph } = useGraph();
-
-  const fromNode = createMemo(() =>
-    graph.graph.nodes.find((n) => n.id === props.from.node),
-  );
-  const toNode = createMemo(() =>
-    graph.graph.nodes.find((n) => n.id === props.to.node),
-  );
-
-  const fromPortIndex = () => {
-    const node = fromNode();
-    if (!node) return -1;
-    return graph.config[node.type].ports.out.findIndex(
-      (p: any) => p.name === props.from.port,
-    );
-  };
-
-  const toPortIndex = () => {
-    const node = toNode();
-    if (!node) return -1;
-    return graph.config[node.type].ports.in.findIndex(
-      (p: any) => p.name === props.to.port,
-    );
-  };
-
-  return (
-    <Show when={fromNode() && toNode()}>
-      <line
-        pointer-events="none"
-        x1={
-          fromNode()!.x +
-          graph.config[fromNode()!.type].dimensions.x -
-          PORT_INSET
-        }
-        y1={fromNode()!.y + portY(fromPortIndex())}
-        x2={toNode()!.x + PORT_INSET}
-        y2={toNode()!.y + portY(toPortIndex())}
-        stroke="black"
-      />
-    </Show>
-  );
-}
-
-// --- Temporary Edge ---
-
-function TemporaryEdgeView(props: TemporaryEdge) {
-  const { graph } = useGraph();
-
-  const node = createMemo(() =>
-    graph.graph.nodes.find((n) => n.id === props.node),
-  );
-
-  const portIndex = () => {
-    const n = node();
-    if (!n) return -1;
-    const ports =
-      props.kind === "in"
-        ? graph.config[n.type].ports.in
-        : graph.config[n.type].ports.out;
-    return ports.findIndex((p: any) => p.name === props.port);
-  };
-
-  return (
-    <Show when={props.x !== undefined && props.y !== undefined && node()}>
-      {(n) => (
-        <line
-          pointer-events="none"
-          x1={
-            n().x +
-            (props.kind === "in"
-              ? PORT_INSET
-              : graph.config[n().type].dimensions.x - PORT_INSET)
-          }
-          y1={n().y + portY(portIndex())}
-          x2={props.x}
-          y2={props.y}
-          stroke="black"
-        />
-      )}
-    </Show>
-  );
-}
-
-// --- Node Component Factory ---
-
-function createNodeComponent<S extends Record<string, any>>(
-  title: string,
-  content?: (props: RenderProps<S>) => JSX.Element,
-) {
-  return (props: RenderProps<S>) => {
-    const inset = PORT_INSET + PORT_SPACING - PORT_RADIUS;
-    return (
-      <>
-        <text x={inset} y={17} font-size="12" fill="black">
-          {title}
-        </text>
-        {content && (
-          <foreignObject
-            x={inset}
-            y={PORT_OFFSET - PORT_RADIUS}
-            width={props.dimensions.x - inset * 2}
-            height={props.dimensions.y - (PORT_OFFSET - PORT_RADIUS) - 5}
-            class={styles.foreignObject}
-          >
-            {content(props)}
-          </foreignObject>
-        )}
-      </>
-    );
-  };
-}
-
-// --- App ---
+import { createNodeComponent } from "./create-node-component";
 
 const App: Component = () => {
   const ctx = new AudioContext();
@@ -545,7 +213,6 @@ const App: Component = () => {
         class={styles.svg}
         data-dragging={store.dragging || undefined}
         onPointerDown={async (event) => {
-          console.log("this happens?");
           if (event.target !== event.currentTarget) return;
           const _origin = { ...store.origin };
           const start = performance.now();
@@ -567,10 +234,12 @@ const App: Component = () => {
           }
         }}
       >
-        <For each={graph.graph.nodes}>{(node) => <Node node={node} />}</For>
-        <For each={graph.graph.edges}>{(edge) => <EdgeView {...edge} />}</For>
+        <For each={graph.graph.nodes}>
+          {(node) => <GraphNode node={node} />}
+        </For>
+        <For each={graph.graph.edges}>{(edge) => <GraphEdge {...edge} />}</For>
         <Show when={store.temporaryEdge}>
-          {(edge) => <TemporaryEdgeView {...edge()} />}
+          {(edge) => <GraphTemporaryEdge {...edge()} />}
         </Show>
       </svg>
     </GraphContext.Provider>
