@@ -10,6 +10,7 @@ export interface PortDef {
 export interface RenderProps<
   S extends Record<string, any> = Record<string, any>,
 > {
+  id: string;
   state: S;
   setState: SetStoreFunction<S>;
   dimensions: { x: number; y: number };
@@ -149,7 +150,7 @@ export function createGraph<T extends GraphConfig>(config: T) {
     },
     updateNode(
       id: string,
-      update: Partial<Pick<NodeInstance, "x" | "y">> & {
+      update: Partial<Pick<NodeInstance, "x" | "y" | "type">> & {
         dimensions?: Partial<{ x: number; y: number }>;
       },
     ) {

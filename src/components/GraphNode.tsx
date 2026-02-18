@@ -11,7 +11,7 @@ const PROXIMITY_THRESHOLD = 60;
 export function GraphNode(props: { node: NodeInstance }) {
   const { graph, setDragging, getCursorPosition, getTemporaryEdge } =
     useGraph();
-  const typeDef = graph.config[props.node.type];
+  const typeDef = () => graph.config[props.node.type];
 
   const isNearby = createMemo(() => {
     const cursor = getCursorPosition();
@@ -26,9 +26,11 @@ export function GraphNode(props: { node: NodeInstance }) {
   });
 
   const rendered = () => {
-    if (!typeDef.render) return null;
+    const def = typeDef();
+    if (!def?.render) return null;
     const entry = graph.nodeStates.get(props.node.id);
-    return typeDef.render({
+    return def.render({
+      id: props.node.id,
       state: entry?.state,
       setState: entry?.setState,
       dimensions: props.node.dimensions,
@@ -42,7 +44,7 @@ export function GraphNode(props: { node: NodeInstance }) {
   };
 
   return (
-    <NodeContext.Provider value={{ node: props.node, typeDef }}>
+    <NodeContext.Provider value={{ node: props.node, get typeDef() { return typeDef(); } }}>
       <g transform={`translate(${props.node.x}, ${props.node.y})`}>
         <rect
           fill="white"
@@ -73,7 +75,7 @@ export function GraphNode(props: { node: NodeInstance }) {
             ></button>
           </foreignObject>
         </g>
-        {typeDef.ports.in.map((port: any, index: number) => (
+        {typeDef().ports.in?.map((port: any, index: number) => (
           <GraphPort
             name={port.name}
             index={index}
@@ -81,7 +83,7 @@ export function GraphNode(props: { node: NodeInstance }) {
             dataKind={port.kind}
           />
         ))}
-        {typeDef.ports.out.map((port: any, index: number) => (
+        {typeDef().ports.out?.map((port: any, index: number) => (
           <GraphPort
             name={port.name}
             index={index}
@@ -89,7 +91,7 @@ export function GraphNode(props: { node: NodeInstance }) {
             dataKind={port.kind}
           />
         ))}
-        {typeDef.resizable && (
+        {typeDef().resizable && (
           <>
             <polygon
               points={`${props.node.dimensions.x},${props.node.dimensions.y - 10} ${props.node.dimensions.x},${props.node.dimensions.y} ${props.node.dimensions.x - 10},${props.node.dimensions.y}`}
@@ -130,7 +132,7 @@ export function GraphNode(props: { node: NodeInstance }) {
             undefined
           }
         >
-          {typeDef.ports.in.map((port: any, index: number) => (
+          {typeDef().ports.in?.map((port: any, index: number) => (
             <text
               x={PORT_RADIUS * -3}
               y={index * PORT_SPACING + PORT_OFFSET}
@@ -141,7 +143,7 @@ export function GraphNode(props: { node: NodeInstance }) {
               {port.name}
             </text>
           ))}
-          {typeDef.ports.out.map((port: any, index: number) => (
+          {typeDef().ports.out?.map((port: any, index: number) => (
             <text
               x={props.node.dimensions.x + PORT_RADIUS * 3}
               y={index * PORT_SPACING + PORT_OFFSET}
