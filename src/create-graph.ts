@@ -93,6 +93,21 @@ export function createGraph<T extends GraphConfig>(config: T) {
       );
       nodeStates.delete(id);
     },
+    unlink(from: EdgeHandle, to: EdgeHandle) {
+      setGraph(
+        "edges",
+        produce((edges) => {
+          const idx = edges.findIndex(
+            (e) =>
+              e.from.node === from.node &&
+              e.from.port === from.port &&
+              e.to.node === to.node &&
+              e.to.port === to.port,
+          );
+          if (idx !== -1) edges.splice(idx, 1);
+        }),
+      );
+    },
     link(from: EdgeHandle, to: EdgeHandle) {
       const exists = graph.edges.find(
         (e) =>

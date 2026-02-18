@@ -28,3 +28,17 @@ body {
     fill: #51cf66;
     stroke: #37a34d;
 }
+
+.deleteButton {
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.deleteButton:hover line {
+    stroke: #e03131;
+}
+
+g:hover > .deleteButton {
+    opacity: 1;
+}

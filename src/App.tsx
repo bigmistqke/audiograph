@@ -91,6 +91,43 @@ function Port(props: {
       onPointerDown={async (event) => {
         event.stopPropagation();
         setDragging(true);
+
+        // If dragging from an in-port with an existing edge, detach it
+        if (props.kind === "in") {
+          const existingEdge = graph.graph.edges.find(
+            (e) => e.to.node === node.id && e.to.port === props.name,
+          );
+          if (existingEdge) {
+            graph.unlink(existingEdge.from, existingEdge.to);
+            // Start dragging from the original out-port
+            const fromNode = graph.graph.nodes.find(
+              (n) => n.id === existingEdge.from.node,
+            );
+            if (fromNode) {
+              const position = {
+                x: node.x + cx(),
+                y: node.y + cy(),
+              };
+              setTemporaryEdge({
+                node: fromNode.id,
+                kind: "out",
+                port: existingEdge.from.port,
+                x: position.x,
+                y: position.y,
+              });
+              await minni(event, (delta) => {
+                updateTemporaryEdge(
+                  position.x + delta.x,
+                  position.y - delta.y,
+                );
+              });
+              setTemporaryEdge(undefined);
+              setDragging(false);
+              return;
+            }
+          }
+        }
+
         setTemporaryEdge({
           node: node.id,
           kind: props.kind,
@@ -161,6 +198,18 @@ function Node(props: { node: NodeInstance }) {
           }}
         />
         {rendered}
+        <g
+          class={styles.deleteButton}
+          transform={`translate(${typeDef.dimensions.x - 16}, 4)`}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            graph.deleteNode(props.node.id);
+          }}
+        >
+          <rect width={12} height={12} rx={2} fill="transparent" />
+          <line x1={2} y1={2} x2={10} y2={10} stroke="black" stroke-width={1.5} />
+          <line x1={10} y1={2} x2={2} y2={10} stroke="black" stroke-width={1.5} />
+        </g>
         {typeDef.ports.in.map((port: any, index: number) => (
           <Port name={port.name} index={index} kind="in" dataKind={port.kind} />
         ))}
