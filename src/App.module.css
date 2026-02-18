@@ -1,59 +1,77 @@
 body {
-    padding: 0px;
-    margin: 0px;
-    overflow: hidden;
+  padding: 0px;
+  margin: 0px;
+  overflow: hidden;
+
+  --color-stroke: #4b4b4b;
+  --color-text: #121212;
+  --color-edge: #313131;
+}
+
+.nodeButton {
+  font-family: "Times New Roman", Times, serif;
+  border: 1px solid #999;
+  padding: 4px 12px;
+  cursor: pointer;
+  color: var(--color-text);
+  background: #eee;
+
+  &.selected {
+    background: #333;
+    color: white;
+  }
 }
 
 .svg {
-    width: 100vw;
-    height: 100vh;
+  width: 100vw;
+  height: 100vh;
 }
 
 .svg[data-dragging] * {
-    user-select: none;
+  user-select: none;
 }
 
 .port {
-    fill: #4a9eff;
-    stroke: #2a6cc7;
-    stroke-width: 1.5;
+  fill: #4a9eff;
+  stroke: #2a6cc7;
+  stroke-width: 1.5;
 }
 
 .port[data-kind="param"] {
-    fill: #ff6b6b;
-    stroke: #c74a4a;
+  fill: #ff6b6b;
+  stroke: #c74a4a;
 }
 
 .port[data-kind="output"] {
-    fill: #51cf66;
-    stroke: #37a34d;
+  fill: #51cf66;
+  stroke: #37a34d;
 }
 
 .portLabels {
-    opacity: 0;
-    transition: opacity 1s ease 1s;
-    pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease 1s;
+  pointer-events: none;
 }
 
 .portLabels[data-visible] {
-    opacity: 1;
-    transition: opacity 0.15s ease;
+  opacity: 1;
+  transition: opacity 0.15s ease;
 }
 
 .portLabel {
-    font-size: 10px;
-    fill: #666;
+  font-size: 10px;
+  fill: #666;
 }
 
 .deleteButton {
-    position: absolute;
-    inset: 0px;
-    padding: 0px;
+  position: absolute;
+  inset: 0px;
+  padding: 0px;
 }
 
 .foreignObject {
-    pointer-events: none;
-    & > * {
-        pointer-events: all;
-    }
+  pointer-events: none;
+  & > * {
+    pointer-events: all;
+  }
 }

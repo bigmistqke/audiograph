@@ -1,5 +1,6 @@
 import { minni } from "@bigmistqke/minni";
 import { ReactiveMap } from "@solid-primitives/map";
+import clsx from "clsx";
 import type { JSX } from "solid-js";
 import {
   createEffect,
@@ -34,7 +35,7 @@ function NodeUI<S extends Record<string, any>>(
 ) {
   return (
     <>
-      <text x={PORT_RADIUS} y={17} font-size="12" fill="black">
+      <text x={PORT_RADIUS} y={17} font-size="12" fill="var(--color-text)">
         {props.title}
       </text>
       {props.children && (
@@ -381,13 +382,10 @@ const App: Component = () => {
         <For each={Object.keys(graph.config)}>
           {(type) => (
             <button
-              style={{
-                background: selectedType() === type ? "#333" : "#eee",
-                color: selectedType() === type ? "white" : "black",
-                border: "1px solid #999",
-                padding: "4px 12px",
-                cursor: "pointer",
-              }}
+              class={clsx(
+                styles.nodeButton,
+                selectedType() === type && styles.selected,
+              )}
               onClick={() => setSelectedType(type)}
             >
               {type}

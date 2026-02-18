@@ -30,14 +30,12 @@ export function GraphTemporaryEdge(props: TemporaryEdge) {
           pointer-events="none"
           x1={
             n().x +
-            (props.kind === "in"
-              ? PORT_INSET
-              : n().dimensions.x - PORT_INSET)
+            (props.kind === "in" ? PORT_INSET : n().dimensions.x - PORT_INSET)
           }
           y1={n().y + portY(portIndex())}
           x2={props.x}
           y2={props.y}
-          stroke="black"
+          stroke="var(--color-stroke)"
         />
       )}
     </Show>

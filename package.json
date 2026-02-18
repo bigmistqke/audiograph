@@ -22,6 +22,7 @@
     "@bigmistqke/rpc": "link:../rpc/packages/rpc",
     "@solid-primitives/map": "^0.7.2",
     "@types/audioworklet": "^0.0.95",
+    "clsx": "^2.1.1",
     "solid-js": "^1.9.5"
   }
 }

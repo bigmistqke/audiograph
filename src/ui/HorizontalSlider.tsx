@@ -13,7 +13,7 @@ export function HorizontalSlider(props: {
       <label
         style={{
           "font-size": "10px",
-          color: "black",
+          color: "var(--color-text)",
           display: "flex",
           "justify-content": "space-between",
         }}

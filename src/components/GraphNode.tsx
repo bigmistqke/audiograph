@@ -46,7 +46,7 @@ export function GraphNode(props: { node: NodeInstance }) {
       <g transform={`translate(${props.node.x}, ${props.node.y})`}>
         <rect
           fill="white"
-          stroke="black"
+          stroke="var(--color-stroke)"
           width={props.node.dimensions.x}
           height={props.node.dimensions.y}
           onPointerDown={async (event) => {
@@ -116,7 +116,7 @@ export function GraphNode(props: { node: NodeInstance }) {
               y1={props.node.dimensions.y - 10}
               x2={props.node.dimensions.x - 10}
               y2={props.node.dimensions.y}
-              stroke="black"
+              stroke="var(--color-stroke)"
               stroke-width="1.5"
               pointer-events="none"
             />

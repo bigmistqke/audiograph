@@ -41,7 +41,7 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
         y1={fromNode()!.y + portY(fromPortIndex())}
         x2={toNode()!.x + PORT_INSET}
         y2={toNode()!.y + portY(toPortIndex())}
-        stroke="black"
+        stroke="var(--color-stroke)"
       />
     </Show>
   );
