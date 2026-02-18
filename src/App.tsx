@@ -23,6 +23,7 @@ import { GraphContext, type TemporaryEdge } from "./context";
 import type { RenderProps } from "./lib/create-graph";
 import { createGraph } from "./lib/create-graph";
 import { createGraphProjection } from "./lib/create-graph-projection";
+import { HorizontalSlider } from "./ui/HorizontalSlider";
 
 function NodeUI<S extends Record<string, any>>(
   props: RenderProps<S> & {
@@ -30,10 +31,10 @@ function NodeUI<S extends Record<string, any>>(
     children?: (props: RenderProps<S>) => JSX.Element;
   },
 ) {
-  const inset = PORT_INSET + PORT_SPACING - PORT_RADIUS;
+  const inset = PORT_INSET * 2 + PORT_SPACING - PORT_RADIUS;
   return (
     <>
-      <text x={inset} y={17} font-size="12" fill="black">
+      <text x={PORT_INSET - PORT_RADIUS} y={17} font-size="12" fill="black">
         {props.title}
       </text>
       {props.children && (
@@ -69,20 +70,13 @@ const App: Component = () => {
       render: (props) => (
         <NodeUI title="Oscillator" {...props}>
           {(props) => (
-            <label style={{ "font-size": "10px", color: "black" }}>
-              Freq: {Math.round(props.state.frequency)}Hz
-              <input
-                type="range"
-                min={20}
-                max={2000}
-                value={props.state.frequency}
-                disabled={props.isInputConnected("frequency")}
-                onInput={(e) =>
-                  props.setState("frequency", +e.currentTarget.value)
-                }
-                style={{ width: "100%", "margin-inline": 0 }}
-              />
-            </label>
+            <HorizontalSlider
+              title="Freq"
+              value={props.state.frequency}
+              output={`${Math.round(props.state.frequency)}Hz`}
+              disabled={props.isInputConnected("frequency")}
+              onInput={(value) => props.setState("frequency", value)}
+            />
           )}
         </NodeUI>
       ),
@@ -97,19 +91,13 @@ const App: Component = () => {
       render: (props) => (
         <NodeUI title="Gain" {...props}>
           {(props) => (
-            <label style={{ "font-size": "10px", color: "black" }}>
-              Gain: {props.state.gain.toFixed(2)}
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={props.state.gain}
-                disabled={props.isInputConnected("gain")}
-                onInput={(e) => props.setState("gain", +e.currentTarget.value)}
-                style={{ width: "100%", "margin-inline": 0 }}
-              />
-            </label>
+            <HorizontalSlider
+              title="Gain"
+              output={props.state.gain.toFixed(2)}
+              value={props.state.gain}
+              disabled={props.isInputConnected("gain")}
+              onInput={(value) => props.setState("gain", value)}
+            />
           )}
         </NodeUI>
       ),
@@ -124,17 +112,12 @@ const App: Component = () => {
       render: (props) => (
         <NodeUI title="Constant" {...props}>
           {(props) => (
-            <label style={{ "font-size": "10px", color: "black" }}>
-              Value: {props.state.value}
-              <input
-                type="range"
-                min={0}
-                max={2000}
-                value={props.state.value}
-                onInput={(e) => props.setState("value", +e.currentTarget.value)}
-                style={{ width: "100%", "margin-inline": 0 }}
-              />
-            </label>
+            <HorizontalSlider
+              title="Value"
+              output={props.state.value}
+              value={props.state.gain}
+              onInput={(value) => props.setState("value", value)}
+            />
           )}
         </NodeUI>
       ),
