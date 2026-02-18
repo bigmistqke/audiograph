@@ -9,7 +9,7 @@ import { GraphPort } from "./GraphPort";
 const PROXIMITY_THRESHOLD = 60;
 
 export function GraphNode(props: { node: NodeInstance }) {
-  const { graph, setDragging, getCursorPosition } = useGraph();
+  const { graph, setDragging, getCursorPosition, getTemporaryEdge } = useGraph();
   const typeDef = graph.config[props.node.type];
 
   const isNearby = createMemo(() => {
@@ -90,7 +90,7 @@ export function GraphNode(props: { node: NodeInstance }) {
         ))}
         <g
           class={styles.portLabels}
-          data-visible={isNearby() || undefined}
+          data-visible={isNearby() || getTemporaryEdge()?.node === props.node.id || undefined}
         >
           {typeDef.ports.in.map((port: any, index: number) => (
             <text
