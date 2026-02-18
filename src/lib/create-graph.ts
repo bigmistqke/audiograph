@@ -13,6 +13,7 @@ export interface RenderProps<
   state: S;
   setState: SetStoreFunction<S>;
   dimensions: { x: number; y: number };
+  isInputConnected(portName: string): boolean;
   setDimensions(dimensions: Partial<{ x: number; y: number }>): void;
 }
 
@@ -44,8 +45,8 @@ export interface EdgeHandle {
 }
 
 export interface Edge {
-  from: EdgeHandle;
-  to: EdgeHandle;
+  output: EdgeHandle;
+  input: EdgeHandle;
 }
 
 interface GraphStore {
@@ -105,44 +106,44 @@ export function createGraph<T extends GraphConfig>(config: T) {
           const idx = graph.nodes.findIndex((node) => node.id === id);
           if (idx !== -1) graph.nodes.splice(idx, 1);
           graph.edges = graph.edges.filter(
-            (edge) => edge.from.node !== id && edge.to.node !== id,
+            (edge) => edge.output.node !== id && edge.input.node !== id,
           );
         }),
       );
       nodeStates.delete(id);
     },
-    unlink(from: EdgeHandle, to: EdgeHandle) {
+    unlink(output: EdgeHandle, input: EdgeHandle) {
       setGraph(
         "edges",
         produce((edges) => {
           const idx = edges.findIndex(
             (e) =>
-              e.from.node === from.node &&
-              e.from.port === from.port &&
-              e.to.node === to.node &&
-              e.to.port === to.port,
+              e.output.node === output.node &&
+              e.output.port === output.port &&
+              e.input.node === input.node &&
+              e.input.port === input.port,
           );
           if (idx !== -1) edges.splice(idx, 1);
         }),
       );
     },
-    link(from: EdgeHandle, to: EdgeHandle) {
+    link(output: EdgeHandle, input: EdgeHandle) {
       const exists = graph.edges.find(
         (e) =>
-          e.from.node === from.node &&
-          e.from.port === from.port &&
-          e.to.node === to.node &&
-          e.to.port === to.port,
+          e.output.node === output.node &&
+          e.output.port === output.port &&
+          e.input.node === input.node &&
+          e.input.port === input.port,
       );
       if (exists) return;
 
-      const fromPort = getPortDef(from.node, from.port);
-      const toPort = getPortDef(to.node, to.port);
+      const fromPort = getPortDef(output.node, output.port);
+      const toPort = getPortDef(input.node, input.port);
       if (fromPort?.kind !== toPort?.kind) return;
 
       setGraph(
         "edges",
-        produce((edges) => edges.push({ from, to })),
+        produce((edges) => edges.push({ output: output, input: input })),
       );
     },
     updateNode(

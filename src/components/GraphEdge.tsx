@@ -7,21 +7,21 @@ function portY(index: number) {
   return index * PORT_SPACING + PORT_OFFSET;
 }
 
-export function GraphEdge(props: { from: EdgeHandle; to: EdgeHandle }) {
+export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
   const { graph } = useGraph();
 
   const fromNode = createMemo(() =>
-    graph.graph.nodes.find((n) => n.id === props.from.node),
+    graph.graph.nodes.find((n) => n.id === props.output.node),
   );
   const toNode = createMemo(() =>
-    graph.graph.nodes.find((n) => n.id === props.to.node),
+    graph.graph.nodes.find((n) => n.id === props.input.node),
   );
 
   const fromPortIndex = () => {
     const node = fromNode();
     if (!node) return -1;
     return graph.config[node.type].ports.out.findIndex(
-      (p: any) => p.name === props.from.port,
+      (p: any) => p.name === props.output.port,
     );
   };
 
@@ -29,7 +29,7 @@ export function GraphEdge(props: { from: EdgeHandle; to: EdgeHandle }) {
     const node = toNode();
     if (!node) return -1;
     return graph.config[node.type].ports.in.findIndex(
-      (p: any) => p.name === props.to.port,
+      (p: any) => p.name === props.input.port,
     );
   };
 

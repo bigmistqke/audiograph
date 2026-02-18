@@ -17,6 +17,10 @@ export function GraphNode(props: { node: NodeInstance }) {
       dimensions: props.node.dimensions,
       setDimensions: (dims: Partial<{ x: number; y: number }>) =>
         graph.updateNode(props.node.id, { dimensions: dims }),
+      isInputConnected: (portName: string) =>
+        graph.graph.edges.some(
+          (e) => e.input.node === props.node.id && e.input.port === portName,
+        ),
     });
   };
 

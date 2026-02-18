@@ -42,12 +42,12 @@ export function GraphPort(props: {
         // If dragging from an in-port with an existing edge, detach it
         if (props.kind === "in") {
           const existingEdge = graph.graph.edges.find(
-            (e) => e.to.node === node.id && e.to.port === props.name,
+            (e) => e.input.node === node.id && e.input.port === props.name,
           );
           if (existingEdge) {
-            graph.unlink(existingEdge.from, existingEdge.to);
+            graph.unlink(existingEdge.output, existingEdge.input);
             const fromNode = graph.graph.nodes.find(
-              (n) => n.id === existingEdge.from.node,
+              (n) => n.id === existingEdge.output.node,
             );
             if (fromNode) {
               const position = {
@@ -57,7 +57,7 @@ export function GraphPort(props: {
               setTemporaryEdge({
                 node: fromNode.id,
                 kind: "out",
-                port: existingEdge.from.port,
+                port: existingEdge.output.port,
                 x: position.x,
                 y: position.y,
               });
@@ -92,17 +92,17 @@ export function GraphPort(props: {
         if (!edgeHandle) return;
         if (edgeHandle.kind === props.kind) return;
 
-        const from: EdgeHandle =
+        const output: EdgeHandle =
           props.kind === "in"
             ? { node: edgeHandle.node, port: edgeHandle.port }
             : { node: node.id, port: props.name };
 
-        const to: EdgeHandle =
+        const input: EdgeHandle =
           props.kind === "out"
             ? { node: edgeHandle.node, port: edgeHandle.port }
             : { node: node.id, port: props.name };
 
-        graph.link(from, to);
+        graph.link(output, input);
       }}
     />
   );

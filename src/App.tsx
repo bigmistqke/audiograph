@@ -76,6 +76,7 @@ const App: Component = () => {
                 min={20}
                 max={2000}
                 value={props.state.frequency}
+                disabled={props.isInputConnected("frequency")}
                 onInput={(e) =>
                   props.setState("frequency", +e.currentTarget.value)
                 }
@@ -104,7 +105,33 @@ const App: Component = () => {
                 max={1}
                 step={0.01}
                 value={props.state.gain}
+                disabled={props.isInputConnected("gain")}
                 onInput={(e) => props.setState("gain", +e.currentTarget.value)}
+                style={{ width: "100%", "margin-inline": 0 }}
+              />
+            </label>
+          )}
+        </NodeUI>
+      ),
+    },
+    constant: {
+      dimensions: { x: 180, y: 110 },
+      ports: {
+        in: [],
+        out: [{ name: "value", kind: "param" }],
+      },
+      state: { value: 440 },
+      render: (props) => (
+        <NodeUI title="Constant" {...props}>
+          {(props) => (
+            <label style={{ "font-size": "10px", color: "black" }}>
+              Value: {props.state.value}
+              <input
+                type="range"
+                min={0}
+                max={2000}
+                value={props.state.value}
+                onInput={(e) => props.setState("value", +e.currentTarget.value)}
                 style={{ width: "100%", "margin-inline": 0 }}
               />
             </label>
@@ -161,6 +188,23 @@ const App: Component = () => {
         },
         out: {
           audio: gainNode,
+        },
+      };
+    },
+    constant(state) {
+      const src = ctx.createConstantSource();
+      src.start();
+
+      createEffect(() => {
+        src.offset.value = state.value;
+      });
+
+      onCleanup(() => src.stop());
+
+      return {
+        in: {},
+        out: {
+          value: src,
         },
       };
     },

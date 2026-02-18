@@ -55,13 +55,13 @@ export function createGraphProjection<T extends GraphConfig>(
     () => graphAPI.graph.edges,
     (edge) => {
       createEffect(() => {
-        const from = projectedNodes.get(edge.from.node);
-        const to = projectedNodes.get(edge.to.node);
+        const from = projectedNodes.get(edge.output.node);
+        const to = projectedNodes.get(edge.input.node);
 
         if (!from || !to) return;
 
-        const outPort = from.out?.[edge.from.port];
-        const inPort = to.in?.[edge.to.port];
+        const outPort = from.out?.[edge.output.port];
+        const inPort = to.in?.[edge.input.port];
 
         if (!outPort || !inPort) return;
 
