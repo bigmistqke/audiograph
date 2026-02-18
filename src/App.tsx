@@ -61,7 +61,7 @@ const App: Component = () => {
       ports: {
         in: [
           { name: "frequency", kind: "param" },
-          { name: "detune", kind: "param" },
+          { name: "type", kind: "oscillator-type" },
         ],
         out: [{ name: "audio" }],
       },
@@ -224,11 +224,13 @@ const App: Component = () => {
     dimensions: { width: number; height: number };
     temporaryEdge: TemporaryEdge | undefined;
     dragging: boolean;
+    cursorPosition: { x: number; y: number } | undefined;
   }>({
     origin: { x: 0, y: 0 },
     dimensions: { width: 0, height: 0 },
     temporaryEdge: undefined,
     dragging: false,
+    cursorPosition: undefined,
   });
 
   return (
@@ -249,6 +251,9 @@ const App: Component = () => {
         setDragging(dragging) {
           if (dragging) window.getSelection()?.removeAllRanges();
           setStore("dragging", dragging);
+        },
+        getCursorPosition() {
+          return store.cursorPosition;
         },
       }}
     >
@@ -299,6 +304,16 @@ const App: Component = () => {
         viewBox={`${-store.origin.x} ${store.origin.y} ${store.dimensions.width} ${store.dimensions.height}`}
         class={styles.svg}
         data-dragging={store.dragging || undefined}
+        onPointerMove={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect();
+          setStore("cursorPosition", {
+            x: event.clientX - rect.left - store.origin.x,
+            y: event.clientY - rect.top + store.origin.y,
+          });
+        }}
+        onPointerLeave={() => {
+          setStore("cursorPosition", undefined);
+        }}
         onPointerDown={async (event) => {
           if (event.target !== event.currentTarget) return;
           const _origin = { ...store.origin };

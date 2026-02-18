@@ -29,6 +29,22 @@ body {
     stroke: #37a34d;
 }
 
+.portLabels {
+    opacity: 0;
+    transition: opacity 1s ease 1s;
+    pointer-events: none;
+}
+
+.portLabels[data-visible] {
+    opacity: 1;
+    transition: opacity 0.15s ease;
+}
+
+.portLabel {
+    font-size: 10px;
+    fill: #666;
+}
+
 .deleteButton {
     position: absolute;
     inset: 0px;

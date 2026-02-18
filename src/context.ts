@@ -17,6 +17,7 @@ export const GraphContext = createContext<{
   getTemporaryEdge(): TemporaryEdge | undefined;
   updateTemporaryEdge(x: number, y: number): void;
   setDragging(dragging: boolean): void;
+  getCursorPosition(): { x: number; y: number } | undefined;
 }>();
 
 export function useGraph() {
