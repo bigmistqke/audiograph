@@ -23,6 +23,10 @@ import { GraphContext, type TemporaryEdge } from "./context";
 import type { RenderProps } from "./lib/create-graph";
 import { createGraph } from "./lib/create-graph";
 import { createGraphProjection } from "./lib/create-graph-projection";
+import {
+  createWorkletFileSystem,
+  getWorkletProcessorBoilerplate,
+} from "./lib/worklet-file-system";
 import { HorizontalSlider } from "./ui/HorizontalSlider";
 
 function NodeUI<S extends Record<string, any>>(
@@ -54,6 +58,7 @@ function NodeUI<S extends Record<string, any>>(
 
 const App: Component = () => {
   const ctx = new AudioContext();
+  const workletFS = createWorkletFileSystem();
   const [selectedType, setSelectedType] = createSignal<string>("oscillator");
 
   const graph = createGraph({
@@ -130,6 +135,42 @@ const App: Component = () => {
       },
       render: (props) => <NodeUI title="Output" {...props} />,
     },
+    custom: {
+      dimensions: { x: 280, y: 250 },
+      ports: {
+        in: [{ name: "audio" }],
+        out: [{ name: "audio" }],
+      },
+      state: { name: "", code: "" },
+      render: (props) => (
+        <NodeUI title={`Custom: ${props.state.name}`} {...props}>
+          {(props) => (
+            <textarea
+              style={{
+                width: "100%",
+                height: "100%",
+                "font-family": "monospace",
+                "font-size": "9px",
+                resize: "none",
+                border: "1px solid #ccc",
+                "box-sizing": "border-box",
+                "tab-size": "2",
+              }}
+              spellcheck={false}
+              value={props.state.code}
+              onInput={(e) => {
+                const newCode = e.currentTarget.value;
+                props.setState("code", newCode);
+                workletFS.writeFile(
+                  `/${props.state.name}/worklet.js`,
+                  newCode,
+                );
+              }}
+            />
+          )}
+        </NodeUI>
+      ),
+    },
   });
 
   // Audio projection
@@ -196,6 +237,57 @@ const App: Component = () => {
         in: {
           audio: ctx.destination,
         },
+      };
+    },
+    custom(state) {
+      const inputGain = ctx.createGain();
+      const outputGain = ctx.createGain();
+
+      let currentWorkletNode: AudioWorkletNode | null = null;
+      let loadGeneration = 0;
+
+      createEffect(() => {
+        const name = state.name;
+        if (!name) return;
+
+        const url = workletFS.fileUrls.get(`/${name}/worklet.js`);
+        const processorName = workletFS.getProcessorName(name);
+        if (!url) return;
+
+        const gen = ++loadGeneration;
+
+        if (currentWorkletNode) {
+          inputGain.disconnect(currentWorkletNode);
+          currentWorkletNode.disconnect(outputGain);
+          currentWorkletNode = null;
+        }
+
+        ctx.audioWorklet
+          .addModule(url)
+          .then(() => {
+            if (loadGeneration !== gen) return;
+            const workletNode = new AudioWorkletNode(ctx, processorName);
+            currentWorkletNode = workletNode;
+            inputGain.connect(workletNode);
+            workletNode.connect(outputGain);
+          })
+          .catch((err) => {
+            console.error(`Failed to load worklet "${processorName}":`, err);
+          });
+      });
+
+      onCleanup(() => {
+        if (currentWorkletNode) {
+          inputGain.disconnect(currentWorkletNode);
+          currentWorkletNode.disconnect(outputGain);
+        }
+        inputGain.disconnect();
+        outputGain.disconnect();
+      });
+
+      return {
+        in: { audio: inputGain },
+        out: { audio: outputGain },
       };
     },
   });
@@ -312,10 +404,33 @@ const App: Component = () => {
           setStore("dragging", false);
 
           if (performance.now() - start < 250) {
-            graph.addNode(selectedType() as any, {
+            const type = selectedType() as any;
+            const position = {
               x: event.offsetX - store.origin.x,
               y: event.offsetY + store.origin.y,
-            });
+            };
+
+            if (type === "custom") {
+              const name = window.prompt("Enter a name for the custom worklet:");
+              if (!name) return;
+              const safeName = name
+                .toLowerCase()
+                .replace(/\s+/g, "-")
+                .replace(/[^a-z0-9-]/g, "");
+              if (!safeName) return;
+
+              const boilerplate = getWorkletProcessorBoilerplate(safeName);
+              workletFS.writeFile(`/${safeName}/worklet.js`, boilerplate);
+
+              const nodeId = graph.addNode(type, position);
+              const entry = graph.nodeStates.get(nodeId);
+              if (entry) {
+                entry.setState("name", safeName);
+                entry.setState("code", boilerplate);
+              }
+            } else {
+              graph.addNode(type, position);
+            }
           }
         }}
       >
