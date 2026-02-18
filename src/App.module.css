@@ -8,3 +8,23 @@ body {
     width: 100vw;
     height: 100vh;
 }
+
+.svg[data-dragging] * {
+    user-select: none;
+}
+
+.port {
+    fill: #4a9eff;
+    stroke: #2a6cc7;
+    stroke-width: 1.5;
+}
+
+.port[data-kind="param"] {
+    fill: #ff6b6b;
+    stroke: #c74a4a;
+}
+
+.port[data-kind="output"] {
+    fill: #51cf66;
+    stroke: #37a34d;
+}

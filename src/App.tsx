@@ -38,6 +38,7 @@ const GraphContext = createContext<{
   setTemporaryEdge(edge: TemporaryEdge | undefined): void;
   getTemporaryEdge(): TemporaryEdge | undefined;
   updateTemporaryEdge(x: number, y: number): void;
+  setDragging(dragging: boolean): void;
 }>();
 
 function useGraph() {
@@ -61,10 +62,20 @@ const PORT_OFFSET = 25;
 const PORT_RADIUS = 5;
 const PORT_INSET = 15;
 
-function Port(props: { name: string; index: number; kind: "in" | "out" }) {
+function Port(props: {
+  name: string;
+  index: number;
+  kind: "in" | "out";
+  dataKind?: string;
+}) {
   const { node, typeDef } = useNode();
-  const { graph, setTemporaryEdge, getTemporaryEdge, updateTemporaryEdge } =
-    useGraph();
+  const {
+    graph,
+    setTemporaryEdge,
+    getTemporaryEdge,
+    updateTemporaryEdge,
+    setDragging,
+  } = useGraph();
 
   const cx = () =>
     props.kind === "in" ? PORT_INSET : typeDef.dimensions.x - PORT_INSET;
@@ -74,11 +85,12 @@ function Port(props: { name: string; index: number; kind: "in" | "out" }) {
     <circle
       cx={cx()}
       cy={cy()}
-      fill="white"
-      stroke="black"
       r={PORT_RADIUS}
+      data-kind={props.dataKind}
+      class={styles.port}
       onPointerDown={async (event) => {
         event.stopPropagation();
+        setDragging(true);
         setTemporaryEdge({
           node: node.id,
           kind: props.kind,
@@ -92,6 +104,7 @@ function Port(props: { name: string; index: number; kind: "in" | "out" }) {
           updateTemporaryEdge(position.x + delta.x, position.y - delta.y);
         });
         setTemporaryEdge(undefined);
+        setDragging(false);
       }}
       onPointerUp={(event) => {
         event.stopPropagation();
@@ -118,7 +131,7 @@ function Port(props: { name: string; index: number; kind: "in" | "out" }) {
 // --- Node ---
 
 function Node(props: { node: NodeInstance }) {
-  const { graph } = useGraph();
+  const { graph, setDragging } = useGraph();
   const typeDef = graph.config[props.node.type];
 
   const rendered = (() => {
@@ -135,22 +148,24 @@ function Node(props: { node: NodeInstance }) {
           stroke="black"
           width={typeDef.dimensions.x}
           height={typeDef.dimensions.y}
-          onPointerDown={(event) => {
+          onPointerDown={async (event) => {
             const startPos = { x: props.node.x, y: props.node.y };
-            minni(event, (delta) => {
+            setDragging(true);
+            await minni(event, (delta) => {
               graph.updateNode(props.node.id, {
                 x: startPos.x + delta.x,
                 y: startPos.y - delta.y,
               });
             });
+            setDragging(false);
           }}
         />
         {rendered}
         {typeDef.ports.in.map((port: any, index: number) => (
-          <Port name={port.name} index={index} kind="in" />
+          <Port name={port.name} index={index} kind="in" dataKind={port.kind} />
         ))}
         {typeDef.ports.out.map((port: any, index: number) => (
-          <Port name={port.name} index={index} kind="out" />
+          <Port name={port.name} index={index} kind="out" dataKind={port.kind} />
         ))}
       </g>
     </NodeContext.Provider>
@@ -394,10 +409,12 @@ const App: Component = () => {
     origin: { x: number; y: number };
     dimensions: { width: number; height: number };
     temporaryEdge: TemporaryEdge | undefined;
+    dragging: boolean;
   }>({
     origin: { x: 0, y: 0 },
     dimensions: { width: 0, height: 0 },
     temporaryEdge: undefined,
+    dragging: false,
   });
 
   return (
@@ -414,6 +431,10 @@ const App: Component = () => {
           setStore("temporaryEdge", (edge) =>
             edge ? { ...edge, x, y } : edge,
           );
+        },
+        setDragging(dragging) {
+          if (dragging) window.getSelection()?.removeAllRanges();
+          setStore("dragging", dragging);
         },
       }}
     >
@@ -463,17 +484,20 @@ const App: Component = () => {
         }}
         viewBox={`${-store.origin.x} ${store.origin.y} ${store.dimensions.width} ${store.dimensions.height}`}
         class={styles.svg}
+        data-dragging={store.dragging || undefined}
         onMouseDown={async (event) => {
           if (event.target !== event.currentTarget) return;
           const _origin = { ...store.origin };
           const start = performance.now();
 
+          setStore("dragging", true);
           await minni(event, (delta) => {
             setStore("origin", {
               x: _origin.x + delta.x,
               y: _origin.y + delta.y,
             });
           });
+          setStore("dragging", false);
 
           if (performance.now() - start < 250) {
             graph.addNode(selectedType() as any, {
