@@ -1,7 +1,7 @@
 import { minni } from "@bigmistqke/minni";
 import { createMemo } from "solid-js";
 import styles from "../App.module.css";
-import { PORT_OFFSET, PORT_SPACING } from "../constants";
+import { PORT_OFFSET, PORT_RADIUS, PORT_SPACING } from "../constants";
 import { NodeContext, useGraph } from "../context";
 import type { NodeInstance } from "../lib/create-graph";
 import { GraphPort } from "./GraphPort";
@@ -132,7 +132,7 @@ export function GraphNode(props: { node: NodeInstance }) {
         >
           {typeDef.ports.in.map((port: any, index: number) => (
             <text
-              x={-8}
+              x={PORT_RADIUS * -3}
               y={index * PORT_SPACING + PORT_OFFSET}
               text-anchor="end"
               dominant-baseline="middle"
@@ -143,7 +143,7 @@ export function GraphNode(props: { node: NodeInstance }) {
           ))}
           {typeDef.ports.out.map((port: any, index: number) => (
             <text
-              x={props.node.dimensions.x + 8}
+              x={props.node.dimensions.x + PORT_RADIUS * 3}
               y={index * PORT_SPACING + PORT_OFFSET}
               text-anchor="start"
               dominant-baseline="middle"

@@ -35,7 +35,7 @@ function NodeUI<S extends Record<string, any>>(
 ) {
   return (
     <>
-      <text x={PORT_RADIUS} y={17} font-size="12" fill="var(--color-text)">
+      <text x={PORT_RADIUS * 2} y={17} font-size="12" fill="var(--color-text)">
         {props.title}
       </text>
       {props.children && (
@@ -61,7 +61,7 @@ const App: Component = () => {
 
   const graph = createGraph({
     oscillator: {
-      dimensions: { x: 200, y: 130 },
+      dimensions: { x: 180, y: 75 },
       ports: {
         in: [
           { name: "frequency", kind: "param" },
@@ -85,7 +85,7 @@ const App: Component = () => {
       ),
     },
     gain: {
-      dimensions: { x: 180, y: 110 },
+      dimensions: { x: 180, y: 75 },
       ports: {
         in: [{ name: "audio" }, { name: "gain", kind: "param" }],
         out: [{ name: "audio" }],
@@ -106,7 +106,7 @@ const App: Component = () => {
       ),
     },
     constant: {
-      dimensions: { x: 180, y: 110 },
+      dimensions: { x: 180, y: 75 },
       ports: {
         in: [],
         out: [{ name: "value", kind: "param" }],
@@ -371,19 +371,12 @@ const App: Component = () => {
         },
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          gap: "8px",
-          padding: "8px",
-          "align-items": "center",
-        }}
-      >
+      <div class={styles.hud}>
         <For each={Object.keys(graph.config)}>
           {(type) => (
             <button
               class={clsx(
-                styles.nodeButton,
+                styles.button,
                 selectedType() === type && styles.selected,
               )}
               onClick={() => setSelectedType(type)}
@@ -396,11 +389,9 @@ const App: Component = () => {
           onClick={() => {
             ctx.resume();
           }}
+          class={styles.button}
           style={{
             "margin-left": "auto",
-            border: "1px solid #999",
-            padding: "4px 12px",
-            cursor: "pointer",
           }}
         >
           Resume Audio

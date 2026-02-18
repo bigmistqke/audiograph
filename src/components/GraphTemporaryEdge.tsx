@@ -35,7 +35,7 @@ export function GraphTemporaryEdge(props: TemporaryEdge) {
           y1={n().y + portY(portIndex())}
           x2={props.x}
           y2={props.y}
-          stroke="var(--color-stroke)"
+          stroke="var(--color-edge)"
         />
       )}
     </Show>
