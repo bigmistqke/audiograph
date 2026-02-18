@@ -1,0 +1,194 @@
+[
+  {
+    "hash": "74b5925f5ac77c693dc2dc974c0bbaf970327550",
+    "short_hash": "74b5925",
+    "author": "bigmistqke",
+    "date": "2026-02-19T00:10:54+01:00",
+    "message": "Add HUD overlay for toolbar, refine styling and port label positioning\n\nMove toolbar to absolute-positioned HUD overlay with pointer-events\npassthrough. Use PORT_RADIUS for port label offsets. Lighten stroke\ncolor, use edge color for temporary edges.",
+    "files_changed": 4
+  },
+  {
+    "hash": "3a678b8c4d4a3b0ba5c1b552ac23ebc5a3352f02",
+    "short_hash": "3a678b8",
+    "author": "bigmistqke",
+    "date": "2026-02-18T23:59:51+01:00",
+    "message": "Add CSS variables for colors, use clsx for toolbar buttons, reformat styles\n\nExtract stroke/text colors into CSS custom properties. Use clsx for\ntoolbar button class toggling. Add nodeButton styles to CSS module.\nReformat App.module.css indentation to 2 spaces.",
+    "files_changed": 8
+  },
+  {
+    "hash": "6986f4e13c84c65b6c5c3c8fa993372e442d5884",
+    "short_hash": "6986f4e",
+    "author": "bigmistqke",
+    "date": "2026-02-18T23:51:24+01:00",
+    "message": "Add resizable nodes with bottom-right drag handle\n\nNew resizable flag on NodeTypeDef. GraphNode renders a diagonal line\nhandle with a transparent triangle hit area at the bottom-right corner.\nCustom node is resizable by default.",
+    "files_changed": 4
+  },
+  {
+    "hash": "38326eb94e97cdfb80840d6d79492726f1a22ea0",
+    "short_hash": "38326eb",
+    "author": "bigmistqke",
+    "date": "2026-02-18T23:37:12+01:00",
+    "message": "Use HorizontalSlider for worklet params, add min/max/step props, adjust layout\n\nRefactor param UI to reuse HorizontalSlider with configurable min/max/step.\nSimplify NodeUI layout calculations and set PORT_INSET to 0.",
+    "files_changed": 3
+  },
+  {
+    "hash": "678b4ea5755754c1555c3b97a4612e741ebf6085",
+    "short_hash": "678b4ea",
+    "author": "bigmistqke",
+    "date": "2026-02-18T23:28:53+01:00",
+    "message": "Auto-generate UI for worklet parameters and add gain to boilerplate\n\nDiscover AudioParam entries from the AudioWorkletNode at runtime and\nrender sliders for each parameter. Boilerplate now includes a gain\nparameter with parameterDescriptors to demonstrate the feature.",
+    "files_changed": 2
+  },
+  {
+    "hash": "6812bbc0c4228de7bd19b76a2ba3a33552982f1c",
+    "short_hash": "6812bbc",
+    "author": "bigmistqke",
+    "date": "2026-02-18T23:14:59+01:00",
+    "message": "Auto-generate custom node name and guard against missing input\n\nRemove name prompt for custom nodes — name is auto-generated from node ID.\nFix crash when deleting a connected custom node by guarding against\nundefined input channels in the worklet processor boilerplate.",
+    "files_changed": 2
+  },
+  {
+    "hash": "75bd3358b107291cfaecb2bbdf6bbbbe8ef1af1c",
+    "short_hash": "75bd335",
+    "author": "bigmistqke",
+    "date": "2026-02-18T22:57:37+01:00",
+    "message": "Separate worklet source and entry files\n\nUser code uses export default class convention in /<name>/source.js.\nGenerated /<name>/worklet.js imports from it and calls registerProcessor.\nThe transform resolves the import path to the source blob URL reactively.",
+    "files_changed": 2
+  },
+  {
+    "hash": "8bda4ee4723f4bd4731dc46857100b07261a6e45",
+    "short_hash": "8bda4ee",
+    "author": "bigmistqke",
+    "date": "2026-02-18T22:52:55+01:00",
+    "message": "Add custom AudioWorklet node with live code editing\n\nIntroduces a virtual file system (ReactiveMap + createFileUrlSystem) for\ndynamically compiling and loading AudioWorklet processors. Users can create\ncustom nodes, name them, and edit processor code in a textarea. Worklets\nhot-reload on edit using versioned processor names.",
+    "files_changed": 2
+  },
+  {
+    "hash": "513d90df231c01b0f11ddde6c417901a43381eaf",
+    "short_hash": "513d90d",
+    "author": "bigmistqke",
+    "date": "2026-02-18T22:29:58+01:00",
+    "message": "Extract HorizontalSlider component and adjust node UI layout\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "6c30fe5111c5c40d823c79ef0e8ddc5ce56b887d",
+    "short_hash": "6c30fe5",
+    "author": "bigmistqke",
+    "date": "2026-02-18T22:16:28+01:00",
+    "message": "Keep port labels visible while dragging from a port\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "a4f6194df3c8317518eef29a86258e666c7b2a4f",
+    "short_hash": "a4f6194",
+    "author": "bigmistqke",
+    "date": "2026-02-18T22:13:39+01:00",
+    "message": "Reveal port names on cursor proximity to nodes\n\nPort labels appear outside the node (left for inputs, right for outputs)\nwhen the cursor approaches within 60px. Labels fade in instantly and\nlinger for 1s before fading out over 1s.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "90ccc61ed4f15ae268d5f7a797b545e62588cded",
+    "short_hash": "90ccc61",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:58:08+01:00",
+    "message": "Add constant node, isInputConnected, and rename edge fields to output/input\n\nAdd ConstantSourceNode type for driving AudioParams externally. Add\nisInputConnected to RenderProps so sliders disable when port is connected.\nRename Edge fields from from/to to output/input for clarity.",
+    "files_changed": 6
+  },
+  {
+    "hash": "23675742273293df109659e2cbfc47a6c0d1b030",
+    "short_hash": "2367574",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:51:01+01:00",
+    "message": "Refactor createNodeComponent into NodeUI component\n\nReplace factory function with a proper Solid component that receives\nrender props and renders title and foreignObject wrapper. Node type\ndefinitions now use inline render with NodeUI.",
+    "files_changed": 1
+  },
+  {
+    "hash": "e8294d8d56e86cd4ea732b7339f4b2a26cc16c38",
+    "short_hash": "e8294d8",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:43:46+01:00",
+    "message": "Move create-graph and create-node-component into lib directory\n\nReorganize file structure, moving core graph modules under src/lib.\nUpdate all imports accordingly.",
+    "files_changed": 10
+  },
+  {
+    "hash": "56c0f02326543cd475d82b85e4d43bd42753c34f",
+    "short_hash": "56c0f02",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:40:47+01:00",
+    "message": "Improve projection factory typings to infer state from graph config\n\nUse StateOf utility type to extract each node type's state type from\nthe graph config, replacing the untyped any parameter.",
+    "files_changed": 1
+  },
+  {
+    "hash": "3c4820d40c8b52567da9dbd549340ef1255b629c",
+    "short_hash": "3c4820d",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:35:49+01:00",
+    "message": "Add per-node dimensions with setDimensions in render props\n\nStore dimensions on each node instance instead of reading from the type\ndefinition. Add setDimensions to RenderProps so render functions can\nresize their own node. Update all components to read dimensions from\nthe node instance.",
+    "files_changed": 5
+  },
+  {
+    "hash": "d9b8d26cb97af8a89a6c153c35fe07fd59eae065",
+    "short_hash": "d9b8d26",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:21:14+01:00",
+    "message": "Refactor App.tsx into separate modules\n\nExtract constants, contexts, and components into their own files.\nApp.tsx now only contains the graph config, audio projection, and\ncanvas layout.",
+    "files_changed": 8
+  },
+  {
+    "hash": "c5d5b329ff68ca742a420011c31de31319d54d3b",
+    "short_hash": "c5d5b32",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:18:15+01:00",
+    "message": "Add createNodeComponent factory and use props object for render\n\nChange render signature to receive a props object with state, setState,\nand dimensions. Add createNodeComponent factory that handles title and\nforeignObject boilerplate so node definitions only provide inner content.",
+    "files_changed": 2
+  },
+  {
+    "hash": "88b6c12e4eb719c4c42397f81acb3fd2bb7c9edb",
+    "short_hash": "88b6c12",
+    "author": "bigmistqke",
+    "date": "2026-02-18T20:59:42+01:00",
+    "message": "Refine port layout, delete button, and foreignObject styling\n\nAdjust port spacing/offset/inset constants. Use foreignObject for delete\nbutton. Add foreignObject class to disable pointer-events on wrapper\nwhile allowing them on children. Align render content with port layout.",
+    "files_changed": 2
+  },
+  {
+    "hash": "3272b374314013d16fae9ddd97e407b71fe0de32",
+    "short_hash": "3272b37",
+    "author": "bigmistqke",
+    "date": "2026-02-18T20:37:24+01:00",
+    "message": "Add node deletion and edge re-dragging from in-ports\n\nAdd delete button (x) on nodes, visible on hover. Add unlink method to\ngraph. Dragging from an in-port with an existing edge detaches it and\nlets the user reconnect to another port or release to delete.",
+    "files_changed": 3
+  },
+  {
+    "hash": "ac8241f0ba3f48c60961c4e3272414b2c22b0bfb",
+    "short_hash": "ac8241f",
+    "author": "bigmistqke",
+    "date": "2026-02-18T20:30:04+01:00",
+    "message": "Validate port kind compatibility on link\n\nOnly allow connections between ports with matching kind values.",
+    "files_changed": 1
+  },
+  {
+    "hash": "08e925a979aad97244b2d3e78276a4b02ff628af",
+    "short_hash": "08e925a",
+    "author": "bigmistqke",
+    "date": "2026-02-18T20:26:59+01:00",
+    "message": "Add port kind styling and disable selection during drag\n\nColor ports by data-kind attribute (blue default, red param, green output).\nSet data-dragging on root SVG during any drag to disable user-select and\nclear existing selection.",
+    "files_changed": 2
+  },
+  {
+    "hash": "2332f3fc1a00274525f80ac1c080692d1492b435",
+    "short_hash": "2332f3f",
+    "author": "bigmistqke",
+    "date": "2026-02-18T20:20:16+01:00",
+    "message": "Add typed node registry, generic graph projection, and audio wiring\n\nRewrite createGraph to accept a node type config with dimensions, ports,\nstate, and render. Add createGraphProjection for reactive graph-to-domain\nmapping using mapArray + ReactiveMap. Wire up oscillator, gain, and\ndestination nodes with Web Audio as a projection.",
+    "files_changed": 3
+  },
+  {
+    "hash": "ad1d3d796b4ae3a1624cbece3d4c3c3dcb2b526a",
+    "short_hash": "ad1d3d7",
+    "author": "bigmistqke",
+    "date": "2026-02-18T19:41:02+01:00",
+    "message": "initial commit",
+    "files_changed": 0
+  }
+]
