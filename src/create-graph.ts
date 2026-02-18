@@ -7,6 +7,12 @@ export interface PortDef {
   [key: string]: unknown;
 }
 
+export interface RenderProps<S extends Record<string, any> = Record<string, any>> {
+  state: S;
+  setState: SetStoreFunction<S>;
+  dimensions: { x: number; y: number };
+}
+
 export interface NodeTypeDef<S extends Record<string, any> = Record<string, any>> {
   dimensions: { x: number; y: number };
   ports: {
@@ -14,7 +20,7 @@ export interface NodeTypeDef<S extends Record<string, any> = Record<string, any>
     out: PortDef[];
   };
   state?: S;
-  render?: (state: S, setState: SetStoreFunction<S>) => JSX.Element;
+  render?: (props: RenderProps<S>) => JSX.Element;
 }
 
 export type GraphConfig = Record<string, NodeTypeDef<any>>;

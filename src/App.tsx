@@ -9,6 +9,7 @@ import {
   Show,
   useContext,
   type Component,
+  type JSX,
 } from "solid-js";
 import { createStore } from "solid-js/store";
 import styles from "./App.module.css";
@@ -16,6 +17,7 @@ import {
   createGraph,
   type EdgeHandle,
   type NodeInstance,
+  type RenderProps,
 } from "./create-graph";
 import { createGraphProjection } from "./create-graph-projection";
 
@@ -171,7 +173,11 @@ function Node(props: { node: NodeInstance }) {
   const rendered = () => {
     if (!typeDef.render) return null;
     const entry = graph.nodeStates.get(props.node.id);
-    return typeDef.render(entry?.state, entry?.setState);
+    return typeDef.render({
+      state: entry?.state,
+      setState: entry?.setState,
+      dimensions: typeDef.dimensions,
+    });
   };
 
   return (
@@ -312,6 +318,35 @@ function TemporaryEdgeView(props: TemporaryEdge) {
   );
 }
 
+// --- Node Component Factory ---
+
+function createNodeComponent<S extends Record<string, any>>(
+  title: string,
+  content?: (props: RenderProps<S>) => JSX.Element,
+) {
+  return (props: RenderProps<S>) => {
+    const inset = PORT_INSET + PORT_SPACING - PORT_RADIUS;
+    return (
+      <>
+        <text x={inset} y={17} font-size="12" fill="black">
+          {title}
+        </text>
+        {content && (
+          <foreignObject
+            x={inset}
+            y={PORT_OFFSET - PORT_RADIUS}
+            width={props.dimensions.x - inset * 2}
+            height={props.dimensions.y - (PORT_OFFSET - PORT_RADIUS) - 5}
+            class={styles.foreignObject}
+          >
+            {content(props)}
+          </foreignObject>
+        )}
+      </>
+    );
+  };
+}
+
 // --- App ---
 
 const App: Component = () => {
@@ -329,48 +364,19 @@ const App: Component = () => {
         out: [{ name: "audio" }],
       },
       state: { frequency: 440, type: "sine" as OscillatorType },
-      render: (state, setState) => (
-        <>
-          <text
-            x={PORT_INSET + PORT_SPACING - PORT_RADIUS}
-            y={17}
-            font-size="12"
-            fill="black"
-          >
-            Oscillator
-          </text>
-          <foreignObject
-            x={PORT_INSET + PORT_SPACING - PORT_RADIUS}
-            y={PORT_OFFSET - PORT_RADIUS}
-            width={200 - (PORT_INSET + PORT_SPACING - PORT_RADIUS) * 2}
-            height={60}
-            class={styles.foreignObject}
-          >
-            <div
-              style={{
-                display: "flex",
-                "flex-direction": "column",
-                gap: "4px",
-              }}
-            >
-              <label style={{ "font-size": "10px", color: "black" }}>
-                Freq: {Math.round(state.frequency)}Hz
-                <input
-                  type="range"
-                  min={20}
-                  max={2000}
-                  value={state.frequency}
-                  onInput={(e) => setState("frequency", +e.currentTarget.value)}
-                  style={{
-                    width: "100%",
-                    "margin-inline": 0,
-                  }}
-                />
-              </label>
-            </div>
-          </foreignObject>
-        </>
-      ),
+      render: createNodeComponent("Oscillator", (props) => (
+        <label style={{ "font-size": "10px", color: "black" }}>
+          Freq: {Math.round(props.state.frequency)}Hz
+          <input
+            type="range"
+            min={20}
+            max={2000}
+            value={props.state.frequency}
+            onInput={(e) => props.setState("frequency", +e.currentTarget.value)}
+            style={{ width: "100%", "margin-inline": 0 }}
+          />
+        </label>
+      )),
     },
     gain: {
       dimensions: { x: 180, y: 110 },
@@ -379,27 +385,20 @@ const App: Component = () => {
         out: [{ name: "audio" }],
       },
       state: { gain: 0.5 },
-      render: (state, setState) => (
-        <>
-          <text x={40} y={18} font-size="12" fill="black">
-            Gain
-          </text>
-          <foreignObject x={15} y={50} width={150} height={50}>
-            <label style={{ "font-size": "10px", color: "black" }}>
-              Gain: {state.gain.toFixed(2)}
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={state.gain}
-                onInput={(e) => setState("gain", +e.currentTarget.value)}
-                style={{ width: "100%" }}
-              />
-            </label>
-          </foreignObject>
-        </>
-      ),
+      render: createNodeComponent("Gain", (props) => (
+        <label style={{ "font-size": "10px", color: "black" }}>
+          Gain: {props.state.gain.toFixed(2)}
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={props.state.gain}
+            onInput={(e) => props.setState("gain", +e.currentTarget.value)}
+            style={{ width: "100%", "margin-inline": 0 }}
+          />
+        </label>
+      )),
     },
     destination: {
       dimensions: { x: 120, y: 60 },
@@ -407,11 +406,7 @@ const App: Component = () => {
         in: [{ name: "audio" }],
         out: [],
       },
-      render: () => (
-        <text x={20} y={40} font-size="12" fill="black">
-          Output
-        </text>
-      ),
+      render: createNodeComponent("Output"),
     },
   });
 
