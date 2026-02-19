@@ -1537,7 +1537,7 @@ function GraphEditor(props: { graphName: string }) {
                           selectedType() === type && styles.selected,
                         )}
                         style={{
-                          "border-color": `color-mix(in srgb, ${portColor()}, white 50%)`,
+                          "--color-node": portColor(),
                         }}
                         onClick={() =>
                           setSelectedType((prev) =>

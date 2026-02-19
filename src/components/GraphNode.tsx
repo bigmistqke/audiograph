@@ -50,10 +50,9 @@ export function GraphNode(props: { node: NodeInstance }) {
 
   return (
     <NodeContext.Provider value={{ node: props.node, get typeDef() { return typeDef(); } }}>
-      <g transform={`translate(${props.node.x}, ${props.node.y})`}>
+      <g transform={`translate(${props.node.x}, ${props.node.y})`} style={{ "--color-node": borderColor() }}>
         <rect
-          fill="white"
-          stroke={`color-mix(in srgb, ${borderColor()}, white 50%)`}
+          class={styles.nodeRect}
           width={props.node.dimensions.x}
           height={props.node.dimensions.y}
           onPointerDown={async (event) => {

@@ -74,14 +74,14 @@ body {
 
 .button {
   font-family: "Times New Roman", Times, serif;
-  border: 1px solid var(--color-stroke);
+  border: 1px solid color-mix(in srgb, var(--color-node, var(--color-stroke)), white 20%);
   padding: 4px 12px;
   cursor: pointer;
   color: var(--color-text);
-  background: white;
+  background: color-mix(in srgb, var(--color-node, white), white 95%);
 
   &.selected {
-    background: #333;
+    background: color-mix(in srgb, var(--color-node, #333), black 20%);
     color: white;
   }
 }
@@ -94,6 +94,11 @@ body {
 
 .svg[data-dragging] * {
   user-select: none;
+}
+
+.nodeRect {
+  fill: color-mix(in srgb, var(--color-node), white 95%);
+  stroke: color-mix(in srgb, var(--color-node), white 20%);
 }
 
 .port {
