@@ -1523,21 +1523,32 @@ function GraphEditor(props: { graphName: string }) {
               <span class={styles.categoryLabel}>{category.label}</span>
               <div class={styles.categoryGrid}>
                 <For each={category.types}>
-                  {(type) => (
-                    <button
-                      class={clsx(
-                        styles.button,
-                        selectedType() === type && styles.selected,
-                      )}
-                      onClick={() =>
-                        setSelectedType((prev) =>
-                          prev === type ? undefined : type,
-                        )
-                      }
-                    >
-                      {type}
-                    </button>
-                  )}
+                  {(type) => {
+                    const portColor = () => {
+                      const kind =
+                        (graph.config[type]?.ports?.out?.[0] as any)
+                          ?.kind || "audio";
+                      return `var(--color-port-${kind})`;
+                    };
+                    return (
+                      <button
+                        class={clsx(
+                          styles.button,
+                          selectedType() === type && styles.selected,
+                        )}
+                        style={{
+                          "border-color": `color-mix(in srgb, ${portColor()}, white 50%)`,
+                        }}
+                        onClick={() =>
+                          setSelectedType((prev) =>
+                            prev === type ? undefined : type,
+                          )
+                        }
+                      >
+                        {type}
+                      </button>
+                    );
+                  }}
                 </For>
               </div>
             </Show>

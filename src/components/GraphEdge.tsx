@@ -40,11 +40,8 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
   };
 
   const edgeColor = () => {
-    const port = fromPort();
-    const kind = (port as any)?.kind as string | undefined;
-    if (kind === "param") return "var(--color-port-param)";
-    if (kind === "output") return "var(--color-port-output)";
-    return "var(--color-port-audio)";
+    const kind = (fromPort() as any)?.kind || "audio";
+    return `var(--color-port-${kind})`;
   };
 
   return (

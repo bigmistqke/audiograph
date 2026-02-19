@@ -13,6 +13,11 @@ export function GraphNode(props: { node: NodeInstance }) {
     useGraph();
   const typeDef = () => graph.config[props.node.type];
 
+  const borderColor = createMemo(() => {
+    const kind = (typeDef()?.ports?.out?.[0]?.kind as string) || "audio";
+    return `var(--color-port-${kind})`;
+  });
+
   const isNearby = createMemo(() => {
     const cursor = getCursorPosition();
     if (!cursor) return false;
@@ -48,7 +53,7 @@ export function GraphNode(props: { node: NodeInstance }) {
       <g transform={`translate(${props.node.x}, ${props.node.y})`}>
         <rect
           fill="white"
-          stroke="var(--color-stroke)"
+          stroke={`color-mix(in srgb, ${borderColor()}, white 50%)`}
           width={props.node.dimensions.x}
           height={props.node.dimensions.y}
           onPointerDown={async (event) => {
