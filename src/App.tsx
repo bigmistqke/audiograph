@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "@solidjs/router";
 import clsx from "clsx";
 import {
   createEffect,
+  createResource,
   createSignal,
   For,
   on,
@@ -33,6 +34,8 @@ import {
 import { GraphContext, type TemporaryEdge } from "./context";
 import type { GraphConfig, RenderProps } from "./lib/create-graph";
 import { createGraph } from "./lib/create-graph";
+import envelopeProcessorUrl from "./lib/envelope-processor?url";
+import { subscribe as subscribeTick } from "./lib/tick";
 import {
   createWorkletFileSystem,
   getSourceBoilerplate,
@@ -42,9 +45,11 @@ import { Button } from "./ui/Button";
 import { HorizontalSlider } from "./ui/HorizontalSlider";
 import { Select } from "./ui/Select";
 
+const audioCtx = new AudioContext();
+const promise = audioCtx.audioWorklet.addModule(envelopeProcessorUrl);
+
 function GraphEditor(props: { graphName: string }) {
   const navigate = useNavigate();
-  const ctx = new AudioContext();
   const workletFS = createWorkletFileSystem();
   const [selectedType, setSelectedType] = createSignal<string | undefined>();
 
@@ -82,7 +87,8 @@ function GraphEditor(props: { graphName: string }) {
     ) => {
       const inputGain = audioCtx.createGain();
       const outputGain = audioCtx.createGain();
-      const [workletNode, setWorkletNode] = createSignal<AudioWorkletNode | null>(null);
+      const [workletNode, setWorkletNode] =
+        createSignal<AudioWorkletNode | null>(null);
 
       let currentWorkletNode: AudioWorkletNode | null = null;
       let loadGeneration = 0;
@@ -138,7 +144,12 @@ function GraphEditor(props: { graphName: string }) {
   function createWorkletRender(typeKey: string) {
     const isSaved = typeKey !== "audioworklet";
 
-    return (props: RenderProps<{ name: string; code: string }, { workletNode: () => AudioWorkletNode | null }>) => {
+    return (
+      props: RenderProps<
+        { name: string; code: string },
+        { workletNode: () => AudioWorkletNode | null }
+      >,
+    ) => {
       if (isSaved) {
         createEffect(
           on(
@@ -843,7 +854,7 @@ function GraphEditor(props: { graphName: string }) {
         return {
           in: { audio: analyser },
           out: { audio: analyser },
-          data: { analyser },
+          props: { analyser },
         };
       },
       render(props) {
@@ -912,7 +923,7 @@ function GraphEditor(props: { graphName: string }) {
         return {
           in: { audio: analyser },
           out: { audio: analyser },
-          data: { analyser },
+          props: { analyser },
         };
       },
       render(props) {
@@ -981,7 +992,7 @@ function GraphEditor(props: { graphName: string }) {
         return {
           in: { signal: analyser },
           out: {},
-          data: { analyser },
+          props: { analyser },
         };
       },
       render(props) {
@@ -1112,63 +1123,34 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "envelope", kind: "param" }],
       },
       state: { attack: 0.1, decay: 0.2, sustain: 0.7, release: 0.5 },
-      audio(state, _nodeId, audioCtx) {
-        const src = audioCtx.createConstantSource();
-        src.offset.value = 0;
-        src.start();
-
-        const gateInput = audioCtx.createAnalyser();
-        gateInput.fftSize = 256;
-        const gateData = new Float32Array(gateInput.fftSize);
-        let gateOpen = false;
-        let animId: number;
-
-        const triggerAttack = () => {
-          const now = audioCtx.currentTime;
-          src.offset.cancelScheduledValues(now);
-          src.offset.setTargetAtTime(1, now, state.attack / 3);
-          src.offset.setTargetAtTime(
-            state.sustain,
-            now + state.attack,
-            state.decay / 3,
-          );
-        };
-
-        const triggerRelease = () => {
-          const now = audioCtx.currentTime;
-          src.offset.cancelScheduledValues(now);
-          src.offset.setTargetAtTime(0, now, state.release / 3);
-        };
-
-        const checkGate = () => {
-          gateInput.getFloatTimeDomainData(gateData);
-          const isHigh = gateData[0] > 0.5;
-          if (isHigh && !gateOpen) {
-            gateOpen = true;
-            triggerAttack();
-          } else if (!isHigh && gateOpen) {
-            gateOpen = false;
-            triggerRelease();
-          }
-          animId = requestAnimationFrame(checkGate);
-        };
-        checkGate();
-
-        const trigger = () => {
-          triggerAttack();
-          const holdTime = state.attack + state.decay + 0.1;
-          setTimeout(() => triggerRelease(), holdTime * 1000);
-        };
-
-        onCleanup(() => {
-          cancelAnimationFrame(animId);
-          src.stop();
+      audio(state) {
+        const node = new AudioWorkletNode(audioCtx, "envelope-processor", {
+          numberOfInputs: 1,
+          numberOfOutputs: 1,
+          outputChannelCount: [1],
         });
 
+        // Sync ADSR params to worklet
+        const sendParams = () =>
+          node.port.postMessage({
+            type: "params",
+            attack: state.attack,
+            decay: state.decay,
+            sustain: state.sustain,
+            release: state.release,
+          });
+
+        sendParams();
+        createEffect(sendParams);
+
+        const trigger = () => node.port.postMessage({ type: "trigger" });
+
+        onCleanup(() => node.disconnect());
+
         return {
-          in: { gate: gateInput },
-          out: { envelope: src },
-          data: { trigger },
+          in: { gate: node },
+          out: { envelope: node },
+          props: { trigger },
         };
       },
       render: (props) => (
@@ -1257,54 +1239,76 @@ function GraphEditor(props: { graphName: string }) {
           false,
         ],
       },
-      audio(_state, _nodeId, audioCtx) {
+      audio() {
         const src = audioCtx.createConstantSource();
         src.offset.value = 0;
         src.start();
-
-        const setGate = (value: number) => {
-          src.offset.setValueAtTime(value, audioCtx.currentTime);
-        };
 
         onCleanup(() => src.stop());
 
         return {
           in: {},
           out: { gate: src },
-          data: { setGate },
+          props: {
+            scheduleGate(value: number, time: number) {
+              src.offset.setValueAtTime(value, time);
+            },
+            cancelGate(time: number) {
+              src.offset.cancelScheduledValues(time);
+            },
+          },
         };
       },
       render(props) {
+        const LOOK_AHEAD = 0.1;
         const [currentStep, setCurrentStep] = createSignal(-1);
         const stepCount = () => props.state.steps.length;
 
-        let timeoutId: number | undefined;
-        let step = 0;
+        let nextStepTime = 0;
+        let startTime = 0;
+        let stepIndex = 0;
         let running = false;
+        let unsubscribe: (() => void) | undefined;
 
-        const tick = () => {
+        const scheduler = () => {
           if (!running) return;
-          setCurrentStep(step % stepCount());
-          const isActive = props.state.steps[step % stepCount()];
-          props.audio?.setGate(isActive ? 1 : 0);
-          step++;
-          timeoutId = setTimeout(
-            tick,
-            60000 / props.state.bpm / 4,
-          ) as unknown as number;
+
+          const stepDuration = 60 / props.state.bpm / 4;
+
+          // Schedule all steps within the look-ahead window
+          while (nextStepTime < audioCtx.currentTime + LOOK_AHEAD) {
+            const idx = stepIndex % stepCount();
+            const isActive = props.state.steps[idx];
+            // Gate off at step boundary, then on 1ms later for retrigger
+            props.audio?.scheduleGate(0, nextStepTime);
+            if (isActive) {
+              props.audio?.scheduleGate(1, nextStepTime + 0.001);
+            }
+            stepIndex++;
+            nextStepTime += stepDuration;
+          }
+
+          // Update UI to reflect the currently audible step
+          const elapsed = audioCtx.currentTime - startTime;
+          const visualStep = Math.floor(elapsed / stepDuration);
+          setCurrentStep(visualStep % stepCount());
         };
 
         const start = () => {
           stop();
-          step = 0;
+          stepIndex = 0;
+          startTime = audioCtx.currentTime;
+          nextStepTime = startTime;
           running = true;
-          tick();
+          unsubscribe = subscribeTick(scheduler);
         };
 
         const stop = () => {
           running = false;
-          if (timeoutId !== undefined) clearTimeout(timeoutId);
-          timeoutId = undefined;
+          unsubscribe?.();
+          unsubscribe = undefined;
+          props.audio?.cancelGate(0);
+          props.audio?.scheduleGate(0, audioCtx.currentTime);
           setCurrentStep(-1);
         };
 
@@ -1438,7 +1442,7 @@ function GraphEditor(props: { graphName: string }) {
 
   const graph = createGraph(config, {
     persistName: `audiograph-${props.graphName}`,
-    audioContext: ctx,
+    audioContext: audioCtx,
   });
 
   // Initialize worklet files for persisted custom nodes
@@ -1602,7 +1606,7 @@ function GraphEditor(props: { graphName: string }) {
         </Button>
         <Button
           onClick={() => {
-            ctx.resume();
+            audioCtx.resume();
           }}
           class={styles.button}
         >
@@ -1697,6 +1701,7 @@ function GraphEditor(props: { graphName: string }) {
 }
 
 const App: Component = () => {
+  const [resource] = createResource(() => promise.then(() => true));
   const params = useParams<{ graphName?: string }>();
   const navigate = useNavigate();
 
@@ -1707,7 +1712,7 @@ const App: Component = () => {
   });
 
   return (
-    <Show when={params.graphName} keyed>
+    <Show when={resource() && params.graphName} keyed>
       {(graphName) => <GraphEditor graphName={graphName} />}
     </Show>
   );

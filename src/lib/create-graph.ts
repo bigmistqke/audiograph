@@ -18,7 +18,7 @@ interface AudioPorts {
   out?: Record<string, Connectable>;
 }
 
-export type AudioFactoryResult<A = undefined> = AudioPorts & { data?: A };
+export type AudioFactoryResult<A = undefined> = AudioPorts & { props?: A };
 
 export interface RenderProps<
   S extends Record<string, any> = Record<string, any>,
@@ -47,12 +47,8 @@ export interface NodeTypeDef<
   state?: S;
   resizable?: boolean;
   hideLabels?: boolean;
-  audio?: (
-    state: S,
-    nodeId: string,
-    ctx: AudioContext,
-  ) => AudioFactoryResult<A>;
-  render?: (props: RenderProps<S, A>) => JSX.Element;
+  audio(state: S, nodeId: string, ctx: AudioContext): AudioFactoryResult<A>;
+  render(props: RenderProps<S, A>): JSX.Element;
 }
 
 export type GraphConfig = Record<string, NodeTypeDef<any, any>>;
@@ -147,8 +143,8 @@ export function createGraph<T extends GraphConfig>(
 
         projectedNodes.set(node.id, { in: result.in, out: result.out });
 
-        if (result.data !== undefined) {
-          audioData.set(node.id, result.data);
+        if (result.props !== undefined) {
+          audioData.set(node.id, result.props);
         }
 
         onCleanup(() => {
