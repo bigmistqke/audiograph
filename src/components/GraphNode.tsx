@@ -1,9 +1,9 @@
-import { minni } from "@bigmistqke/minni";
 import { createMemo } from "solid-js";
 import styles from "../App.module.css";
 import { PORT_OFFSET, PORT_RADIUS, PORT_SPACING } from "../constants";
 import { NodeContext, useGraph } from "../context";
 import type { NodeInstance } from "../lib/create-graph";
+import { minni } from "../lib/minni";
 import { GraphPort } from "./GraphPort";
 
 const PROXIMITY_THRESHOLD = 60;
@@ -49,23 +49,38 @@ export function GraphNode(props: { node: NodeInstance }) {
   };
 
   return (
-    <NodeContext.Provider value={{ node: props.node, get typeDef() { return typeDef(); } }}>
-      <g transform={`translate(${props.node.x}, ${props.node.y})`} style={{ "--color-node": borderColor() }}>
+    <NodeContext.Provider
+      value={{
+        node: props.node,
+        get typeDef() {
+          return typeDef();
+        },
+      }}
+    >
+      <g
+        transform={`translate(${props.node.x}, ${props.node.y})`}
+        style={{ "--color-node": borderColor() }}
+        onPointerDown={async (event) => {
+          if (event.target.closest("[data-pointerevents-block=true]")) {
+            return;
+          }
+          console.log("this happens");
+          const startPos = { x: props.node.x, y: props.node.y };
+          setDragging(true);
+          await minni(event, (delta) => {
+            graph.updateNode(props.node.id, {
+              x: startPos.x + delta.x,
+              y: startPos.y - delta.y,
+            });
+          });
+          console.log("but this never happens?");
+          setDragging(false);
+        }}
+      >
         <rect
           class={styles.nodeRect}
           width={props.node.dimensions.x}
           height={props.node.dimensions.y}
-          onPointerDown={async (event) => {
-            const startPos = { x: props.node.x, y: props.node.y };
-            setDragging(true);
-            await minni(event, (delta) => {
-              graph.updateNode(props.node.id, {
-                x: startPos.x + delta.x,
-                y: startPos.y - delta.y,
-              });
-            });
-            setDragging(false);
-          }}
         />
         {rendered()}
         <g transform={`translate(${props.node.dimensions.x - 20}, 5)`}>

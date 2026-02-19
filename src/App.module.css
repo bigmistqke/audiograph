@@ -53,7 +53,6 @@ body {
 .topRight {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: min-content;
   gap: 8px;
   align-items: center;
   position: absolute;
@@ -74,7 +73,8 @@ body {
 
 .button {
   font-family: "Times New Roman", Times, serif;
-  border: 1px solid color-mix(in srgb, var(--color-node, var(--color-stroke)), white 20%);
+  border: 1px solid
+    color-mix(in srgb, var(--color-node, var(--color-stroke)), white 20%);
   padding: 4px 12px;
   cursor: pointer;
   color: var(--color-text);
@@ -90,6 +90,7 @@ body {
   width: 100vw;
   height: 100vh;
   top: 0px;
+  user-select: none;
 }
 
 .svg[data-dragging] * {

@@ -23,6 +23,7 @@ export function HorizontalSlider(props: {
       </label>
       <input
         type="range"
+        data-pointerevents-block={!props.disabled}
         min={props.min ?? 20}
         max={props.max ?? 2000}
         step={props.step}
