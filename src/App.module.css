@@ -20,8 +20,11 @@ body {
   width: min-content;
   pointer-events: none;
   overflow-y: auto;
+  direction: rtl;
+  background: white;
   & > * {
     pointer-events: all;
+    direction: ltr;
   }
 }
 
@@ -41,7 +44,6 @@ body {
 
 .categoryGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 4px;
 }
 
