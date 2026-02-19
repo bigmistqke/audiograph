@@ -1,14 +1,15 @@
 class EnvelopeProcessor extends AudioWorkletProcessor {
+  stage = "idle";
+  value = 0;
+  gateOpen = false;
+  attack = 0.1;
+  decay = 0.2;
+  sustain = 0.7;
+  release = 0.5;
+  triggerReleaseAtFrame = -1;
+
   constructor() {
     super();
-    this.stage = "idle";
-    this.value = 0;
-    this.gateOpen = false;
-    this.attack = 0.1;
-    this.decay = 0.2;
-    this.sustain = 0.7;
-    this.release = 0.5;
-    this.triggerReleaseAtFrame = -1;
 
     this.port.onmessage = (e) => {
       const d = e.data;
@@ -25,7 +26,7 @@ class EnvelopeProcessor extends AudioWorkletProcessor {
     };
   }
 
-  process(inputs, outputs) {
+  process(inputs: Float32Array[][], outputs: Float32Array[][]) {
     const input = inputs[0]?.[0];
     const output = outputs[0][0];
     const sr = sampleRate;

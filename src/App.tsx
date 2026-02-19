@@ -35,7 +35,7 @@ import { GraphContext, type TemporaryEdge } from "./context";
 import type { GraphConfig, RenderProps } from "./lib/create-graph";
 import { createGraph } from "./lib/create-graph";
 import envelopeProcessorUrl from "./lib/envelope-processor?url";
-import { subscribe as subscribeTick } from "./lib/tick";
+import sequencerProcessorUrl from "./lib/sequencer-processor?url";
 import {
   createWorkletFileSystem,
   getSourceBoilerplate,
@@ -46,7 +46,10 @@ import { HorizontalSlider } from "./ui/HorizontalSlider";
 import { Select } from "./ui/Select";
 
 const audioCtx = new AudioContext();
-const promise = audioCtx.audioWorklet.addModule(envelopeProcessorUrl);
+const promise = Promise.all([
+  audioCtx.audioWorklet.addModule(envelopeProcessorUrl),
+  audioCtx.audioWorklet.addModule(sequencerProcessorUrl),
+]);
 
 function GraphEditor(props: { graphName: string }) {
   const navigate = useNavigate();
@@ -1239,80 +1242,60 @@ function GraphEditor(props: { graphName: string }) {
           false,
         ],
       },
-      audio() {
-        const src = audioCtx.createConstantSource();
-        src.offset.value = 0;
-        src.start();
+      audio(state) {
+        const node = new AudioWorkletNode(audioCtx, "sequencer-processor", {
+          numberOfInputs: 0,
+          numberOfOutputs: 1,
+          outputChannelCount: [1],
+        });
 
-        onCleanup(() => src.stop());
+        // Sync initial state
+        node.port.postMessage({
+          type: "bpm",
+          value: state.bpm,
+        });
+        node.port.postMessage({
+          type: "steps",
+          value: state.steps.map((s: boolean) => (s ? 1 : 0)),
+        });
+
+        onCleanup(() => node.disconnect());
 
         return {
           in: {},
-          out: { gate: src },
-          props: {
-            scheduleGate(value: number, time: number) {
-              src.offset.setValueAtTime(value, time);
-            },
-            cancelGate(time: number) {
-              src.offset.cancelScheduledValues(time);
-            },
-          },
+          out: { gate: node },
+          props: { port: node.port },
         };
       },
       render(props) {
-        const LOOK_AHEAD = 0.1;
         const [currentStep, setCurrentStep] = createSignal(-1);
         const stepCount = () => props.state.steps.length;
+        const port = () => props.audio?.port;
 
-        let nextStepTime = 0;
-        let startTime = 0;
-        let stepIndex = 0;
-        let running = false;
-        let unsubscribe: (() => void) | undefined;
+        // Listen for step updates from worklet
+        createEffect(() => {
+          const p = port();
+          if (!p) return;
+          p.onmessage = (e: MessageEvent) => {
+            if (e.data.type === "step") setCurrentStep(e.data.value);
+          };
+        });
 
-        const scheduler = () => {
-          if (!running) return;
+        // Sync BPM changes to worklet
+        createEffect(() => {
+          port()?.postMessage({ type: "bpm", value: props.state.bpm });
+        });
 
-          const stepDuration = 60 / props.state.bpm / 4;
+        // Sync step pattern changes to worklet
+        createEffect(() => {
+          port()?.postMessage({
+            type: "steps",
+            value: props.state.steps.map((s: boolean) => (s ? 1 : 0)),
+          });
+        });
 
-          // Schedule all steps within the look-ahead window
-          while (nextStepTime < audioCtx.currentTime + LOOK_AHEAD) {
-            const idx = stepIndex % stepCount();
-            const isActive = props.state.steps[idx];
-            // Gate off at step boundary, then on 1ms later for retrigger
-            props.audio?.scheduleGate(0, nextStepTime);
-            if (isActive) {
-              props.audio?.scheduleGate(1, nextStepTime + 0.001);
-            }
-            stepIndex++;
-            nextStepTime += stepDuration;
-          }
-
-          // Update UI to reflect the currently audible step
-          const elapsed = audioCtx.currentTime - startTime;
-          const visualStep = Math.floor(elapsed / stepDuration);
-          setCurrentStep(visualStep % stepCount());
-        };
-
-        const start = () => {
-          stop();
-          stepIndex = 0;
-          startTime = audioCtx.currentTime;
-          nextStepTime = startTime;
-          running = true;
-          unsubscribe = subscribeTick(scheduler);
-        };
-
-        const stop = () => {
-          running = false;
-          unsubscribe?.();
-          unsubscribe = undefined;
-          props.audio?.cancelGate(0);
-          props.audio?.scheduleGate(0, audioCtx.currentTime);
-          setCurrentStep(-1);
-        };
-
-        onCleanup(stop);
+        const start = () => port()?.postMessage({ type: "start" });
+        const stop = () => port()?.postMessage({ type: "stop" });
 
         return (
           <GraphNodeContent
