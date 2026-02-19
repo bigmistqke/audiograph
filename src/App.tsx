@@ -1,5 +1,7 @@
 import { minni } from "@bigmistqke/minni";
+import { useNavigate, useParams } from "@solidjs/router";
 import { ReactiveMap } from "@solid-primitives/map";
+import { makePersisted } from "@solid-primitives/storage";
 import clsx from "clsx";
 import type { JSX } from "solid-js";
 import {
@@ -54,19 +56,24 @@ function NodeUI<S extends Record<string, any>>(
   );
 }
 
-const App: Component = () => {
+function GraphEditor(props: { graphName: string }) {
+  const navigate = useNavigate();
   const ctx = new AudioContext();
   const workletFS = createWorkletFileSystem();
   const workletNodes = new ReactiveMap<string, AudioWorkletNode>();
   const [selectedType, setSelectedType] = createSignal<string>("oscillator");
 
-  function saveAsNewType(
-    code: string,
-    nodeId: string,
-  ) {
+  // Persisted custom type definitions (global, shared across graphs)
+  const [savedTypes, setSavedTypes] = makePersisted(
+    createStore<Record<string, { displayName: string; code: string }>>({}),
+    { name: "audiograph-custom-types" },
+  );
+
+  function saveAsNewType(code: string, nodeId: string) {
     const name = prompt("Name for this node type:");
     if (!name?.trim()) return;
     const typeName = name.trim().toLowerCase().replace(/\s+/g, "-");
+    setSavedTypes(typeName, { displayName: name.trim(), code });
     setConfig(typeName, {
       dimensions: { x: 280, y: 250 },
       resizable: true,
@@ -177,6 +184,7 @@ const App: Component = () => {
                     }}
                     onPointerDown={(e) => e.stopPropagation()}
                     onClick={() => {
+                      setSavedTypes(typeKey, "code", props.state.code);
                       setConfig(typeKey, "state", "code", props.state.code);
                     }}
                   >
@@ -289,7 +297,38 @@ const App: Component = () => {
     },
   });
 
-  const graph = createGraph(config);
+  // Reconstruct saved custom types from persistence
+  for (const key of Object.keys(savedTypes)) {
+    const data = savedTypes[key];
+    if (data && !config[key]) {
+      setConfig(key, {
+        dimensions: { x: 280, y: 250 },
+        resizable: true,
+        ports: {
+          in: [{ name: "audio" }],
+          out: [{ name: "audio" }],
+        },
+        state: { name: "", code: data.code },
+        render: createWorkletRender(data.displayName, key),
+      });
+    }
+  }
+
+  const graph = createGraph(config, {
+    persistName: `audiograph-${props.graphName}`,
+  });
+
+  // Initialize worklet files for persisted custom nodes
+  for (const node of graph.graph.nodes) {
+    const entry = graph.nodeStates.get(node.id);
+    if (entry?.state?.name && entry?.state?.code) {
+      const name = entry.state.name;
+      if (!workletFS.readFile(`/${name}/source.js`)) {
+        workletFS.writeFile(`/${name}/source.js`, entry.state.code);
+        workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
+      }
+    }
+  }
 
   // Audio projection
   const projectionFactories = {
@@ -475,14 +514,30 @@ const App: Component = () => {
             </button>
           )}
         </For>
+        <span
+          style={{
+            "margin-left": "auto",
+            "font-size": "11px",
+            "line-height": "28px",
+            opacity: 0.6,
+          }}
+        >
+          {props.graphName}
+        </span>
+        <button
+          onClick={() => {
+            const name = prompt("New graph name:");
+            if (name?.trim()) navigate(`/${name.trim()}`);
+          }}
+          class={styles.button}
+        >
+          New Graph
+        </button>
         <button
           onClick={() => {
             ctx.resume();
           }}
           class={styles.button}
-          style={{
-            "margin-left": "auto",
-          }}
         >
           Resume Audio
         </button>
@@ -556,6 +611,23 @@ const App: Component = () => {
         </Show>
       </svg>
     </GraphContext.Provider>
+  );
+}
+
+const App: Component = () => {
+  const params = useParams<{ graphName?: string }>();
+  const navigate = useNavigate();
+
+  createEffect(() => {
+    if (!params.graphName) {
+      navigate("/default", { replace: true });
+    }
+  });
+
+  return (
+    <Show when={params.graphName} keyed>
+      {(graphName) => <GraphEditor graphName={graphName} />}
+    </Show>
   );
 };
 

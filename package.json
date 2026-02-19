@@ -21,6 +21,8 @@
     "@bigmistqke/repl": "^0.2.7",
     "@bigmistqke/rpc": "link:../rpc/packages/rpc",
     "@solid-primitives/map": "^0.7.2",
+    "@solid-primitives/storage": "^4.3.3",
+    "@solidjs/router": "^0.15.4",
     "@types/audioworklet": "^0.0.95",
     "clsx": "^2.1.1",
     "solid-js": "^1.9.5"

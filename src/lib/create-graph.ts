@@ -1,4 +1,4 @@
-import { ReactiveMap } from "@solid-primitives/map";
+import { makePersisted } from "@solid-primitives/storage";
 import { type JSX } from "solid-js";
 import { createStore, produce, type SetStoreFunction } from "solid-js/store";
 
@@ -56,14 +56,43 @@ interface GraphStore {
   edges: Edge[];
 }
 
-let ID = 0;
+export function createGraph<T extends GraphConfig>(
+  config: T,
+  options?: { persistName?: string },
+) {
+  const [graph, setGraph] = options?.persistName
+    ? makePersisted(
+        createStore<GraphStore>({ nodes: [], edges: [] }),
+        { name: `${options.persistName}-graph` },
+      )
+    : createStore<GraphStore>({ nodes: [], edges: [] });
 
-export function createGraph<T extends GraphConfig>(config: T) {
-  const [graph, setGraph] = createStore<GraphStore>({ nodes: [], edges: [] });
-  const nodeStates = new ReactiveMap<
-    string,
-    { state: any; setState: SetStoreFunction<any> }
-  >();
+  const [allNodeStates, setAllNodeStates] = options?.persistName
+    ? makePersisted(
+        createStore<Record<string, Record<string, any>>>({}),
+        { name: `${options.persistName}-states` },
+      )
+    : createStore<Record<string, Record<string, any>>>({});
+
+  // Recover ID counter from persisted nodes
+  let nextId = graph.nodes.reduce(
+    (max, n) => Math.max(max, (parseInt(n.id) || 0) + 1),
+    0,
+  );
+
+  const nodeStates = {
+    get(
+      id: string,
+    ): { state: any; setState: SetStoreFunction<any> } | undefined {
+      const state = allNodeStates[id];
+      if (!state) return undefined;
+      return {
+        state,
+        setState: ((...args: any[]) =>
+          (setAllNodeStates as any)(id, ...args)) as SetStoreFunction<any>,
+      };
+    },
+  };
 
   function getPortDef(nodeId: string, portName: string) {
     const node = graph.nodes.find((n) => n.id === nodeId);
@@ -81,11 +110,13 @@ export function createGraph<T extends GraphConfig>(config: T) {
     nodeStates,
     getPortDef,
     addNode(type: keyof T & string, position: { x: number; y: number }) {
-      const id = (ID++).toString();
+      const id = (nextId++).toString();
       const typeDef = config[type];
       const initialState = typeDef.state ? { ...typeDef.state } : {};
-      const [state, setState] = createStore(initialState);
-      nodeStates.set(id, { state, setState });
+
+      if (!allNodeStates[id]) {
+        setAllNodeStates(id, initialState);
+      }
 
       setGraph(
         "nodes",
@@ -112,7 +143,11 @@ export function createGraph<T extends GraphConfig>(config: T) {
           );
         }),
       );
-      nodeStates.delete(id);
+      setAllNodeStates(
+        produce((states: any) => {
+          delete states[id];
+        }),
+      );
     },
     unlink(output: EdgeHandle, input: EdgeHandle) {
       setGraph(
@@ -145,7 +180,7 @@ export function createGraph<T extends GraphConfig>(config: T) {
 
       setGraph(
         "edges",
-        produce((edges) => edges.push({ output: output, input: input })),
+        produce((edges) => edges.push({ output, input })),
       );
     },
     updateNode(
