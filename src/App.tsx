@@ -63,6 +63,7 @@ function GraphEditor(props: { graphName: string }) {
   const workletNodes = new ReactiveMap<string, AudioWorkletNode>();
   const analyserNodes = new ReactiveMap<string, AnalyserNode>();
   const envelopeTriggers = new Map<string, () => void>();
+  const sequencerGates = new Map<string, (value: number) => void>();
   const [selectedType, setSelectedType] = createSignal<string | undefined>(
     "oscillator",
   );
@@ -682,7 +683,7 @@ function GraphEditor(props: { graphName: string }) {
     envelope: {
       dimensions: { x: 180, y: 200 },
       ports: {
-        in: [],
+        in: [{ name: "gate", kind: "param" }],
         out: [{ name: "envelope", kind: "param" }],
       },
       state: { attack: 0.1, decay: 0.2, sustain: 0.7, release: 0.5 },
@@ -748,6 +749,151 @@ function GraphEditor(props: { graphName: string }) {
               </button>
             </div>
           )}
+        </NodeUI>
+      ),
+    },
+    sequencer: {
+      dimensions: { x: 280, y: 120 },
+      resizable: true,
+      ports: {
+        in: [],
+        out: [{ name: "gate", kind: "param" }],
+      },
+      state: {
+        bpm: 120,
+        steps: [
+          true,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+        ],
+      },
+      render: (props) => (
+        <NodeUI title="Sequencer" {...props}>
+          {(props) => {
+            const [currentStep, setCurrentStep] = createSignal(-1);
+            const stepCount = () => props.state.steps.length;
+
+            let intervalId: number | undefined;
+
+            const start = () => {
+              stop();
+              const msPerStep = 60000 / props.state.bpm / 4;
+              let step = 0;
+              intervalId = setInterval(() => {
+                setCurrentStep(step % stepCount());
+                const isActive =
+                  props.state.steps[step % stepCount()];
+                sequencerGates.get(props.id)?.(isActive ? 1 : 0);
+                step++;
+              }, msPerStep) as unknown as number;
+            };
+
+            const stop = () => {
+              if (intervalId !== undefined) clearInterval(intervalId);
+              intervalId = undefined;
+              setCurrentStep(-1);
+            };
+
+            onCleanup(stop);
+
+            return (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "2px",
+                  height: "100%",
+                  "grid-template-rows": "auto 1fr auto",
+                }}
+              >
+                <HorizontalSlider
+                  title="BPM"
+                  value={props.state.bpm}
+                  output={`${Math.round(props.state.bpm)}`}
+                  min={20}
+                  max={300}
+                  step={1}
+                  onInput={(value) => props.setState("bpm", value)}
+                />
+                <div
+                  style={{
+                    display: "grid",
+                    "grid-template-columns": `repeat(${stepCount()}, 1fr)`,
+                    gap: "1px",
+                  }}
+                >
+                  <For each={props.state.steps}>
+                    {(active, i) => (
+                      <div
+                        style={{
+                          background: active
+                            ? currentStep() === i()
+                              ? "#4a9eff"
+                              : "#555"
+                            : currentStep() === i()
+                              ? "#4a9eff33"
+                              : "#ddd",
+                          cursor: "pointer",
+                          "min-height": "16px",
+                          "border-radius": "2px",
+                        }}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={() =>
+                          props.setState(
+                            "steps",
+                            i(),
+                            !props.state.steps[i()],
+                          )
+                        }
+                      />
+                    )}
+                  </For>
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    "grid-template-columns": "1fr 1fr",
+                    gap: "2px",
+                  }}
+                >
+                  <button
+                    style={{
+                      padding: "2px 4px",
+                      "font-size": "10px",
+                      cursor: "pointer",
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={start}
+                  >
+                    Play
+                  </button>
+                  <button
+                    style={{
+                      padding: "2px 4px",
+                      "font-size": "10px",
+                      cursor: "pointer",
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={stop}
+                  >
+                    Stop
+                  </button>
+                </div>
+              </div>
+            );
+          }}
         </NodeUI>
       ),
     },
@@ -1106,7 +1252,14 @@ function GraphEditor(props: { graphName: string }) {
       src.offset.value = 0;
       src.start();
 
-      const trigger = () => {
+      // Gate input detection via AnalyserNode
+      const gateInput = ctx.createAnalyser();
+      gateInput.fftSize = 256;
+      const gateData = new Float32Array(gateInput.fftSize);
+      let gateOpen = false;
+      let animId: number;
+
+      const triggerAttack = () => {
         const now = ctx.currentTime;
         src.offset.cancelScheduledValues(now);
         src.offset.setValueAtTime(0, now);
@@ -1115,21 +1268,65 @@ function GraphEditor(props: { graphName: string }) {
           state.sustain,
           now + state.attack + state.decay,
         );
-        src.offset.linearRampToValueAtTime(
-          0,
-          now + state.attack + state.decay + state.release,
-        );
+      };
+
+      const triggerRelease = () => {
+        const now = ctx.currentTime;
+        src.offset.cancelScheduledValues(now);
+        src.offset.setValueAtTime(src.offset.value, now);
+        src.offset.linearRampToValueAtTime(0, now + state.release);
+      };
+
+      const checkGate = () => {
+        gateInput.getFloatTimeDomainData(gateData);
+        const isHigh = gateData[0] > 0.5;
+        if (isHigh && !gateOpen) {
+          gateOpen = true;
+          triggerAttack();
+        } else if (!isHigh && gateOpen) {
+          gateOpen = false;
+          triggerRelease();
+        }
+        animId = requestAnimationFrame(checkGate);
+      };
+      checkGate();
+
+      // Manual trigger (button) fires full ADSR
+      const trigger = () => {
+        triggerAttack();
+        const holdTime = state.attack + state.decay + 0.1;
+        setTimeout(() => triggerRelease(), holdTime * 1000);
       };
 
       envelopeTriggers.set(nodeId, trigger);
       onCleanup(() => {
         envelopeTriggers.delete(nodeId);
+        cancelAnimationFrame(animId);
+        src.stop();
+      });
+
+      return {
+        in: { gate: gateInput },
+        out: { envelope: src },
+      };
+    },
+    sequencer(_state: Record<string, never>, nodeId: string) {
+      const src = ctx.createConstantSource();
+      src.offset.value = 0;
+      src.start();
+
+      sequencerGates.set(nodeId, (value: number) => {
+        src.offset.setValueAtTime(value, ctx.currentTime);
+      });
+
+      onCleanup(() => {
+        sequencerGates.delete(nodeId);
         src.stop();
       });
 
       return {
         in: {},
-        out: { envelope: src },
+        out: { gate: src },
       };
     },
     destination() {
@@ -1264,7 +1461,7 @@ function GraphEditor(props: { graphName: string }) {
             },
             {
               label: "Modulation",
-              types: ["lfo", "envelope", "scale", "range"],
+              types: ["lfo", "envelope", "sequencer", "scale", "range"],
             },
             {
               label: "Analysis",
@@ -1291,6 +1488,7 @@ function GraphEditor(props: { graphName: string }) {
                     "envelope",
                     "scale",
                     "range",
+                    "sequencer",
                     "analyser",
                     "destination",
                     "audioworklet",
