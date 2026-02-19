@@ -6,7 +6,17 @@
       "Bash(deciduous nodes:*)",
       "Bash(deciduous edges)",
       "Bash(deciduous add:*)",
-      "Bash(deciduous link:*)"
+      "Bash(deciduous link:*)",
+      "Bash(npx tsc:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.solidjs.com)",
+      "WebFetch(domain:primitives.solidjs.community)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(deciduous commands)",
+      "Bash(find:*)",
+      "Bash(npx vite build:*)"
     ]
   }
 }

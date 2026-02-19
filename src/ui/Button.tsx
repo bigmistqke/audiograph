@@ -1,5 +1,6 @@
-import { ComponentProps } from "solid-js";
-import { JSX } from "solid-js/h/jsx-runtime";
+import clsx from "clsx";
+import type { ComponentProps, JSX } from "solid-js";
+import styles from "./Button.module.css";
 
 export function Button(
   props: Omit<ComponentProps<"button">, "style"> & {
@@ -9,6 +10,7 @@ export function Button(
   return (
     <button
       {...props}
+      class={clsx(props.class, styles.button)}
       style={{ height: "var(--element-height)", ...props.style }}
     />
   );
