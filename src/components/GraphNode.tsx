@@ -82,6 +82,13 @@ export function GraphNode(props: { node: NodeInstance }) {
           width={dimensions().x}
           height={dimensions().y}
         />
+        <rect
+          class={styles.nodeHeader}
+          x={0.5}
+          y={0.5}
+          width={dimensions().x - 1}
+          height={contentY() - 0.5}
+        />
         {rendered()}
         <g transform={`translate(${dimensions().x - 20}, 5)`}>
           <foreignObject width="15" height="15">

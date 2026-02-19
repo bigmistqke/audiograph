@@ -44,13 +44,6 @@ function NodeUI<S extends Record<string, any>>(
       </text>
       {props.children && (
         <>
-          <rect
-            x={0.5}
-            y={props.contentY}
-            width={props.dimensions.x - 1}
-            height={props.dimensions.y - props.contentY - 0.5}
-            fill="white"
-          />
           <line
             x1={0}
             y1={props.contentY}

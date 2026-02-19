@@ -98,8 +98,12 @@ body {
 }
 
 .nodeRect {
-  fill: color-mix(in srgb, var(--color-node), white 95%);
+  fill: white;
   stroke: color-mix(in srgb, var(--color-node), white 20%);
+}
+
+.nodeHeader {
+  fill: color-mix(in srgb, var(--color-node), white 95%);
 }
 
 .port {
