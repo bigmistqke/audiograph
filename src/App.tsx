@@ -29,6 +29,7 @@ import {
   getWorkletEntry,
 } from "./lib/worklet-file-system";
 import { HorizontalSlider } from "./ui/HorizontalSlider";
+import { Select } from "./ui/Select";
 
 function NodeUI<S extends Record<string, any>>(
   props: RenderProps<S> & {
@@ -218,25 +219,36 @@ function GraphEditor(props: { graphName: string }) {
 
   const [config, setConfig] = createStore<GraphConfig>({
     oscillator: {
-      dimensions: { x: 180, y: 75 },
+      dimensions: { x: 180, y: 100 },
       ports: {
-        in: [
-          { name: "frequency", kind: "param" },
-          { name: "type", kind: "oscillator-type" },
-        ],
+        in: [{ name: "frequency", kind: "param" }],
         out: [{ name: "audio" }],
       },
       state: { frequency: 440, type: "sine" as OscillatorType },
       render: (props) => (
         <NodeUI title="Oscillator" {...props}>
           {(props) => (
-            <HorizontalSlider
-              title="Freq"
-              value={props.state.frequency}
-              output={`${Math.round(props.state.frequency)}Hz`}
-              disabled={props.isInputConnected("frequency")}
-              onInput={(value) => props.setState("frequency", value)}
-            />
+            <div
+              style={{
+                display: "flex",
+                "flex-direction": "column",
+                gap: "2px",
+              }}
+            >
+              <Select
+                title="Type"
+                value={props.state.type}
+                options={["sine", "square", "sawtooth", "triangle"] as const}
+                onChange={(value) => props.setState("type", value)}
+              />
+              <HorizontalSlider
+                title="Freq"
+                value={props.state.frequency}
+                output={`${Math.round(props.state.frequency)}Hz`}
+                disabled={props.isInputConnected("frequency")}
+                onInput={(value) => props.setState("frequency", value)}
+              />
+            </div>
           )}
         </NodeUI>
       ),
@@ -794,8 +806,7 @@ function GraphEditor(props: { graphName: string }) {
               let step = 0;
               intervalId = setInterval(() => {
                 setCurrentStep(step % stepCount());
-                const isActive =
-                  props.state.steps[step % stepCount()];
+                const isActive = props.state.steps[step % stepCount()];
                 sequencerGates.get(props.id)?.(isActive ? 1 : 0);
                 step++;
               }, msPerStep) as unknown as number;
@@ -851,11 +862,7 @@ function GraphEditor(props: { graphName: string }) {
                         }}
                         onPointerDown={(e) => e.stopPropagation()}
                         onClick={() =>
-                          props.setState(
-                            "steps",
-                            i(),
-                            !props.state.steps[i()],
-                          )
+                          props.setState("steps", i(), !props.state.steps[i()])
                         }
                       />
                     )}
