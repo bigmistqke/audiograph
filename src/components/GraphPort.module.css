@@ -13,6 +13,6 @@
 
 .label {
   font-size: 10px;
-  fill: #666;
+  fill: var(--color-text);
   pointer-events: none;
 }

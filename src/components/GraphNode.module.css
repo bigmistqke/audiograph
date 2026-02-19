@@ -19,7 +19,7 @@
 }
 
 .nodeTitle {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--color-text);
   padding-left: var(--heading-padding-inline);
   padding-top: var(--heading-padding-block);
@@ -30,7 +30,7 @@
   padding-block: var(--content-padding-block);
   padding-inline: var(--content-padding-inline);
   display: grid;
-  gap: var(--content-gap);
+  gap: var(--gap);
 }
 
 .deleteButton {

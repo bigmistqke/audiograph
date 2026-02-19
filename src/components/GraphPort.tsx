@@ -1,4 +1,5 @@
 import { minni } from "@bigmistqke/minni";
+import { Show } from "solid-js";
 import {
   HEADING_PADDING_INLINE,
   PORT_INSET,
@@ -15,6 +16,7 @@ export function GraphPort(props: {
   index: number;
   kind: "in" | "out";
   dataKind?: string;
+  hideLabels?: boolean;
 }) {
   const { node, typeDef } = useNode();
   const {
@@ -36,15 +38,17 @@ export function GraphPort(props: {
 
   return (
     <g>
-      <text
-        x={labelX()}
-        y={cy()}
-        dy="0.35em"
-        text-anchor={props.kind === "in" ? "start" : "end"}
-        class={styles.label}
-      >
-        {props.name}
-      </text>
+      <Show when={!props.hideLabels}>
+        <text
+          x={labelX()}
+          y={cy()}
+          dy="0.35em"
+          text-anchor={props.kind === "in" ? "start" : "end"}
+          class={styles.label}
+        >
+          {props.name}
+        </text>
+      </Show>
       <circle
         cx={cx()}
         cy={cy()}

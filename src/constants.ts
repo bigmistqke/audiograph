@@ -9,7 +9,7 @@ export const HEADING_PADDING_INLINE = 8;
 
 // Content layout
 export const ELEMENT_HEIGHT = 30;
-export const CONTENT_GAP = 5;
+export const GAP = 5;
 export const CONTENT_PADDING_BLOCK = 10;
 export const CONTENT_PADDING_INLINE = 5;
 
@@ -26,11 +26,13 @@ export function headerHeight(maxPorts: number): number {
 // Calculate total node height from port count and UI element count
 export function calcNodeHeight(maxPorts: number, elementCount: number): number {
   const header = headerHeight(maxPorts);
+
   if (elementCount === 0) return header;
+
   return (
     header +
     CONTENT_PADDING_BLOCK * 2 +
     elementCount * ELEMENT_HEIGHT +
-    Math.max(0, elementCount - 1) * CONTENT_GAP
+    Math.max(0, elementCount - 1) * GAP
   );
 }

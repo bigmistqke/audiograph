@@ -1,5 +1,6 @@
+import { ReactiveMap } from "@solid-primitives/map";
 import { makePersisted } from "@solid-primitives/storage";
-import { type JSX } from "solid-js";
+import { createEffect, mapArray, onCleanup, type JSX } from "solid-js";
 import { createStore, produce, type SetStoreFunction } from "solid-js/store";
 
 export interface PortDef {
@@ -7,8 +8,21 @@ export interface PortDef {
   [key: string]: unknown;
 }
 
+interface Connectable {
+  connect(target: any): any;
+  disconnect(target?: any): void;
+}
+
+interface AudioPorts {
+  in?: Record<string, AudioNode | AudioParam>;
+  out?: Record<string, Connectable>;
+}
+
+export type AudioFactoryResult<A = undefined> = AudioPorts & { data?: A };
+
 export interface RenderProps<
   S extends Record<string, any> = Record<string, any>,
+  A = undefined,
 > {
   id: string;
   state: S;
@@ -17,12 +31,14 @@ export interface RenderProps<
   contentY: number;
   isInputConnected(portName: string): boolean;
   setDimensions(dimensions: Partial<{ x: number; y: number }>): void;
+  audio: A | undefined;
 }
 
 export interface NodeTypeDef<
   S extends Record<string, any> = Record<string, any>,
+  A = undefined,
 > {
-  title: string;
+  title?: string;
   dimensions: { x: number; y: number };
   ports: {
     in?: PortDef[];
@@ -30,10 +46,16 @@ export interface NodeTypeDef<
   };
   state?: S;
   resizable?: boolean;
-  render?: (props: RenderProps<S>) => JSX.Element;
+  hideLabels?: boolean;
+  audio?: (
+    state: S,
+    nodeId: string,
+    ctx: AudioContext,
+  ) => AudioFactoryResult<A>;
+  render?: (props: RenderProps<S, A>) => JSX.Element;
 }
 
-export type GraphConfig = Record<string, NodeTypeDef<any>>;
+export type GraphConfig = Record<string, NodeTypeDef<any, any>>;
 
 export interface NodeInstance {
   id: string;
@@ -60,20 +82,18 @@ interface GraphStore {
 
 export function createGraph<T extends GraphConfig>(
   config: T,
-  options?: { persistName?: string },
+  options?: { persistName?: string; audioContext?: AudioContext },
 ) {
   const [graph, setGraph] = options?.persistName
-    ? makePersisted(
-        createStore<GraphStore>({ nodes: [], edges: [] }),
-        { name: `${options.persistName}-graph` },
-      )
+    ? makePersisted(createStore<GraphStore>({ nodes: [], edges: [] }), {
+        name: `${options.persistName}-graph`,
+      })
     : createStore<GraphStore>({ nodes: [], edges: [] });
 
   const [allNodeStates, setAllNodeStates] = options?.persistName
-    ? makePersisted(
-        createStore<Record<string, Record<string, any>>>({}),
-        { name: `${options.persistName}-states` },
-      )
+    ? makePersisted(createStore<Record<string, Record<string, any>>>({}), {
+        name: `${options.persistName}-states`,
+      })
     : createStore<Record<string, Record<string, any>>>({});
 
   // Recover ID counter from persisted nodes
@@ -106,10 +126,89 @@ export function createGraph<T extends GraphConfig>(
     );
   }
 
+  // --- Audio lifecycle (only when AudioContext is provided) ---
+
+  const audioData = new ReactiveMap<string, any>();
+
+  if (options?.audioContext) {
+    const ctx = options.audioContext;
+    const projectedNodes = new ReactiveMap<string, AudioPorts>();
+
+    // Node lifecycle: create audio nodes when graph nodes appear
+    const mappedNodes = mapArray(
+      () => graph.nodes,
+      (node) => {
+        const typeDef = config[node.type];
+        if (!typeDef?.audio) return;
+
+        const stateEntry = nodeStates.get(node.id);
+        const state = stateEntry?.state ?? {};
+        const result = typeDef.audio(state, node.id, ctx);
+
+        projectedNodes.set(node.id, { in: result.in, out: result.out });
+
+        if (result.data !== undefined) {
+          audioData.set(node.id, result.data);
+        }
+
+        onCleanup(() => {
+          if (result.out) {
+            for (const port of Object.values(result.out)) {
+              port.disconnect();
+            }
+          }
+          projectedNodes.delete(node.id);
+          audioData.delete(node.id);
+        });
+
+        return result;
+      },
+    );
+
+    createEffect(() => mappedNodes());
+
+    // Edge lifecycle: connect/disconnect audio ports when edges change
+    const mappedEdges = mapArray(
+      () => graph.edges,
+      (edge) => {
+        createEffect(() => {
+          const from = projectedNodes.get(edge.output.node);
+          const to = projectedNodes.get(edge.input.node);
+
+          if (!from || !to) return;
+
+          const outPort = from.out?.[edge.output.port];
+          const inPort = to.in?.[edge.input.port];
+
+          if (!outPort || !inPort) return;
+
+          // When connecting to an AudioParam, zero its intrinsic value
+          // so only the connected signal controls it (connections are additive)
+          let savedValue: number | undefined;
+          if (inPort instanceof AudioParam) {
+            savedValue = inPort.value;
+            inPort.value = 0;
+          }
+
+          outPort.connect(inPort);
+          onCleanup(() => {
+            outPort.disconnect(inPort);
+            if (inPort instanceof AudioParam && savedValue !== undefined) {
+              inPort.value = savedValue;
+            }
+          });
+        });
+      },
+    );
+
+    createEffect(() => mappedEdges());
+  }
+
   return {
     config,
     graph,
     nodeStates,
+    audioData,
     getPortDef,
     addNode(type: keyof T & string, position: { x: number; y: number }) {
       const id = (nextId++).toString();

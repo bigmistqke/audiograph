@@ -44,6 +44,7 @@ export function GraphNode(props: { node: NodeInstance }) {
         graph.graph.edges.some(
           (e) => e.input.node === props.node.id && e.input.port === portName,
         ),
+      audio: graph.audioData.get(props.node.id),
     });
   };
 
@@ -90,7 +91,7 @@ export function GraphNode(props: { node: NodeInstance }) {
                 }}
               />
             </div>
-            <div class={styles.nodeContent}>{rendered()}</div>
+            {rendered()}
             <Show when={typeDef().resizable}>
               <div
                 class={styles.resizeHandle}
@@ -119,6 +120,7 @@ export function GraphNode(props: { node: NodeInstance }) {
             index={index}
             kind="in"
             dataKind={port.kind}
+            hideLabels={typeDef()?.hideLabels}
           />
         ))}
         {typeDef().ports.out?.map((port: any, index: number) => (
@@ -127,6 +129,7 @@ export function GraphNode(props: { node: NodeInstance }) {
             index={index}
             kind="out"
             dataKind={port.kind}
+            hideLabels={typeDef()?.hideLabels}
           />
         ))}
       </g>

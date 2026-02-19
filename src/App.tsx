@@ -1,5 +1,4 @@
 import { minni } from "@bigmistqke/minni";
-import { ReactiveMap } from "@solid-primitives/map";
 import { makePersisted } from "@solid-primitives/storage";
 import { useNavigate, useParams } from "@solidjs/router";
 import clsx from "clsx";
@@ -16,13 +15,14 @@ import { createStore } from "solid-js/store";
 import styles from "./App.module.css";
 import { GraphEdge } from "./components/GraphEdge";
 import { GraphNode } from "./components/GraphNode";
+import { GraphNodeContent } from "./components/GraphNodeContent";
 import { GraphTemporaryEdge } from "./components/GraphTemporaryEdge";
 import {
   calcNodeHeight,
-  CONTENT_GAP,
   CONTENT_PADDING_BLOCK,
   CONTENT_PADDING_INLINE,
   ELEMENT_HEIGHT,
+  GAP,
   HEADING_PADDING_BLOCK,
   HEADING_PADDING_INLINE,
   PORT_INSET,
@@ -33,12 +33,12 @@ import {
 import { GraphContext, type TemporaryEdge } from "./context";
 import type { GraphConfig, RenderProps } from "./lib/create-graph";
 import { createGraph } from "./lib/create-graph";
-import { createGraphProjection } from "./lib/create-graph-projection";
 import {
   createWorkletFileSystem,
   getSourceBoilerplate,
   getWorkletEntry,
 } from "./lib/worklet-file-system";
+import { Button } from "./ui/Button";
 import { HorizontalSlider } from "./ui/HorizontalSlider";
 import { Select } from "./ui/Select";
 
@@ -46,12 +46,6 @@ function GraphEditor(props: { graphName: string }) {
   const navigate = useNavigate();
   const ctx = new AudioContext();
   const workletFS = createWorkletFileSystem();
-  const workletNodes = new ReactiveMap<string, AudioWorkletNode>();
-  const analyserNodes = new ReactiveMap<string, AnalyserNode>();
-  const debugNodes = new Map<string, AnalyserNode>();
-  const meterNodes = new Map<string, AnalyserNode>();
-  const envelopeTriggers = new Map<string, () => void>();
-  const sequencerGates = new Map<string, (value: number) => void>();
   const [selectedType, setSelectedType] = createSignal<string | undefined>();
 
   // Persisted custom type definitions (global, shared across graphs)
@@ -74,15 +68,77 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { name: "", code },
+      audio: createWorkletAudio(),
       render: createWorkletRender(typeName),
     });
     graph.updateNode(nodeId, { type: typeName });
   }
 
+  function createWorkletAudio() {
+    return (
+      state: { name: string; code: string },
+      _nodeId: string,
+      audioCtx: AudioContext,
+    ) => {
+      const inputGain = audioCtx.createGain();
+      const outputGain = audioCtx.createGain();
+      const [workletNode, setWorkletNode] = createSignal<AudioWorkletNode | null>(null);
+
+      let currentWorkletNode: AudioWorkletNode | null = null;
+      let loadGeneration = 0;
+
+      createEffect(() => {
+        const name = state.name;
+        if (!name) return;
+
+        const url = workletFS.fileUrls.get(`/${name}/worklet.js`);
+        const processorName = workletFS.getProcessorName(name);
+        if (!url) return;
+
+        const gen = ++loadGeneration;
+
+        if (currentWorkletNode) {
+          inputGain.disconnect(currentWorkletNode);
+          currentWorkletNode.disconnect(outputGain);
+          currentWorkletNode = null;
+        }
+
+        audioCtx.audioWorklet
+          .addModule(url)
+          .then(() => {
+            if (loadGeneration !== gen) return;
+            const node = new AudioWorkletNode(audioCtx, processorName);
+            currentWorkletNode = node;
+            inputGain.connect(node);
+            node.connect(outputGain);
+            setWorkletNode(node);
+          })
+          .catch((err) => {
+            console.error(`Failed to load worklet "${processorName}":`, err);
+          });
+      });
+
+      onCleanup(() => {
+        if (currentWorkletNode) {
+          inputGain.disconnect(currentWorkletNode);
+          currentWorkletNode.disconnect(outputGain);
+        }
+        inputGain.disconnect();
+        outputGain.disconnect();
+      });
+
+      return {
+        in: { audio: inputGain },
+        out: { audio: outputGain },
+        data: { workletNode },
+      };
+    };
+  }
+
   function createWorkletRender(typeKey: string) {
     const isSaved = typeKey !== "audioworklet";
 
-    return (props: RenderProps<{ name: string; code: string }>) => {
+    return (props: RenderProps<{ name: string; code: string }, { workletNode: () => AudioWorkletNode | null }>) => {
       if (isSaved) {
         createEffect(
           on(
@@ -98,18 +154,17 @@ function GraphEditor(props: { graphName: string }) {
       }
 
       const params = () => {
-        const node = workletNodes.get(props.state.name);
+        const node = props.audio?.workletNode();
         if (!node) return [];
         return Array.from(node.parameters.entries());
       };
 
       return (
-        <div
+        <GraphNodeContent
           style={{
             display: "flex",
             "flex-direction": "column",
-            height: `calc(100% - ${PORT_RADIUS}px)`,
-            gap: "2px",
+            gap: "var(--gap)",
           }}
         >
           <For each={params()}>
@@ -155,11 +210,11 @@ function GraphEditor(props: { graphName: string }) {
           <div
             style={{
               display: "flex",
-              gap: "2px",
+              gap: "var(--gap)",
             }}
           >
             {isSaved && (
-              <button
+              <Button
                 style={{
                   flex: 1,
                   padding: "2px 4px",
@@ -173,9 +228,9 @@ function GraphEditor(props: { graphName: string }) {
                 }}
               >
                 Save
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               style={{
                 flex: 1,
                 padding: "2px 4px",
@@ -186,29 +241,47 @@ function GraphEditor(props: { graphName: string }) {
               onClick={() => saveAsNewType(props.state.code, props.id)}
             >
               {isSaved ? "Save as" : "Save as Type"}
-            </button>
+            </Button>
           </div>
-        </div>
+        </GraphNodeContent>
       );
     };
   }
 
   const [config, setConfig] = createStore<GraphConfig>({
     oscillator: {
-      title: "Oscillator",
+      title: "oscillator",
       dimensions: { x: 180, y: calcNodeHeight(1, 2) },
       ports: {
         in: [{ name: "frequency", kind: "param" }],
         out: [{ name: "audio" }],
       },
       state: { frequency: 440, type: "sine" as OscillatorType },
+      audio(state, _nodeId, audioCtx) {
+        const osc = audioCtx.createOscillator();
+        osc.start();
+
+        createEffect(() => {
+          osc.frequency.value = state.frequency;
+        });
+        createEffect(() => {
+          osc.type = state.type;
+        });
+
+        onCleanup(() => osc.stop());
+
+        return {
+          in: { frequency: osc.frequency, detune: osc.detune },
+          out: { audio: osc },
+        };
+      },
       render(props) {
         return (
-          <div
+          <GraphNodeContent
             style={{
               display: "flex",
               "flex-direction": "column",
-              gap: "2px",
+              gap: "var(--gap)",
             }}
           >
             <Select
@@ -224,89 +297,152 @@ function GraphEditor(props: { graphName: string }) {
               disabled={props.isInputConnected("frequency")}
               onInput={(value) => props.setState("frequency", value)}
             />
-          </div>
+          </GraphNodeContent>
         );
       },
     },
     gain: {
-      title: "Gain",
+      title: "gain",
       dimensions: { x: 180, y: calcNodeHeight(2, 1) },
       ports: {
         in: [{ name: "audio" }, { name: "gain", kind: "param" }],
         out: [{ name: "audio" }],
       },
       state: { gain: 0.5 },
+      audio(state, _nodeId, audioCtx) {
+        const gainNode = audioCtx.createGain();
+
+        createEffect(() => {
+          gainNode.gain.value = state.gain;
+        });
+
+        return {
+          in: { audio: gainNode, gain: gainNode.gain },
+          out: { audio: gainNode },
+        };
+      },
       render(props) {
         return (
-          <HorizontalSlider
-            title="gain"
-            output={props.state.gain.toFixed(2)}
-            value={props.state.gain}
-            min={0}
-            max={1}
-            step={0.001}
-            disabled={props.isInputConnected("gain")}
-            onInput={(value) => props.setState("gain", value)}
-          />
+          <GraphNodeContent>
+            <HorizontalSlider
+              title="gain"
+              output={props.state.gain.toFixed(2)}
+              value={props.state.gain}
+              min={0}
+              max={1}
+              step={0.001}
+              disabled={props.isInputConnected("gain")}
+              onInput={(value) => props.setState("gain", value)}
+            />
+          </GraphNodeContent>
         );
       },
     },
     constant: {
-      title: "Constant",
+      title: "constant",
       dimensions: { x: 180, y: calcNodeHeight(1, 1) },
       ports: {
         in: [],
         out: [{ name: "value", kind: "param" }],
       },
       state: { value: 440 },
+      audio(state, _nodeId, audioCtx) {
+        const src = audioCtx.createConstantSource();
+        src.start();
+
+        createEffect(() => {
+          src.offset.value = state.value;
+        });
+
+        onCleanup(() => src.stop());
+
+        return {
+          in: {},
+          out: { value: src },
+        };
+      },
       render(props) {
         return (
-          <HorizontalSlider
-            title="value"
-            output={props.state.value}
-            value={props.state.gain}
-            onInput={(value) => props.setState("value", value)}
-          />
+          <GraphNodeContent>
+            <HorizontalSlider
+              title="value"
+              output={props.state.value}
+              value={props.state.gain}
+              onInput={(value) => props.setState("value", value)}
+            />
+          </GraphNodeContent>
         );
       },
     },
     scale: {
-      title: "Scale",
+      title: "scale",
       dimensions: { x: 180, y: calcNodeHeight(1, 1) },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [{ name: "scaled", kind: "param" }],
       },
       state: { factor: 1000 },
+      audio(state, _nodeId, audioCtx) {
+        const gain = audioCtx.createGain();
+
+        createEffect(() => {
+          gain.gain.value = state.factor;
+        });
+
+        return {
+          in: { signal: gain },
+          out: { scaled: gain },
+        };
+      },
       render(props) {
         return (
-          <HorizontalSlider
-            title="factor"
-            value={props.state.factor}
-            output={props.state.factor.toFixed(0)}
-            min={-10000}
-            max={10000}
-            step={1}
-            onInput={(value) => props.setState("factor", value)}
-          />
+          <GraphNodeContent>
+            <HorizontalSlider
+              title="factor"
+              value={props.state.factor}
+              output={props.state.factor.toFixed(0)}
+              min={-10000}
+              max={10000}
+              step={1}
+              onInput={(value) => props.setState("factor", value)}
+            />
+          </GraphNodeContent>
         );
       },
     },
     range: {
-      title: "Range",
+      title: "range",
       dimensions: { x: 180, y: calcNodeHeight(1, 2) },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [{ name: "mapped", kind: "param" }],
       },
       state: { min: 200, max: 2000 },
+      audio(state, _nodeId, audioCtx) {
+        const scaleGain = audioCtx.createGain();
+        const offset = audioCtx.createConstantSource();
+        offset.start();
+        scaleGain.connect(offset.offset);
+
+        createEffect(() => {
+          scaleGain.gain.value = state.max - state.min;
+          offset.offset.value = state.min;
+        });
+
+        onCleanup(() => offset.stop());
+
+        return {
+          in: { signal: scaleGain },
+          out: { mapped: offset },
+        };
+      },
       render(props) {
         return (
-          <div
+          <GraphNodeContent
             style={{
               display: "flex",
               "flex-direction": "column",
-              gap: "2px",
+              gap: "var(--gap)",
             }}
           >
             <HorizontalSlider
@@ -327,12 +463,12 @@ function GraphEditor(props: { graphName: string }) {
               step={1}
               onInput={(value) => props.setState("max", value)}
             />
-          </div>
+          </GraphNodeContent>
         );
       },
     },
     filter: {
-      title: "Filter",
+      title: "filter",
       dimensions: { x: 180, y: calcNodeHeight(3, 2) },
       ports: {
         in: [
@@ -343,13 +479,29 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { frequency: 1000, Q: 1 },
+      audio(state, _nodeId, audioCtx) {
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "lowpass";
+
+        createEffect(() => {
+          filter.frequency.value = state.frequency;
+        });
+        createEffect(() => {
+          filter.Q.value = state.Q;
+        });
+
+        return {
+          in: { audio: filter, frequency: filter.frequency, Q: filter.Q },
+          out: { audio: filter },
+        };
+      },
       render(props) {
         return (
-          <div
+          <GraphNodeContent
             style={{
               display: "flex",
               "flex-direction": "column",
-              gap: "2px",
+              gap: "var(--gap)",
             }}
           >
             <HorizontalSlider
@@ -372,71 +524,120 @@ function GraphEditor(props: { graphName: string }) {
               disabled={props.isInputConnected("Q")}
               onInput={(value) => props.setState("Q", value)}
             />
-          </div>
+          </GraphNodeContent>
         );
       },
     },
     delay: {
-      title: "Delay",
+      title: "delay",
       dimensions: { x: 180, y: calcNodeHeight(2, 1) },
       ports: {
         in: [{ name: "audio" }, { name: "delayTime", kind: "param" }],
         out: [{ name: "audio" }],
       },
       state: { delayTime: 0.3 },
+      audio(state, _nodeId, audioCtx) {
+        const delay = audioCtx.createDelay(1);
+
+        createEffect(() => {
+          delay.delayTime.value = state.delayTime;
+        });
+
+        return {
+          in: { audio: delay, delayTime: delay.delayTime },
+          out: { audio: delay },
+        };
+      },
       render(props) {
         return (
-          <HorizontalSlider
-            title="time"
-            value={props.state.delayTime}
-            output={`${props.state.delayTime.toFixed(2)}s`}
-            min={0}
-            max={1}
-            step={0.01}
-            disabled={props.isInputConnected("delayTime")}
-            onInput={(value) => props.setState("delayTime", value)}
-          />
+          <GraphNodeContent>
+            <HorizontalSlider
+              title="time"
+              value={props.state.delayTime}
+              output={`${props.state.delayTime.toFixed(2)}s`}
+              min={0}
+              max={1}
+              step={0.01}
+              disabled={props.isInputConnected("delayTime")}
+              onInput={(value) => props.setState("delayTime", value)}
+            />
+          </GraphNodeContent>
         );
       },
     },
     panner: {
-      title: "Panner",
+      title: "panner",
       dimensions: { x: 180, y: calcNodeHeight(2, 1) },
       ports: {
         in: [{ name: "audio" }, { name: "pan", kind: "param" }],
         out: [{ name: "audio" }],
       },
       state: { pan: 0 },
+      audio(state, _nodeId, audioCtx) {
+        const panner = audioCtx.createStereoPanner();
+
+        createEffect(() => {
+          panner.pan.value = state.pan;
+        });
+
+        return {
+          in: { audio: panner, pan: panner.pan },
+          out: { audio: panner },
+        };
+      },
       render(props) {
         return (
-          <HorizontalSlider
-            title="pan"
-            value={props.state.pan}
-            output={props.state.pan.toFixed(2)}
-            min={-1}
-            max={1}
-            step={0.01}
-            disabled={props.isInputConnected("pan")}
-            onInput={(value) => props.setState("pan", value)}
-          />
+          <GraphNodeContent>
+            <HorizontalSlider
+              title="pan"
+              value={props.state.pan}
+              output={props.state.pan.toFixed(2)}
+              min={-1}
+              max={1}
+              step={0.01}
+              disabled={props.isInputConnected("pan")}
+              onInput={(value) => props.setState("pan", value)}
+            />
+          </GraphNodeContent>
         );
       },
     },
     compressor: {
-      title: "Compressor",
+      title: "compressor",
       dimensions: { x: 180, y: calcNodeHeight(1, 4) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
       },
       state: { threshold: -24, ratio: 12, attack: 0.003, release: 0.25 },
+      audio(state, _nodeId, audioCtx) {
+        const comp = audioCtx.createDynamicsCompressor();
+
+        createEffect(() => {
+          comp.threshold.value = state.threshold;
+        });
+        createEffect(() => {
+          comp.ratio.value = state.ratio;
+        });
+        createEffect(() => {
+          comp.attack.value = state.attack;
+        });
+        createEffect(() => {
+          comp.release.value = state.release;
+        });
+
+        return {
+          in: { audio: comp },
+          out: { audio: comp },
+        };
+      },
       render(props) {
         return (
-          <div
+          <GraphNodeContent
             style={{
               display: "flex",
               "flex-direction": "column",
-              gap: "2px",
+              gap: "var(--gap)",
             }}
           >
             <HorizontalSlider
@@ -475,25 +676,73 @@ function GraphEditor(props: { graphName: string }) {
               step={0.01}
               onInput={(v) => props.setState("release", v)}
             />
-          </div>
+          </GraphNodeContent>
         );
       },
     },
     reverb: {
-      title: "Reverb",
+      title: "reverb",
       dimensions: { x: 180, y: calcNodeHeight(1, 2) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
       },
       state: { decay: 2, mix: 0.5 },
+      audio(state, _nodeId, audioCtx) {
+        const convolver = audioCtx.createConvolver();
+        const dry = audioCtx.createGain();
+        const wet = audioCtx.createGain();
+        const input = audioCtx.createGain();
+        const output = audioCtx.createGain();
+
+        function generateImpulse(decay: number) {
+          const length = audioCtx.sampleRate * decay;
+          const impulse = audioCtx.createBuffer(2, length, audioCtx.sampleRate);
+          for (let channel = 0; channel < 2; channel++) {
+            const data = impulse.getChannelData(channel);
+            for (let i = 0; i < length; i++) {
+              data[i] =
+                (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+            }
+          }
+          return impulse;
+        }
+
+        convolver.buffer = generateImpulse(state.decay);
+
+        input.connect(dry);
+        input.connect(convolver);
+        convolver.connect(wet);
+        dry.connect(output);
+        wet.connect(output);
+
+        createEffect(() => {
+          convolver.buffer = generateImpulse(state.decay);
+        });
+        createEffect(() => {
+          wet.gain.value = state.mix;
+          dry.gain.value = 1 - state.mix;
+        });
+
+        onCleanup(() => {
+          input.disconnect();
+          convolver.disconnect();
+          dry.disconnect();
+          wet.disconnect();
+        });
+
+        return {
+          in: { audio: input },
+          out: { audio: output },
+        };
+      },
       render(props) {
         return (
-          <div
+          <GraphNodeContent
             style={{
               display: "flex",
               "flex-direction": "column",
-              gap: "2px",
+              gap: "var(--gap)",
             }}
           >
             <HorizontalSlider
@@ -515,25 +764,55 @@ function GraphEditor(props: { graphName: string }) {
               step={0.01}
               onInput={(value) => props.setState("mix", value)}
             />
-          </div>
+          </GraphNodeContent>
         );
       },
     },
     waveshaper: {
-      title: "Waveshaper",
+      title: "waveshaper",
       dimensions: { x: 180, y: calcNodeHeight(1, 1) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
       },
       state: { amount: 50, oversample: "4x" as OverSampleType },
+      audio(state, _nodeId, audioCtx) {
+        const shaper = audioCtx.createWaveShaper();
+
+        function makeDistortionCurve(amount: number) {
+          const k = amount;
+          const samples = 44100;
+          const curve = new Float32Array(samples);
+          const deg = Math.PI / 180;
+          for (let i = 0; i < samples; i++) {
+            const x = (i * 2) / samples - 1;
+            curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+          }
+          return curve;
+        }
+
+        shaper.curve = makeDistortionCurve(state.amount);
+        shaper.oversample = state.oversample;
+
+        createEffect(() => {
+          shaper.curve = makeDistortionCurve(state.amount);
+        });
+        createEffect(() => {
+          shaper.oversample = state.oversample;
+        });
+
+        return {
+          in: { audio: shaper },
+          out: { audio: shaper },
+        };
+      },
       render(props) {
         return (
-          <div
+          <GraphNodeContent
             style={{
               display: "flex",
               "flex-direction": "column",
-              gap: "2px",
+              gap: "var(--gap)",
             }}
           >
             <HorizontalSlider
@@ -546,16 +825,26 @@ function GraphEditor(props: { graphName: string }) {
               disabled={props.isInputConnected("amount")}
               onInput={(value) => props.setState("amount", value)}
             />
-          </div>
+          </GraphNodeContent>
         );
       },
     },
     analyser: {
-      title: "Analyser",
+      title: "analyser",
       dimensions: { x: 200, y: calcNodeHeight(1, 3) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
+      },
+      audio(_state, _nodeId, audioCtx) {
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048;
+
+        return {
+          in: { audio: analyser },
+          out: { audio: analyser },
+          data: { analyser },
+        };
       },
       render(props) {
         return (
@@ -564,7 +853,7 @@ function GraphEditor(props: { graphName: string }) {
               const canvasCtx = canvas.getContext("2d")!;
               let animId: number;
               const draw = () => {
-                const analyser = analyserNodes.get(props.id);
+                const analyser = props.audio?.analyser;
                 const w = canvas.width;
                 const h = canvas.height;
                 canvasCtx.fillStyle = "#1a1a2e";
@@ -610,17 +899,27 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     meter: {
-      title: "Meter",
-      dimensions: { x: 60, y: calcNodeHeight(1, 3) },
+      hideLabels: true,
+      dimensions: { x: 33, y: calcNodeHeight(1, 3) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
+      },
+      audio(_state, _nodeId, audioCtx) {
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+
+        return {
+          in: { audio: analyser },
+          out: { audio: analyser },
+          data: { analyser },
+        };
       },
       render(props) {
         const [level, setLevel] = createSignal(0);
         let animId: number;
         const poll = () => {
-          const node = meterNodes.get(props.id);
+          const node = props.audio?.analyser;
           if (node) {
             const data = new Float32Array(node.fftSize);
             node.getFloatTimeDomainData(data);
@@ -669,17 +968,27 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     debug: {
-      title: "Debug",
+      title: "debug",
       dimensions: { x: 180, y: calcNodeHeight(1, 1) },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [],
       },
+      audio(_state, _nodeId, audioCtx) {
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+
+        return {
+          in: { signal: analyser },
+          out: {},
+          data: { analyser },
+        };
+      },
       render(props) {
         const [value, setValue] = createSignal(0);
         let animId: number;
         const poll = () => {
-          const node = debugNodes.get(props.id);
+          const node = props.audio?.analyser;
           if (node) {
             const data = new Float32Array(node.fftSize);
             node.getFloatTimeDomainData(data);
@@ -705,27 +1014,73 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     noise: {
-      title: "Noise",
+      title: "noise",
       dimensions: { x: 120, y: calcNodeHeight(1, 0) },
       ports: {
         in: [],
         out: [{ name: "audio" }],
       },
+      audio(_state, _nodeId, audioCtx) {
+        const bufferSize = 2 * audioCtx.sampleRate;
+        const noiseBuffer = audioCtx.createBuffer(
+          1,
+          bufferSize,
+          audioCtx.sampleRate,
+        );
+        const data = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+        noise.start();
+
+        onCleanup(() => noise.stop());
+
+        return {
+          in: {},
+          out: { audio: noise },
+        };
+      },
     },
     lfo: {
-      title: "LFO",
+      title: "lfo",
       dimensions: { x: 180, y: calcNodeHeight(1, 2) },
       ports: {
         in: [],
         out: [{ name: "modulation", kind: "param" }],
       },
       state: { rate: 2, depth: 0.5, type: "sine" as OscillatorType },
+      audio(state, _nodeId, audioCtx) {
+        const osc = audioCtx.createOscillator();
+        const depthGain = audioCtx.createGain();
+        osc.connect(depthGain);
+        osc.start();
+
+        createEffect(() => {
+          osc.frequency.value = state.rate;
+        });
+        createEffect(() => {
+          osc.type = state.type;
+        });
+        createEffect(() => {
+          depthGain.gain.value = state.depth;
+        });
+
+        onCleanup(() => osc.stop());
+
+        return {
+          in: {},
+          out: { modulation: depthGain },
+        };
+      },
       render: (props) => (
-        <div
+        <GraphNodeContent
           style={{
             display: "flex",
             "flex-direction": "column",
-            gap: "2px",
+            gap: "var(--gap)",
           }}
         >
           <HorizontalSlider
@@ -746,23 +1101,81 @@ function GraphEditor(props: { graphName: string }) {
             step={0.01}
             onInput={(value) => props.setState("depth", value)}
           />
-        </div>
+        </GraphNodeContent>
       ),
     },
     envelope: {
-      title: "Envelope",
+      title: "envelope",
       dimensions: { x: 180, y: calcNodeHeight(1, 5) },
       ports: {
         in: [{ name: "gate", kind: "param" }],
         out: [{ name: "envelope", kind: "param" }],
       },
       state: { attack: 0.1, decay: 0.2, sustain: 0.7, release: 0.5 },
+      audio(state, _nodeId, audioCtx) {
+        const src = audioCtx.createConstantSource();
+        src.offset.value = 0;
+        src.start();
+
+        const gateInput = audioCtx.createAnalyser();
+        gateInput.fftSize = 256;
+        const gateData = new Float32Array(gateInput.fftSize);
+        let gateOpen = false;
+        let animId: number;
+
+        const triggerAttack = () => {
+          const now = audioCtx.currentTime;
+          src.offset.cancelScheduledValues(now);
+          src.offset.setTargetAtTime(1, now, state.attack / 3);
+          src.offset.setTargetAtTime(
+            state.sustain,
+            now + state.attack,
+            state.decay / 3,
+          );
+        };
+
+        const triggerRelease = () => {
+          const now = audioCtx.currentTime;
+          src.offset.cancelScheduledValues(now);
+          src.offset.setTargetAtTime(0, now, state.release / 3);
+        };
+
+        const checkGate = () => {
+          gateInput.getFloatTimeDomainData(gateData);
+          const isHigh = gateData[0] > 0.5;
+          if (isHigh && !gateOpen) {
+            gateOpen = true;
+            triggerAttack();
+          } else if (!isHigh && gateOpen) {
+            gateOpen = false;
+            triggerRelease();
+          }
+          animId = requestAnimationFrame(checkGate);
+        };
+        checkGate();
+
+        const trigger = () => {
+          triggerAttack();
+          const holdTime = state.attack + state.decay + 0.1;
+          setTimeout(() => triggerRelease(), holdTime * 1000);
+        };
+
+        onCleanup(() => {
+          cancelAnimationFrame(animId);
+          src.stop();
+        });
+
+        return {
+          in: { gate: gateInput },
+          out: { envelope: src },
+          data: { trigger },
+        };
+      },
       render: (props) => (
-        <div
+        <GraphNodeContent
           style={{
             display: "flex",
             "flex-direction": "column",
-            gap: "2px",
           }}
         >
           <HorizontalSlider
@@ -801,25 +1214,22 @@ function GraphEditor(props: { graphName: string }) {
             step={0.001}
             onInput={(value) => props.setState("release", value)}
           />
-          <button
+          <Button
             style={{
               padding: "2px 4px",
               "font-size": "10px",
               cursor: "pointer",
             }}
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => {
-              const id = props.id;
-              envelopeTriggers.get(id)?.();
-            }}
+            onClick={() => props.audio?.trigger()}
           >
             Trigger
-          </button>
-        </div>
+          </Button>
+        </GraphNodeContent>
       ),
     },
     sequencer: {
-      title: "Sequencer",
+      title: "sequencer",
       dimensions: { x: 280, y: calcNodeHeight(1, 3) },
       resizable: true,
       ports: {
@@ -847,22 +1257,37 @@ function GraphEditor(props: { graphName: string }) {
           false,
         ],
       },
+      audio(_state, _nodeId, audioCtx) {
+        const src = audioCtx.createConstantSource();
+        src.offset.value = 0;
+        src.start();
+
+        const setGate = (value: number) => {
+          src.offset.setValueAtTime(value, audioCtx.currentTime);
+        };
+
+        onCleanup(() => src.stop());
+
+        return {
+          in: {},
+          out: { gate: src },
+          data: { setGate },
+        };
+      },
       render(props) {
         const [currentStep, setCurrentStep] = createSignal(-1);
         const stepCount = () => props.state.steps.length;
 
         let timeoutId: number | undefined;
         let step = 0;
-        let lastStepTime = 0;
         let running = false;
 
         const tick = () => {
           if (!running) return;
           setCurrentStep(step % stepCount());
           const isActive = props.state.steps[step % stepCount()];
-          sequencerGates.get(props.id)?.(isActive ? 1 : 0);
+          props.audio?.setGate(isActive ? 1 : 0);
           step++;
-          lastStepTime = performance.now();
           timeoutId = setTimeout(
             tick,
             60000 / props.state.bpm / 4,
@@ -886,11 +1311,9 @@ function GraphEditor(props: { graphName: string }) {
         onCleanup(stop);
 
         return (
-          <div
+          <GraphNodeContent
             style={{
               display: "grid",
-              gap: "2px",
-              height: "100%",
               "grid-template-rows": "auto 1fr auto",
             }}
           >
@@ -937,10 +1360,10 @@ function GraphEditor(props: { graphName: string }) {
               style={{
                 display: "grid",
                 "grid-template-columns": "1fr 1fr",
-                gap: "2px",
+                gap: "var(--gap)",
               }}
             >
-              <button
+              <Button
                 style={{
                   padding: "2px 4px",
                   "font-size": "10px",
@@ -950,8 +1373,8 @@ function GraphEditor(props: { graphName: string }) {
                 onClick={start}
               >
                 Play
-              </button>
-              <button
+              </Button>
+              <Button
                 style={{
                   padding: "2px 4px",
                   "font-size": "10px",
@@ -961,22 +1384,27 @@ function GraphEditor(props: { graphName: string }) {
                 onClick={stop}
               >
                 Stop
-              </button>
+              </Button>
             </div>
-          </div>
+          </GraphNodeContent>
         );
       },
     },
     destination: {
-      title: "Output",
+      title: "output",
       dimensions: { x: 120, y: calcNodeHeight(1, 0) },
       ports: {
         in: [{ name: "audio" }],
         out: [],
       },
+      audio(_state, _nodeId, audioCtx) {
+        return {
+          in: { audio: audioCtx.destination },
+        };
+      },
     },
     audioworklet: {
-      title: "AudioWorklet",
+      title: "audioworklet",
       dimensions: { x: 280, y: calcNodeHeight(1, 7) },
       resizable: true,
       ports: {
@@ -984,6 +1412,7 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { name: "", code: "" },
+      audio: createWorkletAudio(),
       render: createWorkletRender("audioworklet"),
     },
   });
@@ -1001,6 +1430,7 @@ function GraphEditor(props: { graphName: string }) {
           out: [{ name: "audio" }],
         },
         state: { name: "", code: data.code },
+        audio: createWorkletAudio(),
         render: createWorkletRender(key),
       });
     }
@@ -1008,6 +1438,7 @@ function GraphEditor(props: { graphName: string }) {
 
   const graph = createGraph(config, {
     persistName: `audiograph-${props.graphName}`,
+    audioContext: ctx,
   });
 
   // Initialize worklet files for persisted custom nodes
@@ -1021,483 +1452,6 @@ function GraphEditor(props: { graphName: string }) {
       }
     }
   }
-
-  // Audio projection
-  const projectionFactories = {
-    oscillator(state: { frequency: number; type: OscillatorType }) {
-      const osc = ctx.createOscillator();
-      osc.start();
-
-      createEffect(() => {
-        osc.frequency.value = state.frequency;
-      });
-      createEffect(() => {
-        osc.type = state.type;
-      });
-
-      onCleanup(() => osc.stop());
-
-      return {
-        in: {
-          frequency: osc.frequency,
-          detune: osc.detune,
-        },
-        out: {
-          audio: osc,
-        },
-      };
-    },
-    gain(state: { gain: number }) {
-      const gainNode = ctx.createGain();
-
-      createEffect(() => {
-        gainNode.gain.value = state.gain;
-      });
-
-      return {
-        in: {
-          audio: gainNode,
-          gain: gainNode.gain,
-        },
-        out: {
-          audio: gainNode,
-        },
-      };
-    },
-    constant(state: { value: number }) {
-      const src = ctx.createConstantSource();
-      src.start();
-
-      createEffect(() => {
-        src.offset.value = state.value;
-      });
-
-      onCleanup(() => src.stop());
-
-      return {
-        in: {},
-        out: {
-          value: src,
-        },
-      };
-    },
-    scale(state: { factor: number }) {
-      const gain = ctx.createGain();
-
-      createEffect(() => {
-        gain.gain.value = state.factor;
-      });
-
-      return {
-        in: { signal: gain },
-        out: { scaled: gain },
-      };
-    },
-    range(state: { min: number; max: number }) {
-      const scaleGain = ctx.createGain();
-      const offset = ctx.createConstantSource();
-      offset.start();
-      scaleGain.connect(offset.offset);
-
-      createEffect(() => {
-        scaleGain.gain.value = state.max - state.min;
-        offset.offset.value = state.min;
-      });
-
-      onCleanup(() => offset.stop());
-
-      return {
-        in: { signal: scaleGain },
-        out: { mapped: offset },
-      };
-    },
-    filter(state: { frequency: number; Q: number }) {
-      const filter = ctx.createBiquadFilter();
-      filter.type = "lowpass";
-
-      createEffect(() => {
-        filter.frequency.value = state.frequency;
-      });
-      createEffect(() => {
-        filter.Q.value = state.Q;
-      });
-
-      return {
-        in: { audio: filter, frequency: filter.frequency, Q: filter.Q },
-        out: { audio: filter },
-      };
-    },
-    delay(state: { delayTime: number }) {
-      const delay = ctx.createDelay(1);
-
-      createEffect(() => {
-        delay.delayTime.value = state.delayTime;
-      });
-
-      return {
-        in: { audio: delay, delayTime: delay.delayTime },
-        out: { audio: delay },
-      };
-    },
-    panner(state: { pan: number }) {
-      const panner = ctx.createStereoPanner();
-
-      createEffect(() => {
-        panner.pan.value = state.pan;
-      });
-
-      return {
-        in: { audio: panner, pan: panner.pan },
-        out: { audio: panner },
-      };
-    },
-    compressor(state: {
-      threshold: number;
-      ratio: number;
-      attack: number;
-      release: number;
-    }) {
-      const comp = ctx.createDynamicsCompressor();
-
-      createEffect(() => {
-        comp.threshold.value = state.threshold;
-      });
-      createEffect(() => {
-        comp.ratio.value = state.ratio;
-      });
-      createEffect(() => {
-        comp.attack.value = state.attack;
-      });
-      createEffect(() => {
-        comp.release.value = state.release;
-      });
-
-      return {
-        in: { audio: comp },
-        out: { audio: comp },
-      };
-    },
-    reverb(state: { decay: number; mix: number }) {
-      const convolver = ctx.createConvolver();
-      const dry = ctx.createGain();
-      const wet = ctx.createGain();
-      const input = ctx.createGain();
-      const output = ctx.createGain();
-
-      // Generate impulse response
-      function generateImpulse(decay: number) {
-        const length = ctx.sampleRate * decay;
-        const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
-        for (let channel = 0; channel < 2; channel++) {
-          const data = impulse.getChannelData(channel);
-          for (let i = 0; i < length; i++) {
-            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
-          }
-        }
-        return impulse;
-      }
-
-      convolver.buffer = generateImpulse(state.decay);
-
-      input.connect(dry);
-      input.connect(convolver);
-      convolver.connect(wet);
-      dry.connect(output);
-      wet.connect(output);
-
-      createEffect(() => {
-        convolver.buffer = generateImpulse(state.decay);
-      });
-      createEffect(() => {
-        wet.gain.value = state.mix;
-        dry.gain.value = 1 - state.mix;
-      });
-
-      onCleanup(() => {
-        input.disconnect();
-        convolver.disconnect();
-        dry.disconnect();
-        wet.disconnect();
-      });
-
-      return {
-        in: { audio: input },
-        out: { audio: output },
-      };
-    },
-    waveshaper(state: { amount: number; oversample: OverSampleType }) {
-      const shaper = ctx.createWaveShaper();
-
-      function makeDistortionCurve(amount: number) {
-        const k = amount;
-        const samples = 44100;
-        const curve = new Float32Array(samples);
-        const deg = Math.PI / 180;
-        for (let i = 0; i < samples; i++) {
-          const x = (i * 2) / samples - 1;
-          curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
-        }
-        return curve;
-      }
-
-      shaper.curve = makeDistortionCurve(state.amount);
-      shaper.oversample = state.oversample;
-
-      createEffect(() => {
-        shaper.curve = makeDistortionCurve(state.amount);
-      });
-      createEffect(() => {
-        shaper.oversample = state.oversample;
-      });
-
-      return {
-        in: { audio: shaper },
-        out: { audio: shaper },
-      };
-    },
-    analyser(_state: Record<string, never>, nodeId: string) {
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 2048;
-      analyserNodes.set(nodeId, analyser);
-
-      onCleanup(() => {
-        analyserNodes.delete(nodeId);
-      });
-
-      return {
-        in: { audio: analyser },
-        out: { audio: analyser },
-      };
-    },
-    meter(_state: Record<string, never>, nodeId: string) {
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 256;
-      meterNodes.set(nodeId, analyser);
-
-      onCleanup(() => {
-        meterNodes.delete(nodeId);
-      });
-
-      return {
-        in: { audio: analyser },
-        out: { audio: analyser },
-      };
-    },
-    debug(_state: Record<string, never>, nodeId: string) {
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 256;
-      debugNodes.set(nodeId, analyser);
-
-      onCleanup(() => {
-        debugNodes.delete(nodeId);
-      });
-
-      return {
-        in: { signal: analyser },
-        out: {},
-      };
-    },
-    noise() {
-      const bufferSize = 2 * ctx.sampleRate;
-      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
-      }
-      const noise = ctx.createBufferSource();
-      noise.buffer = noiseBuffer;
-      noise.loop = true;
-      noise.start();
-
-      onCleanup(() => noise.stop());
-
-      return {
-        in: {},
-        out: { audio: noise },
-      };
-    },
-    lfo(state: { rate: number; depth: number; type: OscillatorType }) {
-      const osc = ctx.createOscillator();
-      const depthGain = ctx.createGain();
-      osc.connect(depthGain);
-      osc.start();
-
-      createEffect(() => {
-        osc.frequency.value = state.rate;
-      });
-      createEffect(() => {
-        osc.type = state.type;
-      });
-      createEffect(() => {
-        depthGain.gain.value = state.depth;
-      });
-
-      onCleanup(() => osc.stop());
-
-      return {
-        in: {},
-        out: { modulation: depthGain },
-      };
-    },
-    envelope(
-      state: {
-        attack: number;
-        decay: number;
-        sustain: number;
-        release: number;
-      },
-      nodeId: string,
-    ) {
-      const src = ctx.createConstantSource();
-      src.offset.value = 0;
-      src.start();
-
-      // Gate input detection via AnalyserNode
-      const gateInput = ctx.createAnalyser();
-      gateInput.fftSize = 256;
-      const gateData = new Float32Array(gateInput.fftSize);
-      let gateOpen = false;
-      let animId: number;
-
-      const triggerAttack = () => {
-        const now = ctx.currentTime;
-        src.offset.cancelScheduledValues(now);
-        src.offset.setTargetAtTime(1, now, state.attack / 3);
-        src.offset.setTargetAtTime(
-          state.sustain,
-          now + state.attack,
-          state.decay / 3,
-        );
-      };
-
-      const triggerRelease = () => {
-        const now = ctx.currentTime;
-        src.offset.cancelScheduledValues(now);
-        src.offset.setTargetAtTime(0, now, state.release / 3);
-      };
-
-      const checkGate = () => {
-        gateInput.getFloatTimeDomainData(gateData);
-        const isHigh = gateData[0] > 0.5;
-        if (isHigh && !gateOpen) {
-          gateOpen = true;
-          triggerAttack();
-        } else if (!isHigh && gateOpen) {
-          gateOpen = false;
-          triggerRelease();
-        }
-        animId = requestAnimationFrame(checkGate);
-      };
-      checkGate();
-
-      // Manual trigger (button) fires full ADSR
-      const trigger = () => {
-        triggerAttack();
-        const holdTime = state.attack + state.decay + 0.1;
-        setTimeout(() => triggerRelease(), holdTime * 1000);
-      };
-
-      envelopeTriggers.set(nodeId, trigger);
-      onCleanup(() => {
-        envelopeTriggers.delete(nodeId);
-        cancelAnimationFrame(animId);
-        src.stop();
-      });
-
-      return {
-        in: { gate: gateInput },
-        out: { envelope: src },
-      };
-    },
-    sequencer(_state: Record<string, never>, nodeId: string) {
-      const src = ctx.createConstantSource();
-      src.offset.value = 0;
-      src.start();
-
-      sequencerGates.set(nodeId, (value: number) => {
-        src.offset.setValueAtTime(value, ctx.currentTime);
-      });
-
-      onCleanup(() => {
-        sequencerGates.delete(nodeId);
-        src.stop();
-      });
-
-      return {
-        in: {},
-        out: { gate: src },
-      };
-    },
-    destination() {
-      return {
-        in: {
-          audio: ctx.destination,
-        },
-      };
-    },
-    audioworklet(state: { name: string; code: string }) {
-      const inputGain = ctx.createGain();
-      const outputGain = ctx.createGain();
-
-      let currentWorkletNode: AudioWorkletNode | null = null;
-      let loadGeneration = 0;
-
-      createEffect(() => {
-        const name = state.name;
-        if (!name) return;
-
-        const url = workletFS.fileUrls.get(`/${name}/worklet.js`);
-        const processorName = workletFS.getProcessorName(name);
-        if (!url) return;
-
-        const gen = ++loadGeneration;
-
-        if (currentWorkletNode) {
-          inputGain.disconnect(currentWorkletNode);
-          currentWorkletNode.disconnect(outputGain);
-          currentWorkletNode = null;
-        }
-
-        ctx.audioWorklet
-          .addModule(url)
-          .then(() => {
-            if (loadGeneration !== gen) return;
-            const workletNode = new AudioWorkletNode(ctx, processorName);
-            currentWorkletNode = workletNode;
-            inputGain.connect(workletNode);
-            workletNode.connect(outputGain);
-            workletNodes.set(state.name, workletNode);
-          })
-          .catch((err) => {
-            console.error(`Failed to load worklet "${processorName}":`, err);
-          });
-      });
-
-      onCleanup(() => {
-        if (currentWorkletNode) {
-          inputGain.disconnect(currentWorkletNode);
-          currentWorkletNode.disconnect(outputGain);
-        }
-        inputGain.disconnect();
-        outputGain.disconnect();
-        workletNodes.delete(state.name);
-      });
-
-      return {
-        in: { audio: inputGain },
-        out: { audio: outputGain },
-      };
-    },
-  };
-
-  createGraphProjection(
-    graph,
-    new Proxy(projectionFactories, {
-      get(target, prop, receiver) {
-        return Reflect.get(target, prop, receiver) ?? target.audioworklet;
-      },
-    }) as any,
-  );
 
   // --- UI State ---
 
@@ -1611,7 +1565,7 @@ function GraphEditor(props: { graphName: string }) {
                       return `var(--color-port-${kind})`;
                     };
                     return (
-                      <button
+                      <Button
                         class={clsx(
                           styles.button,
                           selectedType() === type && styles.selected,
@@ -1626,7 +1580,7 @@ function GraphEditor(props: { graphName: string }) {
                         }
                       >
                         {type}
-                      </button>
+                      </Button>
                     );
                   }}
                 </For>
@@ -1637,7 +1591,7 @@ function GraphEditor(props: { graphName: string }) {
       </div>
       <div class={styles.topRight}>
         <span class={styles.graphName}>{props.graphName}</span>
-        <button
+        <Button
           onClick={() => {
             const name = prompt("New graph name:");
             if (name?.trim()) navigate(`/${name.trim()}`);
@@ -1645,15 +1599,15 @@ function GraphEditor(props: { graphName: string }) {
           class={styles.button}
         >
           New Graph
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => {
             ctx.resume();
           }}
           class={styles.button}
         >
           Resume Audio
-        </button>
+        </Button>
       </div>
       <svg
         ref={(element) => {
@@ -1669,7 +1623,7 @@ function GraphEditor(props: { graphName: string }) {
           "--port-spacing": `${PORT_SPACING}px`,
           "--port-offset": `${TITLE_HEIGHT}px`,
           "--element-height": `${ELEMENT_HEIGHT}px`,
-          "--content-gap": `${CONTENT_GAP}px`,
+          "--gap": `${GAP}px`,
           "--title-height": `${TITLE_HEIGHT}px`,
           "--content-padding-block": `${CONTENT_PADDING_BLOCK}px`,
           "--content-padding-inline": `${CONTENT_PADDING_INLINE}px`,
