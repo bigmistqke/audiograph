@@ -1,5 +1,23 @@
 .container {
   height: var(--element-height);
+
+  &.disabled {
+    & .label {
+      opacity: 0.25;
+    }
+
+    & .slider {
+      opacity: 0.5;
+
+      &*::-webkit-slider-thumb {
+        cursor: default;
+      }
+
+      &*::-moz-range-thumb {
+        cursor: default;
+      }
+    }
+  }
 }
 
 .label {
@@ -7,4 +25,48 @@
   color: var(--color-text);
   display: flex;
   justify-content: space-between;
+  line-height: 1;
+  padding-inline-start: var(--port-radius);
+  transition: opacity 0.25s;
+}
+
+.output {
+  padding-inline-end: var(--port-radius);
+}
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  margin-inline: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--color-node), white 60%);
+  border-radius: 1px;
+  outline: none;
+  transition: opacity 0.25s;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: calc(var(--port-radius) * 2);
+  height: calc(var(--port-radius) * 2);
+  border-radius: 50%;
+  background: var(--color-node);
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: calc(var(--port-radius) * 2);
+  height: calc(var(--port-radius) * 2);
+  border-radius: 50%;
+  border: none;
+  background: var(--color-node);
+  cursor: pointer;
+}
+
+.slider::-moz-range-track {
+  height: 1px;
+  background: color-mix(in srgb, var(--color-node), white 60%);
+  border-radius: 1px;
 }

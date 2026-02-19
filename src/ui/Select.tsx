@@ -11,7 +11,7 @@ export function Select<T extends string>(props: {
   return (
     <>
       <div class={styles.container}>
-        <span>{props.title}</span>
+        <label class={styles.label}>{props.title}</label>
         <select
           value={props.value}
           disabled={props.disabled}

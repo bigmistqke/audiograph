@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { createMemo, Show } from "solid-js";
-import styles from "../App.module.css";
+import styles from "./GraphNode.module.css";
 import { headerHeight, PORT_OFFSET, PORT_SPACING } from "../constants";
 import { NodeContext, useGraph } from "../context";
 import type { NodeInstance } from "../lib/create-graph";

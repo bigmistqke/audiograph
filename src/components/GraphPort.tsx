@@ -1,5 +1,4 @@
 import { minni } from "@bigmistqke/minni";
-import styles from "../App.module.css";
 import {
   PORT_INSET,
   PORT_OFFSET,
@@ -8,6 +7,7 @@ import {
 } from "../constants";
 import { useGraph, useNode } from "../context";
 import type { EdgeHandle } from "../lib/create-graph";
+import styles from "./GraphPort.module.css";
 
 export function GraphPort(props: {
   name: string;

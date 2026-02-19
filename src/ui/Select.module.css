@@ -4,5 +4,9 @@
   height: var(--element-height);
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  align-items: center;
+  align-items: start;
+}
+
+.label {
+  padding-inline-start: var(--port-radius);
 }

@@ -1,0 +1,13 @@
+.port {
+  fill: var(--color-port-audio);
+}
+
+.port[data-kind="param"] {
+  fill: var(--color-port-param);
+  stroke: color-mix(in srgb, var(--color-port-param), black 20%);
+}
+
+.port[data-kind="output"] {
+  fill: var(--color-port-output);
+  stroke: color-mix(in srgb, var(--color-port-output), black 20%);
+}

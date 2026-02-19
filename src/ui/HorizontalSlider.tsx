@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import styles from "./HorizontalSlider.module.css";
 
 export function HorizontalSlider(props: {
@@ -11,13 +12,14 @@ export function HorizontalSlider(props: {
   step?: number;
 }) {
   return (
-    <div class={styles.container}>
+    <div class={clsx(styles.container, props.disabled && styles.disabled)}>
       <label class={styles.label}>
         <span>{props.title}</span>
-        <output>{props.output}</output>
+        <output class={styles.output}>{props.output}</output>
       </label>
       <input
         type="range"
+        class={styles.slider}
         data-pointerevents-block={!props.disabled}
         min={props.min ?? 20}
         max={props.max ?? 2000}
@@ -25,7 +27,6 @@ export function HorizontalSlider(props: {
         value={props.value}
         disabled={props.disabled}
         onInput={(e) => props.onInput(+e.currentTarget.value)}
-        style={{ width: "100%", "margin-inline": 0 }}
       />
     </div>
   );
