@@ -62,7 +62,7 @@ function GraphEditor(props: { graphName: string }) {
   const workletFS = createWorkletFileSystem();
   const workletNodes = new ReactiveMap<string, AudioWorkletNode>();
   const analyserNodes = new ReactiveMap<string, AnalyserNode>();
-  const [selectedType, setSelectedType] = createSignal<string>("oscillator");
+  const [selectedType, setSelectedType] = createSignal<string | undefined>("oscillator");
 
   // Persisted custom type definitions (global, shared across graphs)
   const [savedTypes, setSavedTypes] = makePersisted(
@@ -279,7 +279,7 @@ function GraphEditor(props: { graphName: string }) {
       ),
     },
     filter: {
-      dimensions: { x: 180, y: 100 },
+      dimensions: { x: 180, y: 110 },
       ports: {
         in: [
           { name: "audio" },
@@ -373,7 +373,7 @@ function GraphEditor(props: { graphName: string }) {
       ),
     },
     compressor: {
-      dimensions: { x: 180, y: 130 },
+      dimensions: { x: 180, y: 180 },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -431,7 +431,7 @@ function GraphEditor(props: { graphName: string }) {
       ),
     },
     reverb: {
-      dimensions: { x: 180, y: 100 },
+      dimensions: { x: 180, y: 110 },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -1032,7 +1032,7 @@ function GraphEditor(props: { graphName: string }) {
                         styles.button,
                         selectedType() === type && styles.selected,
                       )}
-                      onClick={() => setSelectedType(type)}
+                      onClick={() => setSelectedType((prev) => prev === type ? undefined : type)}
                     >
                       {type}
                     </button>
@@ -1097,7 +1097,8 @@ function GraphEditor(props: { graphName: string }) {
           setStore("dragging", false);
 
           if (performance.now() - start < 250) {
-            const type = selectedType() as any;
+            const type = selectedType();
+            if (!type) return;
             const position = {
               x: event.offsetX - store.origin.x,
               y: event.offsetY + store.origin.y,
