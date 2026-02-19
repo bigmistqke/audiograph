@@ -267,6 +267,9 @@ function GraphEditor(props: { graphName: string }) {
               title="Gain"
               output={props.state.gain.toFixed(2)}
               value={props.state.gain}
+              min={0}
+              max={1}
+              step={0.001}
               disabled={props.isInputConnected("gain")}
               onInput={(value) => props.setState("gain", value)}
             />
@@ -318,7 +321,7 @@ function GraphEditor(props: { graphName: string }) {
       ),
     },
     range: {
-      dimensions: { x: 180, y: 100 },
+      dimensions: { x: 180, y: 110 },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [{ name: "mapped", kind: "param" }],
@@ -338,7 +341,7 @@ function GraphEditor(props: { graphName: string }) {
                 title="Min"
                 value={props.state.min}
                 output={props.state.min.toFixed(0)}
-                min={-10000}
+                min={0}
                 max={10000}
                 step={1}
                 onInput={(value) => props.setState("min", value)}
@@ -347,7 +350,7 @@ function GraphEditor(props: { graphName: string }) {
                 title="Max"
                 value={props.state.max}
                 output={props.state.max.toFixed(0)}
-                min={-10000}
+                min={0}
                 max={10000}
                 step={1}
                 onInput={(value) => props.setState("max", value)}
@@ -1281,19 +1284,18 @@ function GraphEditor(props: { graphName: string }) {
       const triggerAttack = () => {
         const now = ctx.currentTime;
         src.offset.cancelScheduledValues(now);
-        src.offset.setValueAtTime(0, now);
-        src.offset.linearRampToValueAtTime(1, now + state.attack);
-        src.offset.linearRampToValueAtTime(
+        src.offset.setTargetAtTime(1, now, state.attack / 3);
+        src.offset.setTargetAtTime(
           state.sustain,
-          now + state.attack + state.decay,
+          now + state.attack,
+          state.decay / 3,
         );
       };
 
       const triggerRelease = () => {
         const now = ctx.currentTime;
         src.offset.cancelScheduledValues(now);
-        src.offset.setValueAtTime(src.offset.value, now);
-        src.offset.linearRampToValueAtTime(0, now + state.release);
+        src.offset.setTargetAtTime(0, now, state.release / 3);
       };
 
       const checkGate = () => {
