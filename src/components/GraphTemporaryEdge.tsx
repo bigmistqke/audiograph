@@ -13,6 +13,16 @@ export function GraphTemporaryEdge(props: TemporaryEdge) {
     graph.graph.nodes.find((n) => n.id === props.node),
   );
 
+  const port = () => {
+    const n = node();
+    if (!n) return undefined;
+    const ports =
+      props.kind === "in"
+        ? graph.config[n.type].ports.in
+        : graph.config[n.type].ports.out;
+    return ports.find((p: any) => p.name === props.port);
+  };
+
   const portIndex = () => {
     const n = node();
     if (!n) return -1;
@@ -20,7 +30,12 @@ export function GraphTemporaryEdge(props: TemporaryEdge) {
       props.kind === "in"
         ? graph.config[n.type].ports.in
         : graph.config[n.type].ports.out;
-    return ports.findIndex((p: any) => p.name === props.port);
+    return ports.indexOf(port()!);
+  };
+
+  const edgeColor = () => {
+    const kind = (port() as any)?.kind || "audio";
+    return `var(--color-port-${kind})`;
   };
 
   return (
@@ -35,7 +50,7 @@ export function GraphTemporaryEdge(props: TemporaryEdge) {
           y1={n().y + portY(portIndex())}
           x2={props.x}
           y2={props.y}
-          stroke="var(--color-edge)"
+          stroke={edgeColor()}
         />
       )}
     </Show>
