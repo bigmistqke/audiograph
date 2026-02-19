@@ -2,6 +2,7 @@ import { ReactiveMap } from "@solid-primitives/map";
 import { makePersisted } from "@solid-primitives/storage";
 import { createEffect, mapArray, onCleanup, type JSX } from "solid-js";
 import { createStore, produce, type SetStoreFunction } from "solid-js/store";
+import { snapToGrid } from "../constants";
 
 export interface PortDef {
   name: string;
@@ -221,8 +222,8 @@ export function createGraph<T extends GraphConfig>(
           nodes.push({
             id,
             type,
-            x: position.x,
-            y: position.y,
+            x: snapToGrid(position.x),
+            y: snapToGrid(position.y),
             dimensions: { ...typeDef.dimensions },
           });
         }),

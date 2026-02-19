@@ -26,12 +26,12 @@
   display: flex;
   justify-content: space-between;
   line-height: 1;
-  padding-inline-start: var(--port-radius);
+  padding-inline-start: var(--gap);
   transition: opacity 0.25s;
 }
 
 .output {
-  padding-inline-end: var(--port-radius);
+  padding-inline-end: var(--gap);
 }
 
 .slider {

@@ -24,11 +24,13 @@ import {
   CONTENT_PADDING_INLINE,
   ELEMENT_HEIGHT,
   GAP,
+  GRID,
   HEADING_PADDING_BLOCK,
   HEADING_PADDING_INLINE,
   PORT_INSET,
   PORT_RADIUS,
   PORT_SPACING,
+  snapToGrid,
   TITLE_HEIGHT,
 } from "./constants";
 import { GraphContext, type TemporaryEdge } from "./context";
@@ -265,7 +267,7 @@ function GraphEditor(props: { graphName: string }) {
   const [config, setConfig] = createStore<GraphConfig>({
     oscillator: {
       title: "oscillator",
-      dimensions: { x: 180, y: calcNodeHeight(1, 2) },
+      dimensions: { x: 180, y: calcNodeHeight(1, 2, true) },
       ports: {
         in: [{ name: "frequency", kind: "param" }],
         out: [{ name: "audio" }],
@@ -914,7 +916,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     meter: {
       hideLabels: true,
-      dimensions: { x: 33, y: calcNodeHeight(1, 3) },
+      dimensions: { x: 30, y: calcNodeHeight(1, 3) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -1646,8 +1648,8 @@ function GraphEditor(props: { graphName: string }) {
             const type = selectedType();
             if (!type) return;
             const position = {
-              x: event.offsetX - store.origin.x,
-              y: event.offsetY + store.origin.y,
+              x: snapToGrid(event.offsetX - store.origin.x),
+              y: snapToGrid(event.offsetY + store.origin.y),
             };
 
             const typeDef = config[type];
@@ -1671,6 +1673,24 @@ function GraphEditor(props: { graphName: string }) {
           }
         }}
       >
+        <defs>
+          <pattern
+            id="grid"
+            width={GRID}
+            height={GRID}
+            patternUnits="userSpaceOnUse"
+          >
+            <circle cx={0} cy={0} r={0.5} fill="#6e6e6e" />
+          </pattern>
+        </defs>
+        <rect
+          x={-store.origin.x}
+          y={store.origin.y}
+          width={store.dimensions.width}
+          height={store.dimensions.height}
+          fill="url(#grid)"
+          pointer-events="none"
+        />
         <For each={graph.graph.nodes}>
           {(node) => <GraphNode node={node} />}
         </For>

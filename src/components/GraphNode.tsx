@@ -1,5 +1,5 @@
 import { createMemo, Show } from "solid-js";
-import { headerHeight } from "../constants";
+import { headerHeight, snapToGrid } from "../constants";
 import { NodeContext, useGraph } from "../context";
 import type { NodeInstance } from "../lib/create-graph";
 import { minni } from "../lib/minni";
@@ -68,8 +68,8 @@ export function GraphNode(props: { node: NodeInstance }) {
           setDragging(true);
           await minni(event, (delta) => {
             graph.updateNode(props.node.id, {
-              x: startPos.x + delta.x,
-              y: startPos.y - delta.y,
+              x: snapToGrid(startPos.x + delta.x),
+              y: snapToGrid(startPos.y - delta.y),
             });
           });
           setDragging(false);
@@ -102,8 +102,8 @@ export function GraphNode(props: { node: NodeInstance }) {
                   await minni(event, (delta) => {
                     graph.updateNode(props.node.id, {
                       dimensions: {
-                        x: Math.max(80, startDims.x + delta.x),
-                        y: Math.max(60, startDims.y - delta.y),
+                        x: Math.max(80, snapToGrid(startDims.x + delta.x)),
+                        y: Math.max(60, snapToGrid(startDims.y - delta.y)),
                       },
                     });
                   });

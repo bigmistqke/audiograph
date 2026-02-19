@@ -1,7 +1,7 @@
 import { minni } from "@bigmistqke/minni";
 import { Show } from "solid-js";
 import {
-  HEADING_PADDING_INLINE,
+  GRID,
   PORT_INSET,
   PORT_RADIUS,
   PORT_SPACING,
@@ -32,9 +32,7 @@ export function GraphPort(props: {
   const cy = () => props.index * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS;
 
   const labelX = () =>
-    props.kind === "in"
-      ? `${HEADING_PADDING_INLINE + 1}px`
-      : `${node.dimensions.x - HEADING_PADDING_INLINE - 1}px`; //node.dimensions.x - PORT_RADIUS - CONTENT_PADDING_INLINE;
+    props.kind === "in" ? `${GRID + 1}px` : `${node.dimensions.x - GRID - 1}px`; //node.dimensions.x - PORT_RADIUS - CONTENT_PADDING_INLINE;
 
   return (
     <g>
