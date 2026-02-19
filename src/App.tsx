@@ -65,9 +65,7 @@ function GraphEditor(props: { graphName: string }) {
   const analyserNodes = new ReactiveMap<string, AnalyserNode>();
   const envelopeTriggers = new Map<string, () => void>();
   const sequencerGates = new Map<string, (value: number) => void>();
-  const [selectedType, setSelectedType] = createSignal<string | undefined>(
-    "oscillator",
-  );
+  const [selectedType, setSelectedType] = createSignal<string | undefined>();
 
   // Persisted custom type definitions (global, shared across graphs)
   const [savedTypes, setSavedTypes] = makePersisted(
@@ -1633,6 +1631,7 @@ function GraphEditor(props: { graphName: string }) {
             } else {
               graph.addNode(type, position);
             }
+            setSelectedType(undefined);
           }
         }}
       >
