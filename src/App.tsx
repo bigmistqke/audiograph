@@ -3,7 +3,6 @@ import { ReactiveMap } from "@solid-primitives/map";
 import { makePersisted } from "@solid-primitives/storage";
 import { useNavigate, useParams } from "@solidjs/router";
 import clsx from "clsx";
-import type { JSX } from "solid-js";
 import {
   createEffect,
   createSignal,
@@ -35,28 +34,6 @@ import {
 } from "./lib/worklet-file-system";
 import { HorizontalSlider } from "./ui/HorizontalSlider";
 import { Select } from "./ui/Select";
-
-function NodeUI<S extends Record<string, any>>(
-  props: RenderProps<S> & {
-    children?: (props: RenderProps<S>) => JSX.Element;
-  },
-) {
-  return (
-    <>
-      {props.children && (
-        <foreignObject
-          x={0}
-          y={props.contentY}
-          width={props.dimensions.x}
-          height={props.dimensions.y - props.contentY}
-          class={styles.foreignObject}
-        >
-          <div>{props.children(props)}</div>
-        </foreignObject>
-      )}
-    </>
-  );
-}
 
 function GraphEditor(props: { graphName: string }) {
   const navigate = useNavigate();
@@ -98,10 +75,8 @@ function GraphEditor(props: { graphName: string }) {
   function createWorkletRender(typeKey: string) {
     const isSaved = typeKey !== "audioworklet";
 
-    return (props: RenderProps<{ name: string; code: string }>) => (
-      <NodeUI {...props}>
-        {(props) => {
-          if (isSaved) {
+    return (props: RenderProps<{ name: string; code: string }>) => {
+        if (isSaved) {
             createEffect(
               on(
                 () => config[typeKey]?.state?.code as string | undefined,
@@ -214,9 +189,7 @@ function GraphEditor(props: { graphName: string }) {
               </div>
             </div>
           );
-        }}
-      </NodeUI>
-    );
+    };
   }
 
   const [config, setConfig] = createStore<GraphConfig>({
@@ -230,8 +203,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { frequency: 440, type: "sine" as OscillatorType },
       render(props) {
         return (
-          <NodeUI {...props}>
-            {(props) => (
+          (
               <div
                 style={{
                   display: "flex",
@@ -253,8 +225,7 @@ function GraphEditor(props: { graphName: string }) {
                   onInput={(value) => props.setState("frequency", value)}
                 />
               </div>
-            )}
-          </NodeUI>
+          )
         );
       },
     },
@@ -268,8 +239,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { gain: 0.5 },
       render(props) {
         return (
-          <NodeUI {...props}>
-            {(props) => (
+          (
               <HorizontalSlider
                 title="gain"
                 output={props.state.gain.toFixed(2)}
@@ -280,8 +250,7 @@ function GraphEditor(props: { graphName: string }) {
                 disabled={props.isInputConnected("gain")}
                 onInput={(value) => props.setState("gain", value)}
               />
-            )}
-          </NodeUI>
+          )
         );
       },
     },
@@ -295,16 +264,14 @@ function GraphEditor(props: { graphName: string }) {
       state: { value: 440 },
       render(props) {
         return (
-          <NodeUI {...props}>
-            {(props) => (
+          (
               <HorizontalSlider
                 title="value"
                 output={props.state.value}
                 value={props.state.gain}
                 onInput={(value) => props.setState("value", value)}
               />
-            )}
-          </NodeUI>
+          )
         );
       },
     },
@@ -318,8 +285,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { factor: 1000 },
       render(props) {
         return (
-          <NodeUI {...props}>
-            {(props) => (
+          (
               <HorizontalSlider
                 title="factor"
                 value={props.state.factor}
@@ -329,8 +295,7 @@ function GraphEditor(props: { graphName: string }) {
                 step={1}
                 onInput={(value) => props.setState("factor", value)}
               />
-            )}
-          </NodeUI>
+          )
         );
       },
     },
@@ -344,8 +309,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { min: 200, max: 2000 },
       render(props) {
         return (
-          <NodeUI {...props}>
-            {(props) => (
+          (
               <div
                 style={{
                   display: "flex",
@@ -372,8 +336,7 @@ function GraphEditor(props: { graphName: string }) {
                   onInput={(value) => props.setState("max", value)}
                 />
               </div>
-            )}
-          </NodeUI>
+          )
         );
       },
     },
@@ -391,8 +354,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { frequency: 1000, Q: 1 },
       render(props) {
         return (
-          <NodeUI {...props}>
-            {(props) => (
+          (
               <div
                 style={{
                   display: "flex",
@@ -421,8 +383,7 @@ function GraphEditor(props: { graphName: string }) {
                   onInput={(value) => props.setState("Q", value)}
                 />
               </div>
-            )}
-          </NodeUI>
+          )
         );
       },
     },
@@ -436,8 +397,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { delayTime: 0.3 },
       render(props) {
         return (
-          <NodeUI {...props}>
-            {(props) => (
+          (
               <HorizontalSlider
                 title="time"
                 value={props.state.delayTime}
@@ -448,8 +408,7 @@ function GraphEditor(props: { graphName: string }) {
                 disabled={props.isInputConnected("delayTime")}
                 onInput={(value) => props.setState("delayTime", value)}
               />
-            )}
-          </NodeUI>
+          )
         );
       },
     },
@@ -463,8 +422,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { pan: 0 },
       render(props) {
         return (
-          <NodeUI {...props}>
-            {(props) => (
+          (
               <HorizontalSlider
                 title="pan"
                 value={props.state.pan}
@@ -475,8 +433,7 @@ function GraphEditor(props: { graphName: string }) {
                 disabled={props.isInputConnected("pan")}
                 onInput={(value) => props.setState("pan", value)}
               />
-            )}
-          </NodeUI>
+          )
         );
       },
     },
@@ -490,8 +447,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { threshold: -24, ratio: 12, attack: 0.003, release: 0.25 },
       render(props) {
         return (
-          <NodeUI {...props}>
-            {(props) => (
+          (
               <div
                 style={{
                   display: "flex",
@@ -536,8 +492,7 @@ function GraphEditor(props: { graphName: string }) {
                   onInput={(v) => props.setState("release", v)}
                 />
               </div>
-            )}
-          </NodeUI>
+          )
         );
       },
     },
@@ -551,8 +506,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { decay: 2, mix: 0.5 },
       render(props) {
         return (
-          <NodeUI {...props}>
-            {(props) => (
+          (
               <div
                 style={{
                   display: "flex",
@@ -580,8 +534,7 @@ function GraphEditor(props: { graphName: string }) {
                   onInput={(value) => props.setState("mix", value)}
                 />
               </div>
-            )}
-          </NodeUI>
+          )
         );
       },
     },
@@ -595,8 +548,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { amount: 50, oversample: "4x" as OverSampleType },
       render(props) {
         return (
-          <NodeUI {...props}>
-            {(props) => (
+          (
               <div
                 style={{
                   display: "flex",
@@ -615,8 +567,7 @@ function GraphEditor(props: { graphName: string }) {
                   onInput={(value) => props.setState("amount", value)}
                 />
               </div>
-            )}
-          </NodeUI>
+          )
         );
       },
     },
@@ -629,8 +580,7 @@ function GraphEditor(props: { graphName: string }) {
       },
       render(props) {
         return (
-          <NodeUI {...props}>
-            {(props) => (
+          (
               <canvas
                 ref={(canvas) => {
                   const canvasCtx = canvas.getContext("2d")!;
@@ -680,8 +630,7 @@ function GraphEditor(props: { graphName: string }) {
                   "border-radius": "2px",
                 }}
               />
-            )}
-          </NodeUI>
+          )
         );
       },
     },
@@ -693,61 +642,55 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       render(props) {
-        return (
-          <NodeUI {...props}>
-            {(props) => {
-              const [level, setLevel] = createSignal(0);
-              let animId: number;
-              const poll = () => {
-                const node = meterNodes.get(props.id);
-                if (node) {
-                  const data = new Float32Array(node.fftSize);
-                  node.getFloatTimeDomainData(data);
-                  let sum = 0;
-                  for (let i = 0; i < data.length; i++)
-                    sum += data[i] * data[i];
-                  setLevel(Math.sqrt(sum / data.length));
-                }
-                animId = requestAnimationFrame(poll);
-              };
-              poll();
-              onCleanup(() => cancelAnimationFrame(animId));
+        const [level, setLevel] = createSignal(0);
+        let animId: number;
+        const poll = () => {
+          const node = meterNodes.get(props.id);
+          if (node) {
+            const data = new Float32Array(node.fftSize);
+            node.getFloatTimeDomainData(data);
+            let sum = 0;
+            for (let i = 0; i < data.length; i++)
+              sum += data[i] * data[i];
+            setLevel(Math.sqrt(sum / data.length));
+          }
+          animId = requestAnimationFrame(poll);
+        };
+        poll();
+        onCleanup(() => cancelAnimationFrame(animId));
 
-              return (
-                <div
-                  style={{
-                    display: "grid",
-                    height: "100%",
-                    "align-items": "end",
-                  }}
-                >
-                  <div
-                    style={{
-                      height: "100%",
-                      width: "100%",
-                      background: "#ddd",
-                      overflow: "hidden",
-                      display: "grid",
-                      "align-items": "end",
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: `${Math.min(level() * 100, 100)}%`,
-                        background:
-                          level() > 0.8
-                            ? "#ff6b6b"
-                            : level() > 0.5
-                              ? "#ffd43b"
-                              : "#51cf66",
-                        transition: "height 50ms",
-                      }}
-                    />
-                  </div>
-                </div>
-              );
+        return (
+          <div
+            style={{
+              display: "grid",
+              height: "100%",
+              "align-items": "end",
             }}
-          </NodeUI>
+          >
+            <div
+              style={{
+                height: "100%",
+                width: "100%",
+                background: "#ddd",
+                overflow: "hidden",
+                display: "grid",
+                "align-items": "end",
+              }}
+            >
+              <div
+                style={{
+                  height: `${Math.min(level() * 100, 100)}%`,
+                  background:
+                    level() > 0.8
+                      ? "#ff6b6b"
+                      : level() > 0.5
+                        ? "#ffd43b"
+                        : "#51cf66",
+                  transition: "height 50ms",
+                }}
+              />
+            </div>
+          </div>
         );
       },
     },
@@ -759,37 +702,31 @@ function GraphEditor(props: { graphName: string }) {
         out: [],
       },
       render(props) {
+        const [value, setValue] = createSignal(0);
+        let animId: number;
+        const poll = () => {
+          const node = debugNodes.get(props.id);
+          if (node) {
+            const data = new Float32Array(node.fftSize);
+            node.getFloatTimeDomainData(data);
+            setValue(data[0]);
+          }
+          animId = requestAnimationFrame(poll);
+        };
+        poll();
+        onCleanup(() => cancelAnimationFrame(animId));
         return (
-          <NodeUI {...props}>
-            {(props) => {
-              const [value, setValue] = createSignal(0);
-              let animId: number;
-              const poll = () => {
-                const node = debugNodes.get(props.id);
-                if (node) {
-                  const data = new Float32Array(node.fftSize);
-                  node.getFloatTimeDomainData(data);
-                  setValue(data[0]);
-                }
-                animId = requestAnimationFrame(poll);
-              };
-              poll();
-              onCleanup(() => cancelAnimationFrame(animId));
-              return (
-                <div
-                  style={{
-                    "font-family": "monospace",
-                    "font-size": "14px",
-                    color: "var(--color-text)",
-                    "text-align": "center",
-                    "line-height": "2",
-                  }}
-                >
-                  {value().toFixed(4)}
-                </div>
-              );
+          <div
+            style={{
+              "font-family": "monospace",
+              "font-size": "14px",
+              color: "var(--color-text)",
+              "text-align": "center",
+              "line-height": "2",
             }}
-          </NodeUI>
+          >
+            {value().toFixed(4)}
+          </div>
         );
       },
     },
@@ -800,7 +737,6 @@ function GraphEditor(props: { graphName: string }) {
         in: [],
         out: [{ name: "audio" }],
       },
-      render: (props) => <NodeUI {...props} />,
     },
     lfo: {
       title: "LFO",
@@ -811,8 +747,7 @@ function GraphEditor(props: { graphName: string }) {
       },
       state: { rate: 2, depth: 0.5, type: "sine" as OscillatorType },
       render: (props) => (
-        <NodeUI {...props}>
-          {(props) => (
+        (
             <div
               style={{
                 display: "flex",
@@ -839,8 +774,7 @@ function GraphEditor(props: { graphName: string }) {
                 onInput={(value) => props.setState("depth", value)}
               />
             </div>
-          )}
-        </NodeUI>
+        )
       ),
     },
     envelope: {
@@ -852,8 +786,7 @@ function GraphEditor(props: { graphName: string }) {
       },
       state: { attack: 0.1, decay: 0.2, sustain: 0.7, release: 0.5 },
       render: (props) => (
-        <NodeUI {...props}>
-          {(props) => (
+        (
             <div
               style={{
                 display: "flex",
@@ -912,8 +845,7 @@ function GraphEditor(props: { graphName: string }) {
                 Trigger
               </button>
             </div>
-          )}
-        </NodeUI>
+        )
       ),
     },
     sequencer: {
@@ -945,129 +877,125 @@ function GraphEditor(props: { graphName: string }) {
           false,
         ],
       },
-      render: (props) => (
-        <NodeUI {...props}>
-          {(props) => {
-            const [currentStep, setCurrentStep] = createSignal(-1);
-            const stepCount = () => props.state.steps.length;
+      render(props) {
+        const [currentStep, setCurrentStep] = createSignal(-1);
+        const stepCount = () => props.state.steps.length;
 
-            let timeoutId: number | undefined;
-            let step = 0;
-            let lastStepTime = 0;
-            let running = false;
+        let timeoutId: number | undefined;
+        let step = 0;
+        let lastStepTime = 0;
+        let running = false;
 
-            const tick = () => {
-              if (!running) return;
-              setCurrentStep(step % stepCount());
-              const isActive = props.state.steps[step % stepCount()];
-              sequencerGates.get(props.id)?.(isActive ? 1 : 0);
-              step++;
-              lastStepTime = performance.now();
-              timeoutId = setTimeout(
-                tick,
-                60000 / props.state.bpm / 4,
-              ) as unknown as number;
-            };
+        const tick = () => {
+          if (!running) return;
+          setCurrentStep(step % stepCount());
+          const isActive = props.state.steps[step % stepCount()];
+          sequencerGates.get(props.id)?.(isActive ? 1 : 0);
+          step++;
+          lastStepTime = performance.now();
+          timeoutId = setTimeout(
+            tick,
+            60000 / props.state.bpm / 4,
+          ) as unknown as number;
+        };
 
-            const start = () => {
-              stop();
-              step = 0;
-              running = true;
-              tick();
-            };
+        const start = () => {
+          stop();
+          step = 0;
+          running = true;
+          tick();
+        };
 
-            const stop = () => {
-              running = false;
-              if (timeoutId !== undefined) clearTimeout(timeoutId);
-              timeoutId = undefined;
-              setCurrentStep(-1);
-            };
+        const stop = () => {
+          running = false;
+          if (timeoutId !== undefined) clearTimeout(timeoutId);
+          timeoutId = undefined;
+          setCurrentStep(-1);
+        };
 
-            onCleanup(stop);
+        onCleanup(stop);
 
-            return (
-              <div
+        return (
+          <div
+            style={{
+              display: "grid",
+              gap: "2px",
+              height: "100%",
+              "grid-template-rows": "auto 1fr auto",
+            }}
+          >
+            <HorizontalSlider
+              title="bpm"
+              value={props.state.bpm}
+              output={`${Math.round(props.state.bpm)}`}
+              min={20}
+              max={300}
+              step={1}
+              onInput={(value) => props.setState("bpm", value)}
+            />
+            <div
+              style={{
+                display: "grid",
+                "grid-template-columns": `repeat(${stepCount()}, 1fr)`,
+                gap: "1px",
+              }}
+            >
+              <For each={props.state.steps}>
+                {(active, i) => (
+                  <div
+                    style={{
+                      background: active
+                        ? currentStep() === i()
+                          ? "#4a9eff"
+                          : "#555"
+                        : currentStep() === i()
+                          ? "#4a9eff33"
+                          : "#ddd",
+                      cursor: "pointer",
+                      "min-height": "16px",
+                      "border-radius": "2px",
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={() =>
+                      props.setState("steps", i(), !props.state.steps[i()])
+                    }
+                  />
+                )}
+              </For>
+            </div>
+            <div
+              style={{
+                display: "grid",
+                "grid-template-columns": "1fr 1fr",
+                gap: "2px",
+              }}
+            >
+              <button
                 style={{
-                  display: "grid",
-                  gap: "2px",
-                  height: "100%",
-                  "grid-template-rows": "auto 1fr auto",
+                  padding: "2px 4px",
+                  "font-size": "10px",
+                  cursor: "pointer",
                 }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={start}
               >
-                <HorizontalSlider
-                  title="bpm"
-                  value={props.state.bpm}
-                  output={`${Math.round(props.state.bpm)}`}
-                  min={20}
-                  max={300}
-                  step={1}
-                  onInput={(value) => props.setState("bpm", value)}
-                />
-                <div
-                  style={{
-                    display: "grid",
-                    "grid-template-columns": `repeat(${stepCount()}, 1fr)`,
-                    gap: "1px",
-                  }}
-                >
-                  <For each={props.state.steps}>
-                    {(active, i) => (
-                      <div
-                        style={{
-                          background: active
-                            ? currentStep() === i()
-                              ? "#4a9eff"
-                              : "#555"
-                            : currentStep() === i()
-                              ? "#4a9eff33"
-                              : "#ddd",
-                          cursor: "pointer",
-                          "min-height": "16px",
-                          "border-radius": "2px",
-                        }}
-                        onPointerDown={(e) => e.stopPropagation()}
-                        onClick={() =>
-                          props.setState("steps", i(), !props.state.steps[i()])
-                        }
-                      />
-                    )}
-                  </For>
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    "grid-template-columns": "1fr 1fr",
-                    gap: "2px",
-                  }}
-                >
-                  <button
-                    style={{
-                      padding: "2px 4px",
-                      "font-size": "10px",
-                      cursor: "pointer",
-                    }}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={start}
-                  >
-                    Play
-                  </button>
-                  <button
-                    style={{
-                      padding: "2px 4px",
-                      "font-size": "10px",
-                      cursor: "pointer",
-                    }}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={stop}
-                  >
-                    Stop
-                  </button>
-                </div>
-              </div>
-            );
-          }}
-        </NodeUI>
-      ),
+                Play
+              </button>
+              <button
+                style={{
+                  padding: "2px 4px",
+                  "font-size": "10px",
+                  cursor: "pointer",
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={stop}
+              >
+                Stop
+              </button>
+            </div>
+          </div>
+        );
+      },
     },
     destination: {
       title: "Output",
@@ -1076,7 +1004,6 @@ function GraphEditor(props: { graphName: string }) {
         in: [{ name: "audio" }],
         out: [],
       },
-      render: (props) => <NodeUI {...props} />,
     },
     audioworklet: {
       title: "AudioWorklet",

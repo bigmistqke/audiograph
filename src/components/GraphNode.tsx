@@ -1,4 +1,4 @@
-import { createMemo } from "solid-js";
+import { createMemo, Show } from "solid-js";
 import styles from "../App.module.css";
 import { PORT_OFFSET, PORT_RADIUS, PORT_SPACING } from "../constants";
 import { NodeContext, useGraph } from "../context";
@@ -66,7 +66,6 @@ export function GraphNode(props: { node: NodeInstance }) {
           if (event.target.closest("[data-pointerevents-block=true]")) {
             return;
           }
-          console.log("this happens");
           const startPos = { x: props.node.x, y: props.node.y };
           setDragging(true);
           await minni(event, (delta) => {
@@ -75,121 +74,85 @@ export function GraphNode(props: { node: NodeInstance }) {
               y: startPos.y - delta.y,
             });
           });
-          console.log("but this never happens?");
           setDragging(false);
         }}
       >
-        <rect
-          class={styles.nodeRect}
+        {/* HTML node body */}
+        <foreignObject
           width={dimensions().x}
           height={dimensions().y}
-        />
-        <rect
-          class={styles.nodeHeader}
-          x={0.5}
-          y={0.5}
-          width={dimensions().x - 1}
-          height={contentY() - 0.5}
-        />
-        <line
-          x1={0}
-          y1={contentY()}
-          x2={dimensions().x}
-          y2={contentY()}
-          stroke="color-mix(in srgb, var(--color-node), white 60%)"
-          stroke-width="1"
-        />
-        <text
-          x={PORT_RADIUS * 2}
-          y={17}
-          font-size="12"
-          fill="var(--color-text)"
         >
-          {typeDef()?.title}
-        </text>
-        {rendered()}
-        <g transform={`translate(${dimensions().x - 20}, 5)`}>
-          <foreignObject width="15" height="15">
-            <button
-              class={styles.deleteButton}
-              onPointerDown={(event) => {
-                event.stopPropagation();
-                graph.deleteNode(props.node.id);
-              }}
-            ></button>
-          </foreignObject>
-        </g>
-        {typeDef().ports.in?.map((port: any, index: number) => (
-          <>
-            <GraphPort
-              name={port.name}
-              index={index}
-              kind="in"
-              dataKind={port.kind}
-            />
-            <text
-              x={PORT_RADIUS * 3}
-              y={index * PORT_SPACING + PORT_OFFSET}
-              text-anchor="start"
-              dominant-baseline="middle"
-              class={styles.portLabel}
+          <div class={styles.node}>
+            <div
+              class={styles.nodeHeader}
+              style={{ height: `${contentY()}px` }}
             >
-              {port.name}
-            </text>
-          </>
+              <span class={styles.nodeTitle}>{typeDef()?.title}</span>
+              <button
+                class={styles.deleteButton}
+                onPointerDown={(event) => {
+                  event.stopPropagation();
+                  graph.deleteNode(props.node.id);
+                }}
+              />
+              {typeDef().ports.in?.map((port: any, index: number) => (
+                <span
+                  class={styles.portLabelIn}
+                  style={{ top: `${index * PORT_SPACING + PORT_OFFSET}px` }}
+                >
+                  {port.name}
+                </span>
+              ))}
+              {typeDef().ports.out?.map((port: any, index: number) => (
+                <span
+                  class={styles.portLabelOut}
+                  style={{ top: `${index * PORT_SPACING + PORT_OFFSET}px` }}
+                >
+                  {port.name}
+                </span>
+              ))}
+            </div>
+            <div class={styles.nodeContent}>
+              {rendered()}
+            </div>
+            <Show when={typeDef().resizable}>
+              <div
+                class={styles.resizeHandle}
+                onPointerDown={async (event) => {
+                  event.stopPropagation();
+                  const startDims = { ...props.node.dimensions };
+                  setDragging(true);
+                  await minni(event, (delta) => {
+                    graph.updateNode(props.node.id, {
+                      dimensions: {
+                        x: Math.max(80, startDims.x + delta.x),
+                        y: Math.max(60, startDims.y - delta.y),
+                      },
+                    });
+                  });
+                  setDragging(false);
+                }}
+              />
+            </Show>
+          </div>
+        </foreignObject>
+        {/* SVG ports */}
+        {typeDef().ports.in?.map((port: any, index: number) => (
+          <GraphPort
+            name={port.name}
+            index={index}
+            kind="in"
+            dataKind={port.kind}
+          />
         ))}
         {typeDef().ports.out?.map((port: any, index: number) => (
-          <>
-            <GraphPort
-              name={port.name}
-              index={index}
-              kind="out"
-              dataKind={port.kind}
-            />
-            <text
-              x={dimensions().x - PORT_RADIUS * 3}
-              y={index * PORT_SPACING + PORT_OFFSET}
-              text-anchor="end"
-              dominant-baseline="middle"
-              class={styles.portLabel}
-            >
-              {port.name}
-            </text>
-          </>
+          <GraphPort
+            name={port.name}
+            index={index}
+            kind="out"
+            dataKind={port.kind}
+          />
         ))}
-        {typeDef().resizable && (
-          <>
-            <polygon
-              points={`${dimensions().x},${dimensions().y - 10} ${dimensions().x},${dimensions().y} ${dimensions().x - 10},${dimensions().y}`}
-              fill="transparent"
-              stroke="none"
-              style={{ cursor: "nwse-resize" }}
-              onPointerDown={async (event) => {
-                event.stopPropagation();
-                const startDims = { ...props.node.dimensions };
-                setDragging(true);
-                await minni(event, (delta) => {
-                  graph.updateNode(props.node.id, {
-                    dimensions: {
-                      x: Math.max(80, startDims.x + delta.x),
-                      y: Math.max(60, startDims.y - delta.y),
-                    },
-                  });
-                });
-                setDragging(false);
-              }}
-            />
-            <line
-              x1={dimensions().x}
-              y1={dimensions().y - 10}
-              x2={dimensions().x - 10}
-              y2={dimensions().y}
-              stroke="var(--color-stroke)"
-              stroke-width="1.5"
-              pointer-events="none"
-            />
-          </>
-        )}
       </g>
     </NodeContext.Provider>
   );
