@@ -65,8 +65,21 @@ export function createGraphProjection<T extends GraphConfig>(
 
         if (!outPort || !inPort) return;
 
+        // When connecting to an AudioParam, zero its intrinsic value
+        // so only the connected signal controls it (connections are additive)
+        let savedValue: number | undefined;
+        if (inPort instanceof AudioParam) {
+          savedValue = inPort.value;
+          inPort.value = 0;
+        }
+
         outPort.connect(inPort);
-        onCleanup(() => outPort.disconnect(inPort));
+        onCleanup(() => {
+          outPort.disconnect(inPort);
+          if (inPort instanceof AudioParam && savedValue !== undefined) {
+            inPort.value = savedValue;
+          }
+        });
       });
     },
   );
