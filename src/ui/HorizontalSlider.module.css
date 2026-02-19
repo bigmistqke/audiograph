@@ -1,0 +1,12 @@
+.container {
+  padding-inline: calc(var(--port-radius) * 3);
+  padding-top: 5px;
+  height: var(--port-offset);
+}
+
+.label {
+  font-size: 10px;
+  color: var(--color-text);
+  display: flex;
+  justify-content: space-between;
+}

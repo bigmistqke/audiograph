@@ -11,7 +11,9 @@ export function GraphNode(props: { node: NodeInstance }) {
   const typeDef = () => graph.config[props.node.type];
 
   const dimensions = () =>
-    typeDef()?.resizable ? props.node.dimensions : typeDef()?.dimensions ?? props.node.dimensions;
+    typeDef()?.resizable
+      ? props.node.dimensions
+      : (typeDef()?.dimensions ?? props.node.dimensions);
 
   const borderColor = createMemo(() => {
     const kind = (typeDef()?.ports?.out?.[0]?.kind as string) || "audio";
@@ -89,6 +91,22 @@ export function GraphNode(props: { node: NodeInstance }) {
           width={dimensions().x - 1}
           height={contentY() - 0.5}
         />
+        <line
+          x1={0}
+          y1={contentY()}
+          x2={dimensions().x}
+          y2={contentY()}
+          stroke="color-mix(in srgb, var(--color-node), white 60%)"
+          stroke-width="1"
+        />
+        <text
+          x={PORT_RADIUS * 2}
+          y={17}
+          font-size="12"
+          fill="var(--color-text)"
+        >
+          {typeDef()?.title}
+        </text>
         {rendered()}
         <g transform={`translate(${dimensions().x - 20}, 5)`}>
           <foreignObject width="15" height="15">
@@ -110,7 +128,7 @@ export function GraphNode(props: { node: NodeInstance }) {
               dataKind={port.kind}
             />
             <text
-              x={PORT_RADIUS + 8}
+              x={PORT_RADIUS * 3}
               y={index * PORT_SPACING + PORT_OFFSET}
               text-anchor="start"
               dominant-baseline="middle"
@@ -129,7 +147,7 @@ export function GraphNode(props: { node: NodeInstance }) {
               dataKind={port.kind}
             />
             <text
-              x={dimensions().x - PORT_RADIUS - 8}
+              x={dimensions().x - PORT_RADIUS * 3}
               y={index * PORT_SPACING + PORT_OFFSET}
               text-anchor="end"
               dominant-baseline="middle"

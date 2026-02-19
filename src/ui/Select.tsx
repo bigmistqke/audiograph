@@ -1,4 +1,5 @@
 import { For } from "solid-js";
+import styles from "./Select.module.css";
 
 export function Select<T extends string>(props: {
   value: T;
@@ -9,16 +10,7 @@ export function Select<T extends string>(props: {
 }) {
   return (
     <>
-      <label
-        style={{
-          "font-size": "10px",
-          color: "var(--color-text)",
-          display: "flex",
-          "justify-content": "space-between",
-          "align-items": "center",
-          "padding-bottom": "5px",
-        }}
-      >
+      <div class={styles.container}>
         <span>{props.title}</span>
         <select
           value={props.value}
@@ -36,7 +28,7 @@ export function Select<T extends string>(props: {
             {(option) => <option value={option}>{option}</option>}
           </For>
         </select>
-      </label>
+      </div>
     </>
   );
 }

@@ -22,6 +22,7 @@ export interface RenderProps<
 export interface NodeTypeDef<
   S extends Record<string, any> = Record<string, any>,
 > {
+  title: string;
   dimensions: { x: number; y: number };
   ports: {
     in?: PortDef[];

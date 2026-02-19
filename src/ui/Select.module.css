@@ -1,0 +1,12 @@
+.container {
+  font-size: 10px;
+  color: var(--color-text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 5px;
+  padding-inline: calc(var(--port-radius) * 3);
+  height: var(--port-offset);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}

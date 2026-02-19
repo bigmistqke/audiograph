@@ -18,7 +18,12 @@ import styles from "./App.module.css";
 import { GraphEdge } from "./components/GraphEdge";
 import { GraphNode } from "./components/GraphNode";
 import { GraphTemporaryEdge } from "./components/GraphTemporaryEdge";
-import { PORT_RADIUS, PORT_SPACING } from "./constants";
+import {
+  PORT_INSET,
+  PORT_OFFSET,
+  PORT_RADIUS,
+  PORT_SPACING,
+} from "./constants";
 import { GraphContext, type TemporaryEdge } from "./context";
 import type { GraphConfig, RenderProps } from "./lib/create-graph";
 import { createGraph } from "./lib/create-graph";
@@ -33,35 +38,21 @@ import { Select } from "./ui/Select";
 
 function NodeUI<S extends Record<string, any>>(
   props: RenderProps<S> & {
-    title: string;
     children?: (props: RenderProps<S>) => JSX.Element;
   },
 ) {
   return (
     <>
-      <text x={PORT_RADIUS * 2} y={17} font-size="12" fill="var(--color-text)">
-        {props.title}
-      </text>
       {props.children && (
-        <>
-          <line
-            x1={0}
-            y1={props.contentY}
-            x2={props.dimensions.x}
-            y2={props.contentY}
-            stroke="color-mix(in srgb, var(--color-node), white 20%)"
-            stroke-width="1"
-          />
-          <foreignObject
-            x={PORT_SPACING - PORT_RADIUS}
-            y={props.contentY}
-            width={props.dimensions.x - PORT_SPACING * 2 + PORT_RADIUS * 2}
-            height={props.dimensions.y - props.contentY - 5}
-            class={styles.foreignObject}
-          >
-            {props.children(props)}
-          </foreignObject>
-        </>
+        <foreignObject
+          x={0}
+          y={props.contentY}
+          width={props.dimensions.x}
+          height={props.dimensions.y - props.contentY}
+          class={styles.foreignObject}
+        >
+          <div>{props.children(props)}</div>
+        </foreignObject>
       )}
     </>
   );
@@ -91,6 +82,7 @@ function GraphEditor(props: { graphName: string }) {
     const typeName = name.trim().toLowerCase().replace(/\s+/g, "-");
     setSavedTypes(typeName, { displayName: name.trim(), code });
     setConfig(typeName, {
+      title: name.trim(),
       dimensions: { x: 280, y: 265 },
       resizable: true,
       ports: {
@@ -98,16 +90,16 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { name: "", code },
-      render: createWorkletRender(name.trim(), typeName),
+      render: createWorkletRender(typeName),
     });
     graph.updateNode(nodeId, { type: typeName });
   }
 
-  function createWorkletRender(title: string, typeKey: string) {
+  function createWorkletRender(typeKey: string) {
     const isSaved = typeKey !== "audioworklet";
 
     return (props: RenderProps<{ name: string; code: string }>) => (
-      <NodeUI title={title} {...props}>
+      <NodeUI {...props}>
         {(props) => {
           if (isSaved) {
             createEffect(
@@ -229,7 +221,8 @@ function GraphEditor(props: { graphName: string }) {
 
   const [config, setConfig] = createStore<GraphConfig>({
     oscillator: {
-      dimensions: { x: 180, y: 115 },
+      title: "Oscillator",
+      dimensions: { x: 180, y: 125 },
       ports: {
         in: [{ name: "frequency", kind: "param" }],
         out: [{ name: "audio" }],
@@ -237,7 +230,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { frequency: 440, type: "sine" as OscillatorType },
       render(props) {
         return (
-          <NodeUI title="Oscillator" {...props}>
+          <NodeUI {...props}>
             {(props) => (
               <div
                 style={{
@@ -247,13 +240,13 @@ function GraphEditor(props: { graphName: string }) {
                 }}
               >
                 <Select
-                  title="Type"
+                  title="kind"
                   value={props.state.type}
                   options={["sine", "square", "sawtooth", "triangle"] as const}
                   onChange={(value) => props.setState("type", value)}
                 />
                 <HorizontalSlider
-                  title="Freq"
+                  title="frequency"
                   value={props.state.frequency}
                   output={`${Math.round(props.state.frequency)}Hz`}
                   disabled={props.isInputConnected("frequency")}
@@ -266,7 +259,8 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     gain: {
-      dimensions: { x: 180, y: 110 },
+      title: "Gain",
+      dimensions: { x: 180, y: 102.5 },
       ports: {
         in: [{ name: "audio" }, { name: "gain", kind: "param" }],
         out: [{ name: "audio" }],
@@ -274,10 +268,10 @@ function GraphEditor(props: { graphName: string }) {
       state: { gain: 0.5 },
       render(props) {
         return (
-          <NodeUI title="Gain" {...props}>
+          <NodeUI {...props}>
             {(props) => (
               <HorizontalSlider
-                title="Gain"
+                title="gain"
                 output={props.state.gain.toFixed(2)}
                 value={props.state.gain}
                 min={0}
@@ -292,6 +286,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     constant: {
+      title: "Constant",
       dimensions: { x: 180, y: 90 },
       ports: {
         in: [],
@@ -300,10 +295,10 @@ function GraphEditor(props: { graphName: string }) {
       state: { value: 440 },
       render(props) {
         return (
-          <NodeUI title="Constant" {...props}>
+          <NodeUI {...props}>
             {(props) => (
               <HorizontalSlider
-                title="Value"
+                title="value"
                 output={props.state.value}
                 value={props.state.gain}
                 onInput={(value) => props.setState("value", value)}
@@ -314,6 +309,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     scale: {
+      title: "Scale",
       dimensions: { x: 180, y: 90 },
       ports: {
         in: [{ name: "signal", kind: "param" }],
@@ -322,10 +318,10 @@ function GraphEditor(props: { graphName: string }) {
       state: { factor: 1000 },
       render(props) {
         return (
-          <NodeUI title="Scale" {...props}>
+          <NodeUI {...props}>
             {(props) => (
               <HorizontalSlider
-                title="Factor"
+                title="factor"
                 value={props.state.factor}
                 output={props.state.factor.toFixed(0)}
                 min={-10000}
@@ -339,6 +335,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     range: {
+      title: "Range",
       dimensions: { x: 180, y: 125 },
       ports: {
         in: [{ name: "signal", kind: "param" }],
@@ -347,7 +344,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { min: 200, max: 2000 },
       render(props) {
         return (
-          <NodeUI title="Range" {...props}>
+          <NodeUI {...props}>
             {(props) => (
               <div
                 style={{
@@ -357,7 +354,7 @@ function GraphEditor(props: { graphName: string }) {
                 }}
               >
                 <HorizontalSlider
-                  title="Min"
+                  title="min"
                   value={props.state.min}
                   output={props.state.min.toFixed(0)}
                   min={0}
@@ -366,7 +363,7 @@ function GraphEditor(props: { graphName: string }) {
                   onInput={(value) => props.setState("min", value)}
                 />
                 <HorizontalSlider
-                  title="Max"
+                  title="max"
                   value={props.state.max}
                   output={props.state.max.toFixed(0)}
                   min={0}
@@ -381,6 +378,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     filter: {
+      title: "Filter",
       dimensions: { x: 180, y: 165 },
       ports: {
         in: [
@@ -393,7 +391,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { frequency: 1000, Q: 1 },
       render(props) {
         return (
-          <NodeUI title="Filter" {...props}>
+          <NodeUI {...props}>
             {(props) => (
               <div
                 style={{
@@ -403,7 +401,7 @@ function GraphEditor(props: { graphName: string }) {
                 }}
               >
                 <HorizontalSlider
-                  title="Freq"
+                  title="freq"
                   value={props.state.frequency}
                   output={`${Math.round(props.state.frequency)}Hz`}
                   min={20}
@@ -413,7 +411,7 @@ function GraphEditor(props: { graphName: string }) {
                   onInput={(value) => props.setState("frequency", value)}
                 />
                 <HorizontalSlider
-                  title="Q"
+                  title="q"
                   value={props.state.Q}
                   output={props.state.Q.toFixed(1)}
                   min={0.1}
@@ -429,6 +427,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     delay: {
+      title: "Delay",
       dimensions: { x: 180, y: 110 },
       ports: {
         in: [{ name: "audio" }, { name: "delayTime", kind: "param" }],
@@ -437,10 +436,10 @@ function GraphEditor(props: { graphName: string }) {
       state: { delayTime: 0.3 },
       render(props) {
         return (
-          <NodeUI title="Delay" {...props}>
+          <NodeUI {...props}>
             {(props) => (
               <HorizontalSlider
-                title="Time"
+                title="time"
                 value={props.state.delayTime}
                 output={`${props.state.delayTime.toFixed(2)}s`}
                 min={0}
@@ -455,6 +454,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     panner: {
+      title: "Panner",
       dimensions: { x: 180, y: 110 },
       ports: {
         in: [{ name: "audio" }, { name: "pan", kind: "param" }],
@@ -463,10 +463,10 @@ function GraphEditor(props: { graphName: string }) {
       state: { pan: 0 },
       render(props) {
         return (
-          <NodeUI title="Panner" {...props}>
+          <NodeUI {...props}>
             {(props) => (
               <HorizontalSlider
-                title="Pan"
+                title="pan"
                 value={props.state.pan}
                 output={props.state.pan.toFixed(2)}
                 min={-1}
@@ -481,6 +481,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     compressor: {
+      title: "Compressor",
       dimensions: { x: 180, y: 195 },
       ports: {
         in: [{ name: "audio" }],
@@ -489,7 +490,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { threshold: -24, ratio: 12, attack: 0.003, release: 0.25 },
       render(props) {
         return (
-          <NodeUI title="Compressor" {...props}>
+          <NodeUI {...props}>
             {(props) => (
               <div
                 style={{
@@ -499,7 +500,7 @@ function GraphEditor(props: { graphName: string }) {
                 }}
               >
                 <HorizontalSlider
-                  title="Thresh"
+                  title="threshold"
                   value={props.state.threshold}
                   output={`${props.state.threshold}dB`}
                   min={-100}
@@ -508,7 +509,7 @@ function GraphEditor(props: { graphName: string }) {
                   onInput={(v) => props.setState("threshold", v)}
                 />
                 <HorizontalSlider
-                  title="Ratio"
+                  title="ratio"
                   value={props.state.ratio}
                   output={`${props.state.ratio}:1`}
                   min={1}
@@ -517,7 +518,7 @@ function GraphEditor(props: { graphName: string }) {
                   onInput={(v) => props.setState("ratio", v)}
                 />
                 <HorizontalSlider
-                  title="Attack"
+                  title="attack"
                   value={props.state.attack}
                   output={`${props.state.attack.toFixed(3)}s`}
                   min={0}
@@ -526,7 +527,7 @@ function GraphEditor(props: { graphName: string }) {
                   onInput={(v) => props.setState("attack", v)}
                 />
                 <HorizontalSlider
-                  title="Release"
+                  title="release"
                   value={props.state.release}
                   output={`${props.state.release.toFixed(2)}s`}
                   min={0}
@@ -541,6 +542,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     reverb: {
+      title: "Reverb",
       dimensions: { x: 180, y: 125 },
       ports: {
         in: [{ name: "audio" }],
@@ -549,7 +551,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { decay: 2, mix: 0.5 },
       render(props) {
         return (
-          <NodeUI title="Reverb" {...props}>
+          <NodeUI {...props}>
             {(props) => (
               <div
                 style={{
@@ -559,7 +561,7 @@ function GraphEditor(props: { graphName: string }) {
                 }}
               >
                 <HorizontalSlider
-                  title="Decay"
+                  title="decay"
                   value={props.state.decay}
                   output={`${props.state.decay.toFixed(1)}s`}
                   min={0.1}
@@ -569,7 +571,7 @@ function GraphEditor(props: { graphName: string }) {
                   onInput={(value) => props.setState("decay", value)}
                 />
                 <HorizontalSlider
-                  title="Mix"
+                  title="mix"
                   value={props.state.mix}
                   output={`${Math.round(props.state.mix * 100)}%`}
                   min={0}
@@ -584,6 +586,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     waveshaper: {
+      title: "Waveshaper",
       dimensions: { x: 180, y: 90 },
       ports: {
         in: [{ name: "audio" }],
@@ -592,7 +595,7 @@ function GraphEditor(props: { graphName: string }) {
       state: { amount: 50, oversample: "4x" as OverSampleType },
       render(props) {
         return (
-          <NodeUI title="Waveshaper" {...props}>
+          <NodeUI {...props}>
             {(props) => (
               <div
                 style={{
@@ -602,7 +605,7 @@ function GraphEditor(props: { graphName: string }) {
                 }}
               >
                 <HorizontalSlider
-                  title="Drive"
+                  title="drive"
                   value={props.state.amount}
                   output={`${Math.round(props.state.amount)}%`}
                   min={0}
@@ -618,6 +621,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     analyser: {
+      title: "Analyser",
       dimensions: { x: 200, y: 145 },
       ports: {
         in: [{ name: "audio" }],
@@ -625,7 +629,7 @@ function GraphEditor(props: { graphName: string }) {
       },
       render(props) {
         return (
-          <NodeUI title="Analyser" {...props}>
+          <NodeUI {...props}>
             {(props) => (
               <canvas
                 ref={(canvas) => {
@@ -682,6 +686,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     meter: {
+      title: "Meter",
       dimensions: { x: 60, y: 145 },
       ports: {
         in: [{ name: "audio" }],
@@ -689,7 +694,7 @@ function GraphEditor(props: { graphName: string }) {
       },
       render(props) {
         return (
-          <NodeUI title="Meter" {...props}>
+          <NodeUI {...props}>
             {(props) => {
               const [level, setLevel] = createSignal(0);
               let animId: number;
@@ -747,14 +752,15 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     debug: {
-      dimensions: { x: 160, y: 90 },
+      title: "Debug",
+      dimensions: { x: 180, y: 82.5 },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [],
       },
       render(props) {
         return (
-          <NodeUI title="Debug" {...props}>
+          <NodeUI {...props}>
             {(props) => {
               const [value, setValue] = createSignal(0);
               let animId: number;
@@ -788,14 +794,16 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     noise: {
+      title: "Noise",
       dimensions: { x: 120, y: 75 },
       ports: {
         in: [],
         out: [{ name: "audio" }],
       },
-      render: (props) => <NodeUI title="Noise" {...props} />,
+      render: (props) => <NodeUI {...props} />,
     },
     lfo: {
+      title: "LFO",
       dimensions: { x: 180, y: 125 },
       ports: {
         in: [],
@@ -803,7 +811,7 @@ function GraphEditor(props: { graphName: string }) {
       },
       state: { rate: 2, depth: 0.5, type: "sine" as OscillatorType },
       render: (props) => (
-        <NodeUI title="LFO" {...props}>
+        <NodeUI {...props}>
           {(props) => (
             <div
               style={{
@@ -813,7 +821,7 @@ function GraphEditor(props: { graphName: string }) {
               }}
             >
               <HorizontalSlider
-                title="Rate"
+                title="rate"
                 value={props.state.rate}
                 output={`${props.state.rate.toFixed(1)}Hz`}
                 min={0.01}
@@ -822,7 +830,7 @@ function GraphEditor(props: { graphName: string }) {
                 onInput={(value) => props.setState("rate", value)}
               />
               <HorizontalSlider
-                title="Depth"
+                title="depth"
                 value={props.state.depth}
                 output={props.state.depth.toFixed(2)}
                 min={0}
@@ -836,6 +844,7 @@ function GraphEditor(props: { graphName: string }) {
       ),
     },
     envelope: {
+      title: "Envelope",
       dimensions: { x: 180, y: 215 },
       ports: {
         in: [{ name: "gate", kind: "param" }],
@@ -843,7 +852,7 @@ function GraphEditor(props: { graphName: string }) {
       },
       state: { attack: 0.1, decay: 0.2, sustain: 0.7, release: 0.5 },
       render: (props) => (
-        <NodeUI title="Envelope" {...props}>
+        <NodeUI {...props}>
           {(props) => (
             <div
               style={{
@@ -853,7 +862,7 @@ function GraphEditor(props: { graphName: string }) {
               }}
             >
               <HorizontalSlider
-                title="A"
+                title="attack"
                 value={props.state.attack}
                 output={`${props.state.attack.toFixed(2)}s`}
                 min={0.001}
@@ -862,7 +871,7 @@ function GraphEditor(props: { graphName: string }) {
                 onInput={(value) => props.setState("attack", value)}
               />
               <HorizontalSlider
-                title="D"
+                title="decay"
                 value={props.state.decay}
                 output={`${props.state.decay.toFixed(2)}s`}
                 min={0.001}
@@ -871,7 +880,7 @@ function GraphEditor(props: { graphName: string }) {
                 onInput={(value) => props.setState("decay", value)}
               />
               <HorizontalSlider
-                title="S"
+                title="sustain"
                 value={props.state.sustain}
                 output={props.state.sustain.toFixed(2)}
                 min={0}
@@ -880,7 +889,7 @@ function GraphEditor(props: { graphName: string }) {
                 onInput={(value) => props.setState("sustain", value)}
               />
               <HorizontalSlider
-                title="R"
+                title="release"
                 value={props.state.release}
                 output={`${props.state.release.toFixed(2)}s`}
                 min={0.001}
@@ -908,6 +917,7 @@ function GraphEditor(props: { graphName: string }) {
       ),
     },
     sequencer: {
+      title: "Sequencer",
       dimensions: { x: 280, y: 135 },
       resizable: true,
       ports: {
@@ -936,7 +946,7 @@ function GraphEditor(props: { graphName: string }) {
         ],
       },
       render: (props) => (
-        <NodeUI title="Sequencer" {...props}>
+        <NodeUI {...props}>
           {(props) => {
             const [currentStep, setCurrentStep] = createSignal(-1);
             const stepCount = () => props.state.steps.length;
@@ -985,7 +995,7 @@ function GraphEditor(props: { graphName: string }) {
                 }}
               >
                 <HorizontalSlider
-                  title="BPM"
+                  title="bpm"
                   value={props.state.bpm}
                   output={`${Math.round(props.state.bpm)}`}
                   min={20}
@@ -1060,14 +1070,16 @@ function GraphEditor(props: { graphName: string }) {
       ),
     },
     destination: {
-      dimensions: { x: 120, y: 75 },
+      title: "Output",
+      dimensions: { x: 120, y: 45 },
       ports: {
         in: [{ name: "audio" }],
         out: [],
       },
-      render: (props) => <NodeUI title="Output" {...props} />,
+      render: (props) => <NodeUI {...props} />,
     },
     audioworklet: {
+      title: "AudioWorklet",
       dimensions: { x: 280, y: 265 },
       resizable: true,
       ports: {
@@ -1075,7 +1087,7 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { name: "", code: "" },
-      render: createWorkletRender("AudioWorklet", "audioworklet"),
+      render: createWorkletRender("audioworklet"),
     },
   });
 
@@ -1084,6 +1096,7 @@ function GraphEditor(props: { graphName: string }) {
     const data = savedTypes[key];
     if (data && !config[key]) {
       setConfig(key, {
+        title: data.displayName,
         dimensions: { x: 280, y: 265 },
         resizable: true,
         ports: {
@@ -1091,7 +1104,7 @@ function GraphEditor(props: { graphName: string }) {
           out: [{ name: "audio" }],
         },
         state: { name: "", code: data.code },
-        render: createWorkletRender(data.displayName, key),
+        render: createWorkletRender(key),
       });
     }
   }
@@ -1753,6 +1766,12 @@ function GraphEditor(props: { graphName: string }) {
         }}
         viewBox={`${-store.origin.x} ${store.origin.y} ${store.dimensions.width} ${store.dimensions.height}`}
         class={styles.svg}
+        style={{
+          "--port-radius": `${PORT_RADIUS}px`,
+          "--port-inset": `${PORT_INSET}px`,
+          "--port-spacing": `${PORT_SPACING}px`,
+          "--port-offset": `${PORT_OFFSET}px`,
+        }}
         data-dragging={store.dragging || undefined}
         onPointerMove={(event) => {
           const rect = event.currentTarget.getBoundingClientRect();

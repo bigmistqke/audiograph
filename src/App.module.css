@@ -74,7 +74,7 @@ body {
 .button {
   font-family: "Times New Roman", Times, serif;
   border: 1px solid
-    color-mix(in srgb, var(--color-node, var(--color-stroke)), white 20%);
+    color-mix(in srgb, var(--color-node, var(--color-stroke)), white 60%);
   padding: 4px 12px;
   cursor: pointer;
   color: var(--color-text);
@@ -99,7 +99,7 @@ body {
 
 .nodeRect {
   fill: white;
-  stroke: color-mix(in srgb, var(--color-node), white 20%);
+  stroke: color-mix(in srgb, var(--color-node), white 60%);
 }
 
 .nodeHeader {
@@ -137,7 +137,7 @@ body {
   pointer-events: none;
   & > * {
     pointer-events: all;
-    padding-top: 6px;
     box-sizing: border-box;
+    height: 100%;
   }
 }

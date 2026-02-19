@@ -1,3 +1,5 @@
+import styles from "./HorizontalSlider.module.css";
+
 export function HorizontalSlider(props: {
   value: number;
   title: string;
@@ -9,15 +11,8 @@ export function HorizontalSlider(props: {
   step?: number;
 }) {
   return (
-    <>
-      <label
-        style={{
-          "font-size": "10px",
-          color: "var(--color-text)",
-          display: "flex",
-          "justify-content": "space-between",
-        }}
-      >
+    <div class={styles.container}>
+      <label class={styles.label}>
         <span>{props.title}</span>
         <output>{props.output}</output>
       </label>
@@ -32,6 +27,6 @@ export function HorizontalSlider(props: {
         onInput={(e) => props.onInput(+e.currentTarget.value)}
         style={{ width: "100%", "margin-inline": 0 }}
       />
-    </>
+    </div>
   );
 }
