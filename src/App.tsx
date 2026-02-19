@@ -46,7 +46,7 @@ function NodeUI<S extends Record<string, any>>(
         <foreignObject
           x={PORT_SPACING - PORT_RADIUS}
           y={PORT_OFFSET - PORT_RADIUS}
-          width={props.dimensions.x - PORT_SPACING * 2 + PORT_RADIUS}
+          width={props.dimensions.x - PORT_SPACING * 2 + PORT_RADIUS * 2}
           height={props.dimensions.y - (PORT_OFFSET - PORT_RADIUS) - 5}
           class={styles.foreignObject}
         >
@@ -64,6 +64,7 @@ function GraphEditor(props: { graphName: string }) {
   const workletNodes = new ReactiveMap<string, AudioWorkletNode>();
   const analyserNodes = new ReactiveMap<string, AnalyserNode>();
   const debugNodes = new Map<string, AnalyserNode>();
+  const meterNodes = new Map<string, AnalyserNode>();
   const envelopeTriggers = new Map<string, () => void>();
   const sequencerGates = new Map<string, (value: number) => void>();
   const [selectedType, setSelectedType] = createSignal<string | undefined>();
@@ -224,33 +225,35 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { frequency: 440, type: "sine" as OscillatorType },
-      render: (props) => (
-        <NodeUI title="Oscillator" {...props}>
-          {(props) => (
-            <div
-              style={{
-                display: "flex",
-                "flex-direction": "column",
-                gap: "2px",
-              }}
-            >
-              <Select
-                title="Type"
-                value={props.state.type}
-                options={["sine", "square", "sawtooth", "triangle"] as const}
-                onChange={(value) => props.setState("type", value)}
-              />
-              <HorizontalSlider
-                title="Freq"
-                value={props.state.frequency}
-                output={`${Math.round(props.state.frequency)}Hz`}
-                disabled={props.isInputConnected("frequency")}
-                onInput={(value) => props.setState("frequency", value)}
-              />
-            </div>
-          )}
-        </NodeUI>
-      ),
+      render(props) {
+        return (
+          <NodeUI title="Oscillator" {...props}>
+            {(props) => (
+              <div
+                style={{
+                  display: "flex",
+                  "flex-direction": "column",
+                  gap: "2px",
+                }}
+              >
+                <Select
+                  title="Type"
+                  value={props.state.type}
+                  options={["sine", "square", "sawtooth", "triangle"] as const}
+                  onChange={(value) => props.setState("type", value)}
+                />
+                <HorizontalSlider
+                  title="Freq"
+                  value={props.state.frequency}
+                  output={`${Math.round(props.state.frequency)}Hz`}
+                  disabled={props.isInputConnected("frequency")}
+                  onInput={(value) => props.setState("frequency", value)}
+                />
+              </div>
+            )}
+          </NodeUI>
+        );
+      },
     },
     gain: {
       dimensions: { x: 180, y: 75 },
@@ -259,22 +262,24 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { gain: 0.5 },
-      render: (props) => (
-        <NodeUI title="Gain" {...props}>
-          {(props) => (
-            <HorizontalSlider
-              title="Gain"
-              output={props.state.gain.toFixed(2)}
-              value={props.state.gain}
-              min={0}
-              max={1}
-              step={0.001}
-              disabled={props.isInputConnected("gain")}
-              onInput={(value) => props.setState("gain", value)}
-            />
-          )}
-        </NodeUI>
-      ),
+      render(props) {
+        return (
+          <NodeUI title="Gain" {...props}>
+            {(props) => (
+              <HorizontalSlider
+                title="Gain"
+                output={props.state.gain.toFixed(2)}
+                value={props.state.gain}
+                min={0}
+                max={1}
+                step={0.001}
+                disabled={props.isInputConnected("gain")}
+                onInput={(value) => props.setState("gain", value)}
+              />
+            )}
+          </NodeUI>
+        );
+      },
     },
     constant: {
       dimensions: { x: 180, y: 75 },
@@ -283,18 +288,20 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "value", kind: "param" }],
       },
       state: { value: 440 },
-      render: (props) => (
-        <NodeUI title="Constant" {...props}>
-          {(props) => (
-            <HorizontalSlider
-              title="Value"
-              output={props.state.value}
-              value={props.state.gain}
-              onInput={(value) => props.setState("value", value)}
-            />
-          )}
-        </NodeUI>
-      ),
+      render(props) {
+        return (
+          <NodeUI title="Constant" {...props}>
+            {(props) => (
+              <HorizontalSlider
+                title="Value"
+                output={props.state.value}
+                value={props.state.gain}
+                onInput={(value) => props.setState("value", value)}
+              />
+            )}
+          </NodeUI>
+        );
+      },
     },
     scale: {
       dimensions: { x: 180, y: 75 },
@@ -303,21 +310,23 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "scaled", kind: "param" }],
       },
       state: { factor: 1000 },
-      render: (props) => (
-        <NodeUI title="Scale" {...props}>
-          {(props) => (
-            <HorizontalSlider
-              title="Factor"
-              value={props.state.factor}
-              output={props.state.factor.toFixed(0)}
-              min={-10000}
-              max={10000}
-              step={1}
-              onInput={(value) => props.setState("factor", value)}
-            />
-          )}
-        </NodeUI>
-      ),
+      render(props) {
+        return (
+          <NodeUI title="Scale" {...props}>
+            {(props) => (
+              <HorizontalSlider
+                title="Factor"
+                value={props.state.factor}
+                output={props.state.factor.toFixed(0)}
+                min={-10000}
+                max={10000}
+                step={1}
+                onInput={(value) => props.setState("factor", value)}
+              />
+            )}
+          </NodeUI>
+        );
+      },
     },
     range: {
       dimensions: { x: 180, y: 110 },
@@ -326,38 +335,40 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "mapped", kind: "param" }],
       },
       state: { min: 200, max: 2000 },
-      render: (props) => (
-        <NodeUI title="Range" {...props}>
-          {(props) => (
-            <div
-              style={{
-                display: "flex",
-                "flex-direction": "column",
-                gap: "2px",
-              }}
-            >
-              <HorizontalSlider
-                title="Min"
-                value={props.state.min}
-                output={props.state.min.toFixed(0)}
-                min={0}
-                max={10000}
-                step={1}
-                onInput={(value) => props.setState("min", value)}
-              />
-              <HorizontalSlider
-                title="Max"
-                value={props.state.max}
-                output={props.state.max.toFixed(0)}
-                min={0}
-                max={10000}
-                step={1}
-                onInput={(value) => props.setState("max", value)}
-              />
-            </div>
-          )}
-        </NodeUI>
-      ),
+      render(props) {
+        return (
+          <NodeUI title="Range" {...props}>
+            {(props) => (
+              <div
+                style={{
+                  display: "flex",
+                  "flex-direction": "column",
+                  gap: "2px",
+                }}
+              >
+                <HorizontalSlider
+                  title="Min"
+                  value={props.state.min}
+                  output={props.state.min.toFixed(0)}
+                  min={0}
+                  max={10000}
+                  step={1}
+                  onInput={(value) => props.setState("min", value)}
+                />
+                <HorizontalSlider
+                  title="Max"
+                  value={props.state.max}
+                  output={props.state.max.toFixed(0)}
+                  min={0}
+                  max={10000}
+                  step={1}
+                  onInput={(value) => props.setState("max", value)}
+                />
+              </div>
+            )}
+          </NodeUI>
+        );
+      },
     },
     filter: {
       dimensions: { x: 180, y: 110 },
@@ -370,40 +381,42 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { frequency: 1000, Q: 1 },
-      render: (props) => (
-        <NodeUI title="Filter" {...props}>
-          {(props) => (
-            <div
-              style={{
-                display: "flex",
-                "flex-direction": "column",
-                gap: "2px",
-              }}
-            >
-              <HorizontalSlider
-                title="Freq"
-                value={props.state.frequency}
-                output={`${Math.round(props.state.frequency)}Hz`}
-                min={20}
-                max={20000}
-                step={1}
-                disabled={props.isInputConnected("frequency")}
-                onInput={(value) => props.setState("frequency", value)}
-              />
-              <HorizontalSlider
-                title="Q"
-                value={props.state.Q}
-                output={props.state.Q.toFixed(1)}
-                min={0.1}
-                max={20}
-                step={0.1}
-                disabled={props.isInputConnected("Q")}
-                onInput={(value) => props.setState("Q", value)}
-              />
-            </div>
-          )}
-        </NodeUI>
-      ),
+      render(props) {
+        return (
+          <NodeUI title="Filter" {...props}>
+            {(props) => (
+              <div
+                style={{
+                  display: "flex",
+                  "flex-direction": "column",
+                  gap: "2px",
+                }}
+              >
+                <HorizontalSlider
+                  title="Freq"
+                  value={props.state.frequency}
+                  output={`${Math.round(props.state.frequency)}Hz`}
+                  min={20}
+                  max={20000}
+                  step={1}
+                  disabled={props.isInputConnected("frequency")}
+                  onInput={(value) => props.setState("frequency", value)}
+                />
+                <HorizontalSlider
+                  title="Q"
+                  value={props.state.Q}
+                  output={props.state.Q.toFixed(1)}
+                  min={0.1}
+                  max={20}
+                  step={0.1}
+                  disabled={props.isInputConnected("Q")}
+                  onInput={(value) => props.setState("Q", value)}
+                />
+              </div>
+            )}
+          </NodeUI>
+        );
+      },
     },
     delay: {
       dimensions: { x: 180, y: 75 },
@@ -412,22 +425,24 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { delayTime: 0.3 },
-      render: (props) => (
-        <NodeUI title="Delay" {...props}>
-          {(props) => (
-            <HorizontalSlider
-              title="Time"
-              value={props.state.delayTime}
-              output={`${props.state.delayTime.toFixed(2)}s`}
-              min={0}
-              max={1}
-              step={0.01}
-              disabled={props.isInputConnected("delayTime")}
-              onInput={(value) => props.setState("delayTime", value)}
-            />
-          )}
-        </NodeUI>
-      ),
+      render(props) {
+        return (
+          <NodeUI title="Delay" {...props}>
+            {(props) => (
+              <HorizontalSlider
+                title="Time"
+                value={props.state.delayTime}
+                output={`${props.state.delayTime.toFixed(2)}s`}
+                min={0}
+                max={1}
+                step={0.01}
+                disabled={props.isInputConnected("delayTime")}
+                onInput={(value) => props.setState("delayTime", value)}
+              />
+            )}
+          </NodeUI>
+        );
+      },
     },
     panner: {
       dimensions: { x: 180, y: 75 },
@@ -436,22 +451,24 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { pan: 0 },
-      render: (props) => (
-        <NodeUI title="Panner" {...props}>
-          {(props) => (
-            <HorizontalSlider
-              title="Pan"
-              value={props.state.pan}
-              output={props.state.pan.toFixed(2)}
-              min={-1}
-              max={1}
-              step={0.01}
-              disabled={props.isInputConnected("pan")}
-              onInput={(value) => props.setState("pan", value)}
-            />
-          )}
-        </NodeUI>
-      ),
+      render(props) {
+        return (
+          <NodeUI title="Panner" {...props}>
+            {(props) => (
+              <HorizontalSlider
+                title="Pan"
+                value={props.state.pan}
+                output={props.state.pan.toFixed(2)}
+                min={-1}
+                max={1}
+                step={0.01}
+                disabled={props.isInputConnected("pan")}
+                onInput={(value) => props.setState("pan", value)}
+              />
+            )}
+          </NodeUI>
+        );
+      },
     },
     compressor: {
       dimensions: { x: 180, y: 180 },
@@ -460,56 +477,58 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { threshold: -24, ratio: 12, attack: 0.003, release: 0.25 },
-      render: (props) => (
-        <NodeUI title="Compressor" {...props}>
-          {(props) => (
-            <div
-              style={{
-                display: "flex",
-                "flex-direction": "column",
-                gap: "2px",
-              }}
-            >
-              <HorizontalSlider
-                title="Thresh"
-                value={props.state.threshold}
-                output={`${props.state.threshold}dB`}
-                min={-100}
-                max={0}
-                step={1}
-                onInput={(v) => props.setState("threshold", v)}
-              />
-              <HorizontalSlider
-                title="Ratio"
-                value={props.state.ratio}
-                output={`${props.state.ratio}:1`}
-                min={1}
-                max={20}
-                step={0.1}
-                onInput={(v) => props.setState("ratio", v)}
-              />
-              <HorizontalSlider
-                title="Attack"
-                value={props.state.attack}
-                output={`${props.state.attack.toFixed(3)}s`}
-                min={0}
-                max={1}
-                step={0.001}
-                onInput={(v) => props.setState("attack", v)}
-              />
-              <HorizontalSlider
-                title="Release"
-                value={props.state.release}
-                output={`${props.state.release.toFixed(2)}s`}
-                min={0}
-                max={1}
-                step={0.01}
-                onInput={(v) => props.setState("release", v)}
-              />
-            </div>
-          )}
-        </NodeUI>
-      ),
+      render(props) {
+        return (
+          <NodeUI title="Compressor" {...props}>
+            {(props) => (
+              <div
+                style={{
+                  display: "flex",
+                  "flex-direction": "column",
+                  gap: "2px",
+                }}
+              >
+                <HorizontalSlider
+                  title="Thresh"
+                  value={props.state.threshold}
+                  output={`${props.state.threshold}dB`}
+                  min={-100}
+                  max={0}
+                  step={1}
+                  onInput={(v) => props.setState("threshold", v)}
+                />
+                <HorizontalSlider
+                  title="Ratio"
+                  value={props.state.ratio}
+                  output={`${props.state.ratio}:1`}
+                  min={1}
+                  max={20}
+                  step={0.1}
+                  onInput={(v) => props.setState("ratio", v)}
+                />
+                <HorizontalSlider
+                  title="Attack"
+                  value={props.state.attack}
+                  output={`${props.state.attack.toFixed(3)}s`}
+                  min={0}
+                  max={1}
+                  step={0.001}
+                  onInput={(v) => props.setState("attack", v)}
+                />
+                <HorizontalSlider
+                  title="Release"
+                  value={props.state.release}
+                  output={`${props.state.release.toFixed(2)}s`}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  onInput={(v) => props.setState("release", v)}
+                />
+              </div>
+            )}
+          </NodeUI>
+        );
+      },
     },
     reverb: {
       dimensions: { x: 180, y: 110 },
@@ -518,39 +537,41 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { decay: 2, mix: 0.5 },
-      render: (props) => (
-        <NodeUI title="Reverb" {...props}>
-          {(props) => (
-            <div
-              style={{
-                display: "flex",
-                "flex-direction": "column",
-                gap: "2px",
-              }}
-            >
-              <HorizontalSlider
-                title="Decay"
-                value={props.state.decay}
-                output={`${props.state.decay.toFixed(1)}s`}
-                min={0.1}
-                max={10}
-                step={0.1}
-                disabled={props.isInputConnected("decay")}
-                onInput={(value) => props.setState("decay", value)}
-              />
-              <HorizontalSlider
-                title="Mix"
-                value={props.state.mix}
-                output={`${Math.round(props.state.mix * 100)}%`}
-                min={0}
-                max={1}
-                step={0.01}
-                onInput={(value) => props.setState("mix", value)}
-              />
-            </div>
-          )}
-        </NodeUI>
-      ),
+      render(props) {
+        return (
+          <NodeUI title="Reverb" {...props}>
+            {(props) => (
+              <div
+                style={{
+                  display: "flex",
+                  "flex-direction": "column",
+                  gap: "2px",
+                }}
+              >
+                <HorizontalSlider
+                  title="Decay"
+                  value={props.state.decay}
+                  output={`${props.state.decay.toFixed(1)}s`}
+                  min={0.1}
+                  max={10}
+                  step={0.1}
+                  disabled={props.isInputConnected("decay")}
+                  onInput={(value) => props.setState("decay", value)}
+                />
+                <HorizontalSlider
+                  title="Mix"
+                  value={props.state.mix}
+                  output={`${Math.round(props.state.mix * 100)}%`}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  onInput={(value) => props.setState("mix", value)}
+                />
+              </div>
+            )}
+          </NodeUI>
+        );
+      },
     },
     waveshaper: {
       dimensions: { x: 180, y: 75 },
@@ -559,30 +580,32 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { amount: 50, oversample: "4x" as OverSampleType },
-      render: (props) => (
-        <NodeUI title="Waveshaper" {...props}>
-          {(props) => (
-            <div
-              style={{
-                display: "flex",
-                "flex-direction": "column",
-                gap: "2px",
-              }}
-            >
-              <HorizontalSlider
-                title="Drive"
-                value={props.state.amount}
-                output={`${Math.round(props.state.amount)}%`}
-                min={0}
-                max={100}
-                step={1}
-                disabled={props.isInputConnected("amount")}
-                onInput={(value) => props.setState("amount", value)}
-              />
-            </div>
-          )}
-        </NodeUI>
-      ),
+      render(props) {
+        return (
+          <NodeUI title="Waveshaper" {...props}>
+            {(props) => (
+              <div
+                style={{
+                  display: "flex",
+                  "flex-direction": "column",
+                  gap: "2px",
+                }}
+              >
+                <HorizontalSlider
+                  title="Drive"
+                  value={props.state.amount}
+                  output={`${Math.round(props.state.amount)}%`}
+                  min={0}
+                  max={100}
+                  step={1}
+                  disabled={props.isInputConnected("amount")}
+                  onInput={(value) => props.setState("amount", value)}
+                />
+              </div>
+            )}
+          </NodeUI>
+        );
+      },
     },
     analyser: {
       dimensions: { x: 200, y: 130 },
@@ -590,61 +613,128 @@ function GraphEditor(props: { graphName: string }) {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
       },
-      render: (props) => (
-        <NodeUI title="Analyser" {...props}>
-          {(props) => (
-            <canvas
-              ref={(canvas) => {
-                const canvasCtx = canvas.getContext("2d")!;
-                let animId: number;
-                const draw = () => {
-                  const analyser = analyserNodes.get(props.id);
-                  const w = canvas.width;
-                  const h = canvas.height;
-                  canvasCtx.fillStyle = "#1a1a2e";
-                  canvasCtx.fillRect(0, 0, w, h);
-                  if (analyser) {
-                    const dataArray = new Uint8Array(
-                      analyser.frequencyBinCount,
-                    );
-                    analyser.getByteTimeDomainData(dataArray);
-                    canvasCtx.lineWidth = 1.5;
-                    canvasCtx.strokeStyle = "#4a9eff";
-                    canvasCtx.beginPath();
-                    const sliceWidth = w / dataArray.length;
-                    let x = 0;
-                    for (let i = 0; i < dataArray.length; i++) {
-                      const v = dataArray[i] / 128.0;
-                      const y = (v * h) / 2;
-                      if (i === 0) canvasCtx.moveTo(x, y);
-                      else canvasCtx.lineTo(x, y);
-                      x += sliceWidth;
+      render(props) {
+        return (
+          <NodeUI title="Analyser" {...props}>
+            {(props) => (
+              <canvas
+                ref={(canvas) => {
+                  const canvasCtx = canvas.getContext("2d")!;
+                  let animId: number;
+                  const draw = () => {
+                    const analyser = analyserNodes.get(props.id);
+                    const w = canvas.width;
+                    const h = canvas.height;
+                    canvasCtx.fillStyle = "#1a1a2e";
+                    canvasCtx.fillRect(0, 0, w, h);
+                    if (analyser) {
+                      const dataArray = new Uint8Array(
+                        analyser.frequencyBinCount,
+                      );
+                      analyser.getByteTimeDomainData(dataArray);
+                      canvasCtx.lineWidth = 1.5;
+                      canvasCtx.strokeStyle = "#4a9eff";
+                      canvasCtx.beginPath();
+                      const sliceWidth = w / dataArray.length;
+                      let x = 0;
+                      for (let i = 0; i < dataArray.length; i++) {
+                        const v = dataArray[i] / 128.0;
+                        const y = (v * h) / 2;
+                        if (i === 0) canvasCtx.moveTo(x, y);
+                        else canvasCtx.lineTo(x, y);
+                        x += sliceWidth;
+                      }
+                      canvasCtx.lineTo(w, h / 2);
+                      canvasCtx.stroke();
+                    } else {
+                      canvasCtx.strokeStyle = "#4a9eff33";
+                      canvasCtx.beginPath();
+                      canvasCtx.moveTo(0, h / 2);
+                      canvasCtx.lineTo(w, h / 2);
+                      canvasCtx.stroke();
                     }
-                    canvasCtx.lineTo(w, h / 2);
-                    canvasCtx.stroke();
-                  } else {
-                    canvasCtx.strokeStyle = "#4a9eff33";
-                    canvasCtx.beginPath();
-                    canvasCtx.moveTo(0, h / 2);
-                    canvasCtx.lineTo(w, h / 2);
-                    canvasCtx.stroke();
-                  }
-                  animId = requestAnimationFrame(draw);
-                };
-                draw();
-                onCleanup(() => cancelAnimationFrame(animId));
-              }}
-              width={170}
-              height={80}
-              style={{
-                width: "100%",
-                height: "100%",
-                "border-radius": "2px",
-              }}
-            />
-          )}
-        </NodeUI>
-      ),
+                    animId = requestAnimationFrame(draw);
+                  };
+                  draw();
+                  onCleanup(() => cancelAnimationFrame(animId));
+                }}
+                width={170}
+                height={80}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  "border-radius": "2px",
+                }}
+              />
+            )}
+          </NodeUI>
+        );
+      },
+    },
+    meter: {
+      dimensions: { x: 60, y: 130 },
+      ports: {
+        in: [{ name: "audio" }],
+        out: [{ name: "audio" }],
+      },
+      render(props) {
+        return (
+          <NodeUI title="Meter" {...props}>
+            {(props) => {
+              const [level, setLevel] = createSignal(0);
+              let animId: number;
+              const poll = () => {
+                const node = meterNodes.get(props.id);
+                if (node) {
+                  const data = new Float32Array(node.fftSize);
+                  node.getFloatTimeDomainData(data);
+                  let sum = 0;
+                  for (let i = 0; i < data.length; i++)
+                    sum += data[i] * data[i];
+                  setLevel(Math.sqrt(sum / data.length));
+                }
+                animId = requestAnimationFrame(poll);
+              };
+              poll();
+              onCleanup(() => cancelAnimationFrame(animId));
+
+              return (
+                <div
+                  style={{
+                    display: "grid",
+                    height: "100%",
+                    "align-items": "end",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      width: "100%",
+                      background: "#ddd",
+                      overflow: "hidden",
+                      display: "grid",
+                      "align-items": "end",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: `${Math.min(level() * 100, 100)}%`,
+                        background:
+                          level() > 0.8
+                            ? "#ff6b6b"
+                            : level() > 0.5
+                              ? "#ffd43b"
+                              : "#51cf66",
+                        transition: "height 50ms",
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            }}
+          </NodeUI>
+        );
+      },
     },
     debug: {
       dimensions: { x: 160, y: 75 },
@@ -652,38 +742,40 @@ function GraphEditor(props: { graphName: string }) {
         in: [{ name: "signal", kind: "param" }],
         out: [],
       },
-      render: (props) => (
-        <NodeUI title="Debug" {...props}>
-          {(props) => {
-            const [value, setValue] = createSignal(0);
-            let animId: number;
-            const poll = () => {
-              const node = debugNodes.get(props.id);
-              if (node) {
-                const data = new Float32Array(node.fftSize);
-                node.getFloatTimeDomainData(data);
-                setValue(data[0]);
-              }
-              animId = requestAnimationFrame(poll);
-            };
-            poll();
-            onCleanup(() => cancelAnimationFrame(animId));
-            return (
-              <div
-                style={{
-                  "font-family": "monospace",
-                  "font-size": "14px",
-                  color: "var(--color-text)",
-                  "text-align": "center",
-                  "line-height": "2",
-                }}
-              >
-                {value().toFixed(4)}
-              </div>
-            );
-          }}
-        </NodeUI>
-      ),
+      render(props) {
+        return (
+          <NodeUI title="Debug" {...props}>
+            {(props) => {
+              const [value, setValue] = createSignal(0);
+              let animId: number;
+              const poll = () => {
+                const node = debugNodes.get(props.id);
+                if (node) {
+                  const data = new Float32Array(node.fftSize);
+                  node.getFloatTimeDomainData(data);
+                  setValue(data[0]);
+                }
+                animId = requestAnimationFrame(poll);
+              };
+              poll();
+              onCleanup(() => cancelAnimationFrame(animId));
+              return (
+                <div
+                  style={{
+                    "font-family": "monospace",
+                    "font-size": "14px",
+                    color: "var(--color-text)",
+                    "text-align": "center",
+                    "line-height": "2",
+                  }}
+                >
+                  {value().toFixed(4)}
+                </div>
+              );
+            }}
+          </NodeUI>
+        );
+      },
     },
     noise: {
       dimensions: { x: 120, y: 60 },
@@ -1257,6 +1349,20 @@ function GraphEditor(props: { graphName: string }) {
         out: { audio: analyser },
       };
     },
+    meter(_state: Record<string, never>, nodeId: string) {
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      meterNodes.set(nodeId, analyser);
+
+      onCleanup(() => {
+        meterNodes.delete(nodeId);
+      });
+
+      return {
+        in: { audio: analyser },
+        out: { audio: analyser },
+      };
+    },
     debug(_state: Record<string, never>, nodeId: string) {
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 256;
@@ -1538,7 +1644,7 @@ function GraphEditor(props: { graphName: string }) {
             },
             {
               label: "Analysis",
-              types: ["analyser", "debug"],
+              types: ["analyser", "meter", "debug"],
             },
             { label: "Output", types: ["destination"] },
             { label: "Code", types: ["audioworklet"] },
@@ -1563,6 +1669,7 @@ function GraphEditor(props: { graphName: string }) {
                     "range",
                     "sequencer",
                     "analyser",
+                    "meter",
                     "debug",
                     "destination",
                     "audioworklet",
@@ -1579,8 +1686,8 @@ function GraphEditor(props: { graphName: string }) {
                   {(type) => {
                     const portColor = () => {
                       const kind =
-                        (graph.config[type]?.ports?.out?.[0] as any)
-                          ?.kind || "audio";
+                        (graph.config[type]?.ports?.out?.[0] as any)?.kind ||
+                        "audio";
                       return `var(--color-port-${kind})`;
                     };
                     return (
