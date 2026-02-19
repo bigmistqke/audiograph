@@ -16,7 +16,7 @@ export type ProjectionResult = {
 type StateOf<N> = N extends NodeTypeDef<infer S> ? S : Record<string, never>;
 
 type ProjectionFactories<T extends GraphConfig> = {
-  [K in keyof T]?: (state: StateOf<T[K]>) => ProjectionResult;
+  [K in keyof T]?: (state: StateOf<T[K]>, nodeId: string) => ProjectionResult;
 };
 
 export function createGraphProjection<T extends GraphConfig>(
@@ -33,7 +33,7 @@ export function createGraphProjection<T extends GraphConfig>(
 
       const stateEntry = graphAPI.nodeStates.get(node.id);
       const state = stateEntry?.state ?? {};
-      const result = factory(state);
+      const result = factory(state, node.id);
       projectedNodes.set(node.id, result);
 
       onCleanup(() => {

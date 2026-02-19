@@ -61,6 +61,7 @@ function GraphEditor(props: { graphName: string }) {
   const ctx = new AudioContext();
   const workletFS = createWorkletFileSystem();
   const workletNodes = new ReactiveMap<string, AudioWorkletNode>();
+  const analyserNodes = new ReactiveMap<string, AnalyserNode>();
   const [selectedType, setSelectedType] = createSignal<string>("oscillator");
 
   // Persisted custom type definitions (global, shared across graphs)
@@ -429,6 +430,141 @@ function GraphEditor(props: { graphName: string }) {
         </NodeUI>
       ),
     },
+    reverb: {
+      dimensions: { x: 180, y: 100 },
+      ports: {
+        in: [{ name: "audio" }],
+        out: [{ name: "audio" }],
+      },
+      state: { decay: 2, mix: 0.5 },
+      render: (props) => (
+        <NodeUI title="Reverb" {...props}>
+          {(props) => (
+            <div
+              style={{
+                display: "flex",
+                "flex-direction": "column",
+                gap: "2px",
+              }}
+            >
+              <HorizontalSlider
+                title="Decay"
+                value={props.state.decay}
+                output={`${props.state.decay.toFixed(1)}s`}
+                min={0.1}
+                max={10}
+                step={0.1}
+                disabled={props.isInputConnected("decay")}
+                onInput={(value) => props.setState("decay", value)}
+              />
+              <HorizontalSlider
+                title="Mix"
+                value={props.state.mix}
+                output={`${Math.round(props.state.mix * 100)}%`}
+                min={0}
+                max={1}
+                step={0.01}
+                onInput={(value) => props.setState("mix", value)}
+              />
+            </div>
+          )}
+        </NodeUI>
+      ),
+    },
+    waveshaper: {
+      dimensions: { x: 180, y: 75 },
+      ports: {
+        in: [{ name: "audio" }],
+        out: [{ name: "audio" }],
+      },
+      state: { amount: 50, oversample: "4x" as OverSampleType },
+      render: (props) => (
+        <NodeUI title="Waveshaper" {...props}>
+          {(props) => (
+            <div
+              style={{
+                display: "flex",
+                "flex-direction": "column",
+                gap: "2px",
+              }}
+            >
+              <HorizontalSlider
+                title="Drive"
+                value={props.state.amount}
+                output={`${Math.round(props.state.amount)}%`}
+                min={0}
+                max={100}
+                step={1}
+                disabled={props.isInputConnected("amount")}
+                onInput={(value) => props.setState("amount", value)}
+              />
+            </div>
+          )}
+        </NodeUI>
+      ),
+    },
+    analyser: {
+      dimensions: { x: 200, y: 130 },
+      ports: {
+        in: [{ name: "audio" }],
+        out: [{ name: "audio" }],
+      },
+      render: (props) => (
+        <NodeUI title="Analyser" {...props}>
+          {(props) => (
+            <canvas
+              ref={(canvas) => {
+                const canvasCtx = canvas.getContext("2d")!;
+                let animId: number;
+                const draw = () => {
+                  const analyser = analyserNodes.get(props.id);
+                  const w = canvas.width;
+                  const h = canvas.height;
+                  canvasCtx.fillStyle = "#1a1a2e";
+                  canvasCtx.fillRect(0, 0, w, h);
+                  if (analyser) {
+                    const dataArray = new Uint8Array(
+                      analyser.frequencyBinCount,
+                    );
+                    analyser.getByteTimeDomainData(dataArray);
+                    canvasCtx.lineWidth = 1.5;
+                    canvasCtx.strokeStyle = "#4a9eff";
+                    canvasCtx.beginPath();
+                    const sliceWidth = w / dataArray.length;
+                    let x = 0;
+                    for (let i = 0; i < dataArray.length; i++) {
+                      const v = dataArray[i] / 128.0;
+                      const y = (v * h) / 2;
+                      if (i === 0) canvasCtx.moveTo(x, y);
+                      else canvasCtx.lineTo(x, y);
+                      x += sliceWidth;
+                    }
+                    canvasCtx.lineTo(w, h / 2);
+                    canvasCtx.stroke();
+                  } else {
+                    canvasCtx.strokeStyle = "#4a9eff33";
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(0, h / 2);
+                    canvasCtx.lineTo(w, h / 2);
+                    canvasCtx.stroke();
+                  }
+                  animId = requestAnimationFrame(draw);
+                };
+                draw();
+                onCleanup(() => cancelAnimationFrame(animId));
+              }}
+              width={170}
+              height={80}
+              style={{
+                width: "100%",
+                height: "100%",
+                "border-radius": "2px",
+              }}
+            />
+          )}
+        </NodeUI>
+      ),
+    },
     noise: {
       dimensions: { x: 120, y: 60 },
       ports: {
@@ -613,6 +749,98 @@ function GraphEditor(props: { graphName: string }) {
       return {
         in: { audio: comp },
         out: { audio: comp },
+      };
+    },
+    reverb(state: { decay: number; mix: number }) {
+      const convolver = ctx.createConvolver();
+      const dry = ctx.createGain();
+      const wet = ctx.createGain();
+      const input = ctx.createGain();
+      const output = ctx.createGain();
+
+      // Generate impulse response
+      function generateImpulse(decay: number) {
+        const length = ctx.sampleRate * decay;
+        const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
+        for (let channel = 0; channel < 2; channel++) {
+          const data = impulse.getChannelData(channel);
+          for (let i = 0; i < length; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+          }
+        }
+        return impulse;
+      }
+
+      convolver.buffer = generateImpulse(state.decay);
+
+      input.connect(dry);
+      input.connect(convolver);
+      convolver.connect(wet);
+      dry.connect(output);
+      wet.connect(output);
+
+      createEffect(() => {
+        convolver.buffer = generateImpulse(state.decay);
+      });
+      createEffect(() => {
+        wet.gain.value = state.mix;
+        dry.gain.value = 1 - state.mix;
+      });
+
+      onCleanup(() => {
+        input.disconnect();
+        convolver.disconnect();
+        dry.disconnect();
+        wet.disconnect();
+      });
+
+      return {
+        in: { audio: input },
+        out: { audio: output },
+      };
+    },
+    waveshaper(state: { amount: number; oversample: OverSampleType }) {
+      const shaper = ctx.createWaveShaper();
+
+      function makeDistortionCurve(amount: number) {
+        const k = amount;
+        const samples = 44100;
+        const curve = new Float32Array(samples);
+        const deg = Math.PI / 180;
+        for (let i = 0; i < samples; i++) {
+          const x = (i * 2) / samples - 1;
+          curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+        }
+        return curve;
+      }
+
+      shaper.curve = makeDistortionCurve(state.amount);
+      shaper.oversample = state.oversample;
+
+      createEffect(() => {
+        shaper.curve = makeDistortionCurve(state.amount);
+      });
+      createEffect(() => {
+        shaper.oversample = state.oversample;
+      });
+
+      return {
+        in: { audio: shaper },
+        out: { audio: shaper },
+      };
+    },
+    analyser(_state: Record<string, never>, nodeId: string) {
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyserNodes.set(nodeId, analyser);
+
+      onCleanup(() => {
+        analyserNodes.delete(nodeId);
+      });
+
+      return {
+        in: { audio: analyser },
+        out: { audio: analyser },
       };
     },
     noise() {
