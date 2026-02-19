@@ -63,6 +63,7 @@ function GraphEditor(props: { graphName: string }) {
   const workletFS = createWorkletFileSystem();
   const workletNodes = new ReactiveMap<string, AudioWorkletNode>();
   const analyserNodes = new ReactiveMap<string, AnalyserNode>();
+  const debugNodes = new Map<string, AnalyserNode>();
   const envelopeTriggers = new Map<string, () => void>();
   const sequencerGates = new Map<string, (value: number) => void>();
   const [selectedType, setSelectedType] = createSignal<string | undefined>();
@@ -645,6 +646,45 @@ function GraphEditor(props: { graphName: string }) {
         </NodeUI>
       ),
     },
+    debug: {
+      dimensions: { x: 160, y: 75 },
+      ports: {
+        in: [{ name: "signal", kind: "param" }],
+        out: [],
+      },
+      render: (props) => (
+        <NodeUI title="Debug" {...props}>
+          {(props) => {
+            const [value, setValue] = createSignal(0);
+            let animId: number;
+            const poll = () => {
+              const node = debugNodes.get(props.id);
+              if (node) {
+                const data = new Float32Array(node.fftSize);
+                node.getFloatTimeDomainData(data);
+                setValue(data[0]);
+              }
+              animId = requestAnimationFrame(poll);
+            };
+            poll();
+            onCleanup(() => cancelAnimationFrame(animId));
+            return (
+              <div
+                style={{
+                  "font-family": "monospace",
+                  "font-size": "14px",
+                  color: "var(--color-text)",
+                  "text-align": "center",
+                  "line-height": "2",
+                }}
+              >
+                {value().toFixed(4)}
+              </div>
+            );
+          }}
+        </NodeUI>
+      ),
+    },
     noise: {
       dimensions: { x: 120, y: 60 },
       ports: {
@@ -1048,8 +1088,8 @@ function GraphEditor(props: { graphName: string }) {
       scaleGain.connect(offset.offset);
 
       createEffect(() => {
-        scaleGain.gain.value = (state.max - state.min) / 2;
-        offset.offset.value = (state.min + state.max) / 2;
+        scaleGain.gain.value = state.max - state.min;
+        offset.offset.value = state.min;
       });
 
       onCleanup(() => offset.stop());
@@ -1215,6 +1255,20 @@ function GraphEditor(props: { graphName: string }) {
       return {
         in: { audio: analyser },
         out: { audio: analyser },
+      };
+    },
+    debug(_state: Record<string, never>, nodeId: string) {
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      debugNodes.set(nodeId, analyser);
+
+      onCleanup(() => {
+        debugNodes.delete(nodeId);
+      });
+
+      return {
+        in: { signal: analyser },
+        out: {},
       };
     },
     noise() {
@@ -1484,7 +1538,7 @@ function GraphEditor(props: { graphName: string }) {
             },
             {
               label: "Analysis",
-              types: ["analyser"],
+              types: ["analyser", "debug"],
             },
             { label: "Output", types: ["destination"] },
             { label: "Code", types: ["audioworklet"] },
@@ -1509,6 +1563,7 @@ function GraphEditor(props: { graphName: string }) {
                     "range",
                     "sequencer",
                     "analyser",
+                    "debug",
                     "destination",
                     "audioworklet",
                   ].includes(k),
