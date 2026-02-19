@@ -798,23 +798,35 @@ function GraphEditor(props: { graphName: string }) {
             const [currentStep, setCurrentStep] = createSignal(-1);
             const stepCount = () => props.state.steps.length;
 
-            let intervalId: number | undefined;
+            let timeoutId: number | undefined;
+            let step = 0;
+            let lastStepTime = 0;
+            let running = false;
+
+            const tick = () => {
+              if (!running) return;
+              setCurrentStep(step % stepCount());
+              const isActive = props.state.steps[step % stepCount()];
+              sequencerGates.get(props.id)?.(isActive ? 1 : 0);
+              step++;
+              lastStepTime = performance.now();
+              timeoutId = setTimeout(
+                tick,
+                60000 / props.state.bpm / 4,
+              ) as unknown as number;
+            };
 
             const start = () => {
               stop();
-              const msPerStep = 60000 / props.state.bpm / 4;
-              let step = 0;
-              intervalId = setInterval(() => {
-                setCurrentStep(step % stepCount());
-                const isActive = props.state.steps[step % stepCount()];
-                sequencerGates.get(props.id)?.(isActive ? 1 : 0);
-                step++;
-              }, msPerStep) as unknown as number;
+              step = 0;
+              running = true;
+              tick();
             };
 
             const stop = () => {
-              if (intervalId !== undefined) clearInterval(intervalId);
-              intervalId = undefined;
+              running = false;
+              if (timeoutId !== undefined) clearTimeout(timeoutId);
+              timeoutId = undefined;
               setCurrentStep(-1);
             };
 
