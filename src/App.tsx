@@ -62,6 +62,7 @@ function GraphEditor(props: { graphName: string }) {
   const workletFS = createWorkletFileSystem();
   const workletNodes = new ReactiveMap<string, AudioWorkletNode>();
   const analyserNodes = new ReactiveMap<string, AnalyserNode>();
+  const envelopeTriggers = new Map<string, () => void>();
   const [selectedType, setSelectedType] = createSignal<string | undefined>("oscillator");
 
   // Persisted custom type definitions (global, shared across graphs)
@@ -573,6 +574,118 @@ function GraphEditor(props: { graphName: string }) {
       },
       render: (props) => <NodeUI title="Noise" {...props} />,
     },
+    lfo: {
+      dimensions: { x: 180, y: 110 },
+      ports: {
+        in: [],
+        out: [{ name: "modulation", kind: "param" }],
+      },
+      state: { rate: 2, depth: 0.5, type: "sine" as OscillatorType },
+      render: (props) => (
+        <NodeUI title="LFO" {...props}>
+          {(props) => (
+            <div
+              style={{
+                display: "flex",
+                "flex-direction": "column",
+                gap: "2px",
+              }}
+            >
+              <HorizontalSlider
+                title="Rate"
+                value={props.state.rate}
+                output={`${props.state.rate.toFixed(1)}Hz`}
+                min={0.01}
+                max={20}
+                step={0.01}
+                onInput={(value) => props.setState("rate", value)}
+              />
+              <HorizontalSlider
+                title="Depth"
+                value={props.state.depth}
+                output={props.state.depth.toFixed(2)}
+                min={0}
+                max={1}
+                step={0.01}
+                onInput={(value) => props.setState("depth", value)}
+              />
+            </div>
+          )}
+        </NodeUI>
+      ),
+    },
+    envelope: {
+      dimensions: { x: 180, y: 180 },
+      ports: {
+        in: [],
+        out: [{ name: "envelope", kind: "param" }],
+      },
+      state: { attack: 0.1, decay: 0.2, sustain: 0.7, release: 0.5 },
+      render: (props) => (
+        <NodeUI title="Envelope" {...props}>
+          {(props) => (
+            <div
+              style={{
+                display: "flex",
+                "flex-direction": "column",
+                gap: "2px",
+              }}
+            >
+              <HorizontalSlider
+                title="A"
+                value={props.state.attack}
+                output={`${props.state.attack.toFixed(2)}s`}
+                min={0.001}
+                max={2}
+                step={0.001}
+                onInput={(value) => props.setState("attack", value)}
+              />
+              <HorizontalSlider
+                title="D"
+                value={props.state.decay}
+                output={`${props.state.decay.toFixed(2)}s`}
+                min={0.001}
+                max={2}
+                step={0.001}
+                onInput={(value) => props.setState("decay", value)}
+              />
+              <HorizontalSlider
+                title="S"
+                value={props.state.sustain}
+                output={props.state.sustain.toFixed(2)}
+                min={0}
+                max={1}
+                step={0.01}
+                onInput={(value) => props.setState("sustain", value)}
+              />
+              <HorizontalSlider
+                title="R"
+                value={props.state.release}
+                output={`${props.state.release.toFixed(2)}s`}
+                min={0.001}
+                max={5}
+                step={0.001}
+                onInput={(value) => props.setState("release", value)}
+              />
+              <button
+                style={{
+                  padding: "2px 4px",
+                  "font-size": "10px",
+                  cursor: "pointer",
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => {
+                  const id = props.id;
+                  envelopeTriggers.get(id)?.();
+                }}
+              >
+                Trigger
+              </button>
+            </div>
+          )}
+        </NodeUI>
+      ),
+    },
     destination: {
       dimensions: { x: 120, y: 60 },
       ports: {
@@ -862,6 +975,68 @@ function GraphEditor(props: { graphName: string }) {
         out: { audio: noise },
       };
     },
+    lfo(state: { rate: number; depth: number; type: OscillatorType }) {
+      const osc = ctx.createOscillator();
+      const depthGain = ctx.createGain();
+      osc.connect(depthGain);
+      osc.start();
+
+      createEffect(() => {
+        osc.frequency.value = state.rate;
+      });
+      createEffect(() => {
+        osc.type = state.type;
+      });
+      createEffect(() => {
+        depthGain.gain.value = state.depth;
+      });
+
+      onCleanup(() => osc.stop());
+
+      return {
+        in: {},
+        out: { modulation: depthGain },
+      };
+    },
+    envelope(
+      state: {
+        attack: number;
+        decay: number;
+        sustain: number;
+        release: number;
+      },
+      nodeId: string,
+    ) {
+      const src = ctx.createConstantSource();
+      src.offset.value = 0;
+      src.start();
+
+      const trigger = () => {
+        const now = ctx.currentTime;
+        src.offset.cancelScheduledValues(now);
+        src.offset.setValueAtTime(0, now);
+        src.offset.linearRampToValueAtTime(1, now + state.attack);
+        src.offset.linearRampToValueAtTime(
+          state.sustain,
+          now + state.attack + state.decay,
+        );
+        src.offset.linearRampToValueAtTime(
+          0,
+          now + state.attack + state.decay + state.release,
+        );
+      };
+
+      envelopeTriggers.set(nodeId, trigger);
+      onCleanup(() => {
+        envelopeTriggers.delete(nodeId);
+        src.stop();
+      });
+
+      return {
+        in: {},
+        out: { envelope: src },
+      };
+    },
     destination() {
       return {
         in: {
@@ -993,6 +1168,10 @@ function GraphEditor(props: { graphName: string }) {
               ],
             },
             {
+              label: "Modulation",
+              types: ["lfo", "envelope"],
+            },
+            {
               label: "Analysis",
               types: ["analyser"],
             },
@@ -1013,6 +1192,8 @@ function GraphEditor(props: { graphName: string }) {
                     "compressor",
                     "waveshaper",
                     "panner",
+                    "lfo",
+                    "envelope",
                     "analyser",
                     "destination",
                     "audioworklet",
