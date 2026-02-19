@@ -1,7 +1,5 @@
 .container {
-  padding-inline: calc(var(--port-radius) * 3);
-  padding-top: 5px;
-  height: var(--port-offset);
+  height: var(--element-height);
 }
 
 .label {

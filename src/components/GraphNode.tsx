@@ -1,6 +1,7 @@
+import clsx from "clsx";
 import { createMemo, Show } from "solid-js";
 import styles from "../App.module.css";
-import { PORT_OFFSET, PORT_RADIUS, PORT_SPACING } from "../constants";
+import { headerHeight, PORT_OFFSET, PORT_SPACING } from "../constants";
 import { NodeContext, useGraph } from "../context";
 import type { NodeInstance } from "../lib/create-graph";
 import { minni } from "../lib/minni";
@@ -26,10 +27,7 @@ export function GraphNode(props: { node: NodeInstance }) {
       typeDef()?.ports?.out?.length ?? 0,
     );
 
-  const contentY = () =>
-    maxPorts() > 0
-      ? PORT_OFFSET + (maxPorts() - 1) * PORT_SPACING + PORT_RADIUS + 5
-      : PORT_OFFSET;
+  const contentY = () => headerHeight(maxPorts());
 
   const rendered = () => {
     const def = typeDef();
@@ -97,7 +95,7 @@ export function GraphNode(props: { node: NodeInstance }) {
               />
               {typeDef().ports.in?.map((port: any, index: number) => (
                 <span
-                  class={styles.portLabelIn}
+                  class={clsx(styles.portLabel, styles.portLabelIn)}
                   style={{ top: `${index * PORT_SPACING + PORT_OFFSET}px` }}
                 >
                   {port.name}
@@ -105,7 +103,7 @@ export function GraphNode(props: { node: NodeInstance }) {
               ))}
               {typeDef().ports.out?.map((port: any, index: number) => (
                 <span
-                  class={styles.portLabelOut}
+                  class={clsx(styles.portLabel, styles.portLabelOut)}
                   style={{ top: `${index * PORT_SPACING + PORT_OFFSET}px` }}
                 >
                   {port.name}

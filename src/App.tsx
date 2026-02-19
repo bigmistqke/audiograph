@@ -18,6 +18,10 @@ import { GraphEdge } from "./components/GraphEdge";
 import { GraphNode } from "./components/GraphNode";
 import { GraphTemporaryEdge } from "./components/GraphTemporaryEdge";
 import {
+  calcNodeHeight,
+  CONTENT_GAP,
+  CONTENT_PADDING,
+  ELEMENT_HEIGHT,
   PORT_INSET,
   PORT_OFFSET,
   PORT_RADIUS,
@@ -60,7 +64,7 @@ function GraphEditor(props: { graphName: string }) {
     setSavedTypes(typeName, { displayName: name.trim(), code });
     setConfig(typeName, {
       title: name.trim(),
-      dimensions: { x: 280, y: 265 },
+      dimensions: { x: 280, y: calcNodeHeight(1, 7) },
       resizable: true,
       ports: {
         in: [{ name: "audio" }],
@@ -195,7 +199,7 @@ function GraphEditor(props: { graphName: string }) {
   const [config, setConfig] = createStore<GraphConfig>({
     oscillator: {
       title: "Oscillator",
-      dimensions: { x: 180, y: 125 },
+      dimensions: { x: 180, y: calcNodeHeight(1, 2) },
       ports: {
         in: [{ name: "frequency", kind: "param" }],
         out: [{ name: "audio" }],
@@ -231,7 +235,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     gain: {
       title: "Gain",
-      dimensions: { x: 180, y: 102.5 },
+      dimensions: { x: 180, y: calcNodeHeight(2, 1) },
       ports: {
         in: [{ name: "audio" }, { name: "gain", kind: "param" }],
         out: [{ name: "audio" }],
@@ -256,7 +260,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     constant: {
       title: "Constant",
-      dimensions: { x: 180, y: 90 },
+      dimensions: { x: 180, y: calcNodeHeight(1, 1) },
       ports: {
         in: [],
         out: [{ name: "value", kind: "param" }],
@@ -277,7 +281,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     scale: {
       title: "Scale",
-      dimensions: { x: 180, y: 90 },
+      dimensions: { x: 180, y: calcNodeHeight(1, 1) },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [{ name: "scaled", kind: "param" }],
@@ -301,7 +305,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     range: {
       title: "Range",
-      dimensions: { x: 180, y: 125 },
+      dimensions: { x: 180, y: calcNodeHeight(1, 2) },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [{ name: "mapped", kind: "param" }],
@@ -342,7 +346,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     filter: {
       title: "Filter",
-      dimensions: { x: 180, y: 165 },
+      dimensions: { x: 180, y: calcNodeHeight(3, 2) },
       ports: {
         in: [
           { name: "audio" },
@@ -389,7 +393,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     delay: {
       title: "Delay",
-      dimensions: { x: 180, y: 110 },
+      dimensions: { x: 180, y: calcNodeHeight(2, 1) },
       ports: {
         in: [{ name: "audio" }, { name: "delayTime", kind: "param" }],
         out: [{ name: "audio" }],
@@ -414,7 +418,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     panner: {
       title: "Panner",
-      dimensions: { x: 180, y: 110 },
+      dimensions: { x: 180, y: calcNodeHeight(2, 1) },
       ports: {
         in: [{ name: "audio" }, { name: "pan", kind: "param" }],
         out: [{ name: "audio" }],
@@ -439,7 +443,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     compressor: {
       title: "Compressor",
-      dimensions: { x: 180, y: 195 },
+      dimensions: { x: 180, y: calcNodeHeight(1, 4) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -498,7 +502,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     reverb: {
       title: "Reverb",
-      dimensions: { x: 180, y: 125 },
+      dimensions: { x: 180, y: calcNodeHeight(1, 2) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -540,7 +544,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     waveshaper: {
       title: "Waveshaper",
-      dimensions: { x: 180, y: 90 },
+      dimensions: { x: 180, y: calcNodeHeight(1, 1) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -573,7 +577,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     analyser: {
       title: "Analyser",
-      dimensions: { x: 200, y: 145 },
+      dimensions: { x: 200, y: calcNodeHeight(1, 3) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -636,7 +640,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     meter: {
       title: "Meter",
-      dimensions: { x: 60, y: 145 },
+      dimensions: { x: 60, y: calcNodeHeight(1, 3) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -696,7 +700,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     debug: {
       title: "Debug",
-      dimensions: { x: 180, y: 82.5 },
+      dimensions: { x: 180, y: calcNodeHeight(1, 1) },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [],
@@ -732,7 +736,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     noise: {
       title: "Noise",
-      dimensions: { x: 120, y: 75 },
+      dimensions: { x: 120, y: calcNodeHeight(1, 0) },
       ports: {
         in: [],
         out: [{ name: "audio" }],
@@ -740,7 +744,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     lfo: {
       title: "LFO",
-      dimensions: { x: 180, y: 125 },
+      dimensions: { x: 180, y: calcNodeHeight(1, 2) },
       ports: {
         in: [],
         out: [{ name: "modulation", kind: "param" }],
@@ -779,7 +783,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     envelope: {
       title: "Envelope",
-      dimensions: { x: 180, y: 215 },
+      dimensions: { x: 180, y: calcNodeHeight(1, 5) },
       ports: {
         in: [{ name: "gate", kind: "param" }],
         out: [{ name: "envelope", kind: "param" }],
@@ -850,7 +854,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     sequencer: {
       title: "Sequencer",
-      dimensions: { x: 280, y: 135 },
+      dimensions: { x: 280, y: calcNodeHeight(1, 3) },
       resizable: true,
       ports: {
         in: [],
@@ -999,7 +1003,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     destination: {
       title: "Output",
-      dimensions: { x: 120, y: 45 },
+      dimensions: { x: 120, y: calcNodeHeight(1, 0) },
       ports: {
         in: [{ name: "audio" }],
         out: [],
@@ -1007,7 +1011,7 @@ function GraphEditor(props: { graphName: string }) {
     },
     audioworklet: {
       title: "AudioWorklet",
-      dimensions: { x: 280, y: 265 },
+      dimensions: { x: 280, y: calcNodeHeight(1, 7) },
       resizable: true,
       ports: {
         in: [{ name: "audio" }],
@@ -1024,7 +1028,7 @@ function GraphEditor(props: { graphName: string }) {
     if (data && !config[key]) {
       setConfig(key, {
         title: data.displayName,
-        dimensions: { x: 280, y: 265 },
+        dimensions: { x: 280, y: calcNodeHeight(1, 7) },
         resizable: true,
         ports: {
           in: [{ name: "audio" }],
@@ -1698,6 +1702,9 @@ function GraphEditor(props: { graphName: string }) {
           "--port-inset": `${PORT_INSET}px`,
           "--port-spacing": `${PORT_SPACING}px`,
           "--port-offset": `${PORT_OFFSET}px`,
+          "--element-height": `${ELEMENT_HEIGHT}px`,
+          "--content-gap": `${CONTENT_GAP}px`,
+          "--content-padding": `${CONTENT_PADDING}px`,
         }}
         data-dragging={store.dragging || undefined}
         onPointerMove={(event) => {

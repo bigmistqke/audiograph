@@ -123,6 +123,9 @@ body {
 
 .nodeContent {
   overflow: hidden;
+  padding: var(--content-padding);
+  display: grid;
+  gap: var(--content-gap);
 }
 
 .port {
@@ -150,13 +153,11 @@ body {
 }
 
 .portLabelIn {
-  composes: portLabel;
-  left: 15px;
+  left: calc(var(--port-radius) * 2);
 }
 
 .portLabelOut {
-  composes: portLabel;
-  right: 15px;
+  right: calc(var(--port-radius) * 2);
 }
 
 .deleteButton {
@@ -177,4 +178,3 @@ body {
   height: 10px;
   cursor: nwse-resize;
 }
-
