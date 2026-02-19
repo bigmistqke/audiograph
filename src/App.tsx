@@ -23,6 +23,8 @@ import {
   CONTENT_PADDING_BLOCK,
   CONTENT_PADDING_INLINE,
   ELEMENT_HEIGHT,
+  HEADING_PADDING_BLOCK,
+  HEADING_PADDING_INLINE,
   PORT_INSET,
   PORT_RADIUS,
   PORT_SPACING,
@@ -1668,8 +1670,11 @@ function GraphEditor(props: { graphName: string }) {
           "--port-offset": `${TITLE_HEIGHT}px`,
           "--element-height": `${ELEMENT_HEIGHT}px`,
           "--content-gap": `${CONTENT_GAP}px`,
+          "--title-height": `${TITLE_HEIGHT}px`,
           "--content-padding-block": `${CONTENT_PADDING_BLOCK}px`,
           "--content-padding-inline": `${CONTENT_PADDING_INLINE}px`,
+          "--heading-padding-block": `${HEADING_PADDING_BLOCK}px`,
+          "--heading-padding-inline": `${HEADING_PADDING_INLINE}px`,
         }}
         data-dragging={store.dragging || undefined}
         onPointerMove={(event) => {

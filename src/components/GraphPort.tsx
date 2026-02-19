@@ -1,6 +1,6 @@
 import { minni } from "@bigmistqke/minni";
 import {
-  CONTENT_GAP,
+  HEADING_PADDING_INLINE,
   PORT_INSET,
   PORT_RADIUS,
   PORT_SPACING,
@@ -27,12 +27,12 @@ export function GraphPort(props: {
 
   const cx = () =>
     props.kind === "in" ? PORT_INSET : node.dimensions.x - PORT_INSET;
-  const cy = () => props.index * PORT_SPACING + TITLE_HEIGHT;
+  const cy = () => props.index * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS;
 
   const labelX = () =>
     props.kind === "in"
-      ? PORT_RADIUS + CONTENT_GAP
-      : node.dimensions.x - PORT_RADIUS - CONTENT_GAP;
+      ? `${HEADING_PADDING_INLINE + 1}px`
+      : `${node.dimensions.x - HEADING_PADDING_INLINE - 1}px`; //node.dimensions.x - PORT_RADIUS - CONTENT_PADDING_INLINE;
 
   return (
     <g>
@@ -52,75 +52,78 @@ export function GraphPort(props: {
         data-kind={props.dataKind}
         class={styles.port}
         onPointerDown={async (event) => {
-        event.stopPropagation();
-        setDragging(true);
+          event.stopPropagation();
+          setDragging(true);
 
-        // If dragging from an in-port with an existing edge, detach it
-        if (props.kind === "in") {
-          const existingEdge = graph.graph.edges.find(
-            (e) => e.input.node === node.id && e.input.port === props.name,
-          );
-          if (existingEdge) {
-            graph.unlink(existingEdge.output, existingEdge.input);
-            const fromNode = graph.graph.nodes.find(
-              (n) => n.id === existingEdge.output.node,
+          // If dragging from an in-port with an existing edge, detach it
+          if (props.kind === "in") {
+            const existingEdge = graph.graph.edges.find(
+              (e) => e.input.node === node.id && e.input.port === props.name,
             );
-            if (fromNode) {
-              const position = {
-                x: node.x + cx(),
-                y: node.y + cy(),
-              };
-              setTemporaryEdge({
-                node: fromNode.id,
-                kind: "out",
-                port: existingEdge.output.port,
-                x: position.x,
-                y: position.y,
-              });
-              await minni(event, (delta) => {
-                updateTemporaryEdge(position.x + delta.x, position.y - delta.y);
-              });
-              setTemporaryEdge(undefined);
-              setDragging(false);
-              return;
+            if (existingEdge) {
+              graph.unlink(existingEdge.output, existingEdge.input);
+              const fromNode = graph.graph.nodes.find(
+                (n) => n.id === existingEdge.output.node,
+              );
+              if (fromNode) {
+                const position = {
+                  x: node.x + cx(),
+                  y: node.y + cy(),
+                };
+                setTemporaryEdge({
+                  node: fromNode.id,
+                  kind: "out",
+                  port: existingEdge.output.port,
+                  x: position.x,
+                  y: position.y,
+                });
+                await minni(event, (delta) => {
+                  updateTemporaryEdge(
+                    position.x + delta.x,
+                    position.y - delta.y,
+                  );
+                });
+                setTemporaryEdge(undefined);
+                setDragging(false);
+                return;
+              }
             }
           }
-        }
 
-        setTemporaryEdge({
-          node: node.id,
-          kind: props.kind,
-          port: props.name,
-        });
-        const position = {
-          x: node.x + cx(),
-          y: node.y + cy(),
-        };
-        await minni(event, (delta) => {
-          updateTemporaryEdge(position.x + delta.x, position.y - delta.y);
-        });
-        setTemporaryEdge(undefined);
-        setDragging(false);
-      }}
-      onPointerUp={(event) => {
-        event.stopPropagation();
-        const edgeHandle = getTemporaryEdge();
-        if (!edgeHandle) return;
-        if (edgeHandle.kind === props.kind) return;
+          setTemporaryEdge({
+            node: node.id,
+            kind: props.kind,
+            port: props.name,
+          });
+          const position = {
+            x: node.x + cx(),
+            y: node.y + cy(),
+          };
+          await minni(event, (delta) => {
+            updateTemporaryEdge(position.x + delta.x, position.y - delta.y);
+          });
+          setTemporaryEdge(undefined);
+          setDragging(false);
+        }}
+        onPointerUp={(event) => {
+          event.stopPropagation();
+          const edgeHandle = getTemporaryEdge();
+          if (!edgeHandle) return;
+          if (edgeHandle.kind === props.kind) return;
 
-        const output: EdgeHandle =
-          props.kind === "in"
-            ? { node: edgeHandle.node, port: edgeHandle.port }
-            : { node: node.id, port: props.name };
+          const output: EdgeHandle =
+            props.kind === "in"
+              ? { node: edgeHandle.node, port: edgeHandle.port }
+              : { node: node.id, port: props.name };
 
-        const input: EdgeHandle =
-          props.kind === "out"
-            ? { node: edgeHandle.node, port: edgeHandle.port }
-            : { node: node.id, port: props.name };
+          const input: EdgeHandle =
+            props.kind === "out"
+              ? { node: edgeHandle.node, port: edgeHandle.port }
+              : { node: node.id, port: props.name };
 
-        graph.link(output, input);
-      }}
-    />
+          graph.link(output, input);
+        }}
+      />
     </g>
   );
 }

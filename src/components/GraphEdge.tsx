@@ -1,10 +1,15 @@
 import { createMemo, Show } from "solid-js";
-import { PORT_INSET, PORT_SPACING, TITLE_HEIGHT } from "../constants";
+import {
+  PORT_INSET,
+  PORT_RADIUS,
+  PORT_SPACING,
+  TITLE_HEIGHT,
+} from "../constants";
 import { useGraph } from "../context";
 import type { EdgeHandle } from "../lib/create-graph";
 
 function portY(index: number) {
-  return index * PORT_SPACING + TITLE_HEIGHT;
+  return index * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS;
 }
 
 export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {

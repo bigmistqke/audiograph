@@ -1,10 +1,11 @@
 // Port layout
 export const PORT_SPACING = 20;
 export const PORT_RADIUS = 3;
-export const TITLE_HEIGHT = 35;
 export const PORT_INSET = 0;
 
-export const HEADING_PADDING = 5;
+export const TITLE_HEIGHT = 35;
+export const HEADING_PADDING_BLOCK = 8;
+export const HEADING_PADDING_INLINE = 8;
 
 // Content layout
 export const ELEMENT_HEIGHT = 30;
@@ -18,7 +19,7 @@ export function headerHeight(maxPorts: number): number {
     (maxPorts > 0
       ? TITLE_HEIGHT + (maxPorts - 1) * PORT_SPACING
       : TITLE_HEIGHT) +
-    HEADING_PADDING * 3
+    HEADING_PADDING_BLOCK * 2
   );
 }
 

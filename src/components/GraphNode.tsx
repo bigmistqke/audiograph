@@ -81,7 +81,7 @@ export function GraphNode(props: { node: NodeInstance }) {
               class={styles.nodeHeader}
               style={{ height: `${contentY()}px` }}
             >
-              <span class={styles.nodeTitle}>{typeDef()?.title}</span>
+              <div class={styles.nodeTitle}>{typeDef()?.title}</div>
               <button
                 class={styles.deleteButton}
                 onPointerDown={(event) => {
