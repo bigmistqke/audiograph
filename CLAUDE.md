@@ -1,5 +1,9 @@
 # Project Instructions
 
+## CSS Preferences
+
+- Prefer CSS Grid over Flexbox for layout.
+
 ## Decision Graph Workflow
 
 **THIS IS MANDATORY. Log decisions IN REAL-TIME, not retroactively.**

@@ -89,7 +89,7 @@ function GraphEditor(props: { graphName: string }) {
   }
 
   function createWorkletRender(title: string, typeKey: string) {
-    const isSaved = typeKey !== "custom";
+    const isSaved = typeKey !== "audioworklet";
 
     return (props: RenderProps<{ name: string; code: string }>) => (
       <NodeUI title={title} {...props}>
@@ -581,7 +581,7 @@ function GraphEditor(props: { graphName: string }) {
       },
       render: (props) => <NodeUI title="Output" {...props} />,
     },
-    custom: {
+    audioworklet: {
       dimensions: { x: 280, y: 250 },
       resizable: true,
       ports: {
@@ -589,7 +589,7 @@ function GraphEditor(props: { graphName: string }) {
         out: [{ name: "audio" }],
       },
       state: { name: "", code: "" },
-      render: createWorkletRender("Custom", "custom"),
+      render: createWorkletRender("AudioWorklet", "audioworklet"),
     },
   });
 
@@ -869,7 +869,7 @@ function GraphEditor(props: { graphName: string }) {
         },
       };
     },
-    custom(state: { name: string; code: string }) {
+    audioworklet(state: { name: string; code: string }) {
       const inputGain = ctx.createGain();
       const outputGain = ctx.createGain();
 
@@ -928,7 +928,7 @@ function GraphEditor(props: { graphName: string }) {
     graph,
     new Proxy(projectionFactories, {
       get(target, prop, receiver) {
-        return Reflect.get(target, prop, receiver) ?? target.custom;
+        return Reflect.get(target, prop, receiver) ?? target.audioworklet;
       },
     }) as any,
   );
@@ -973,30 +973,78 @@ function GraphEditor(props: { graphName: string }) {
         },
       }}
     >
-      <div class={styles.hud}>
-        <For each={Object.keys(graph.config)}>
-          {(type) => (
-            <button
-              class={clsx(
-                styles.button,
-                selectedType() === type && styles.selected,
-              )}
-              onClick={() => setSelectedType(type)}
-            >
-              {type}
-            </button>
+      <div class={styles.sidebar}>
+        <For
+          each={[
+            {
+              label: "Sources",
+              types: ["oscillator", "constant", "noise"],
+            },
+            {
+              label: "Effects",
+              types: [
+                "gain",
+                "filter",
+                "delay",
+                "reverb",
+                "compressor",
+                "waveshaper",
+                "panner",
+              ],
+            },
+            {
+              label: "Analysis",
+              types: ["analyser"],
+            },
+            { label: "Output", types: ["destination"] },
+            { label: "Code", types: ["audioworklet"] },
+            {
+              label: "User",
+              types: Object.keys(graph.config).filter(
+                (k) =>
+                  ![
+                    "oscillator",
+                    "constant",
+                    "noise",
+                    "gain",
+                    "filter",
+                    "delay",
+                    "reverb",
+                    "compressor",
+                    "waveshaper",
+                    "panner",
+                    "analyser",
+                    "destination",
+                    "audioworklet",
+                  ].includes(k),
+              ),
+            },
+          ]}
+        >
+          {(category) => (
+            <Show when={category.types.length > 0}>
+              <span class={styles.categoryLabel}>{category.label}</span>
+              <div class={styles.categoryGrid}>
+                <For each={category.types}>
+                  {(type) => (
+                    <button
+                      class={clsx(
+                        styles.button,
+                        selectedType() === type && styles.selected,
+                      )}
+                      onClick={() => setSelectedType(type)}
+                    >
+                      {type}
+                    </button>
+                  )}
+                </For>
+              </div>
+            </Show>
           )}
         </For>
-        <span
-          style={{
-            "margin-left": "auto",
-            "font-size": "11px",
-            "line-height": "28px",
-            opacity: 0.6,
-          }}
-        >
-          {props.graphName}
-        </span>
+      </div>
+      <div class={styles.topRight}>
+        <span class={styles.graphName}>{props.graphName}</span>
         <button
           onClick={() => {
             const name = prompt("New graph name:");

@@ -8,17 +8,63 @@ body {
   --color-edge: #313131;
 }
 
-.hud {
-  display: flex;
-  gap: 8px;
+.sidebar {
+  display: grid;
+  grid-auto-rows: min-content;
+  gap: 4px;
   padding: 8px;
-  align-items: start;
   position: absolute;
-  inset: 0px;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min-content;
+  pointer-events: none;
+  overflow-y: auto;
+  & > * {
+    pointer-events: all;
+  }
+}
+
+.categoryLabel {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+  margin-top: 6px;
+  padding-left: 2px;
+}
+
+.categoryLabel:first-child {
+  margin-top: 0;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.topRight {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: min-content;
+  gap: 8px;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 8px;
   pointer-events: none;
   & > * {
     pointer-events: all;
   }
+}
+
+.graphName {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 11px;
+  opacity: 0.6;
 }
 
 .button {
