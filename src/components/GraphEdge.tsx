@@ -17,12 +17,18 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
     graph.graph.nodes.find((n) => n.id === props.input.node),
   );
 
+  const fromPort = () => {
+    const node = fromNode();
+    if (!node) return undefined;
+    return graph.config[node.type].ports.out.find(
+      (p: any) => p.name === props.output.port,
+    );
+  };
+
   const fromPortIndex = () => {
     const node = fromNode();
     if (!node) return -1;
-    return graph.config[node.type].ports.out.findIndex(
-      (p: any) => p.name === props.output.port,
-    );
+    return graph.config[node.type].ports.out.indexOf(fromPort()!);
   };
 
   const toPortIndex = () => {
@@ -33,6 +39,18 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
     );
   };
 
+  const EDGE_COLORS: Record<string, string> = {
+    param: "#ff6b6b",
+    output: "#51cf66",
+  };
+  const DEFAULT_EDGE_COLOR = "#4a9eff";
+
+  const edgeColor = () => {
+    const port = fromPort();
+    const kind = (port as any)?.kind as string | undefined;
+    return kind ? (EDGE_COLORS[kind] ?? DEFAULT_EDGE_COLOR) : DEFAULT_EDGE_COLOR;
+  };
+
   return (
     <Show when={fromNode() && toNode()}>
       <line
@@ -41,7 +59,7 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
         y1={fromNode()!.y + portY(fromPortIndex())}
         x2={toNode()!.x + PORT_INSET}
         y2={toNode()!.y + portY(toPortIndex())}
-        stroke="var(--color-stroke)"
+        stroke={edgeColor()}
       />
     </Show>
   );
