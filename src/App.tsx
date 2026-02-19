@@ -277,6 +277,166 @@ function GraphEditor(props: { graphName: string }) {
         </NodeUI>
       ),
     },
+    filter: {
+      dimensions: { x: 180, y: 100 },
+      ports: {
+        in: [
+          { name: "audio" },
+          { name: "frequency", kind: "param" },
+          { name: "Q", kind: "param" },
+        ],
+        out: [{ name: "audio" }],
+      },
+      state: { frequency: 1000, Q: 1 },
+      render: (props) => (
+        <NodeUI title="Filter" {...props}>
+          {(props) => (
+            <div
+              style={{
+                display: "flex",
+                "flex-direction": "column",
+                gap: "2px",
+              }}
+            >
+              <HorizontalSlider
+                title="Freq"
+                value={props.state.frequency}
+                output={`${Math.round(props.state.frequency)}Hz`}
+                min={20}
+                max={20000}
+                step={1}
+                disabled={props.isInputConnected("frequency")}
+                onInput={(value) => props.setState("frequency", value)}
+              />
+              <HorizontalSlider
+                title="Q"
+                value={props.state.Q}
+                output={props.state.Q.toFixed(1)}
+                min={0.1}
+                max={20}
+                step={0.1}
+                disabled={props.isInputConnected("Q")}
+                onInput={(value) => props.setState("Q", value)}
+              />
+            </div>
+          )}
+        </NodeUI>
+      ),
+    },
+    delay: {
+      dimensions: { x: 180, y: 75 },
+      ports: {
+        in: [{ name: "audio" }, { name: "delayTime", kind: "param" }],
+        out: [{ name: "audio" }],
+      },
+      state: { delayTime: 0.3 },
+      render: (props) => (
+        <NodeUI title="Delay" {...props}>
+          {(props) => (
+            <HorizontalSlider
+              title="Time"
+              value={props.state.delayTime}
+              output={`${props.state.delayTime.toFixed(2)}s`}
+              min={0}
+              max={1}
+              step={0.01}
+              disabled={props.isInputConnected("delayTime")}
+              onInput={(value) => props.setState("delayTime", value)}
+            />
+          )}
+        </NodeUI>
+      ),
+    },
+    panner: {
+      dimensions: { x: 180, y: 75 },
+      ports: {
+        in: [{ name: "audio" }, { name: "pan", kind: "param" }],
+        out: [{ name: "audio" }],
+      },
+      state: { pan: 0 },
+      render: (props) => (
+        <NodeUI title="Panner" {...props}>
+          {(props) => (
+            <HorizontalSlider
+              title="Pan"
+              value={props.state.pan}
+              output={props.state.pan.toFixed(2)}
+              min={-1}
+              max={1}
+              step={0.01}
+              disabled={props.isInputConnected("pan")}
+              onInput={(value) => props.setState("pan", value)}
+            />
+          )}
+        </NodeUI>
+      ),
+    },
+    compressor: {
+      dimensions: { x: 180, y: 130 },
+      ports: {
+        in: [{ name: "audio" }],
+        out: [{ name: "audio" }],
+      },
+      state: { threshold: -24, ratio: 12, attack: 0.003, release: 0.25 },
+      render: (props) => (
+        <NodeUI title="Compressor" {...props}>
+          {(props) => (
+            <div
+              style={{
+                display: "flex",
+                "flex-direction": "column",
+                gap: "2px",
+              }}
+            >
+              <HorizontalSlider
+                title="Thresh"
+                value={props.state.threshold}
+                output={`${props.state.threshold}dB`}
+                min={-100}
+                max={0}
+                step={1}
+                onInput={(v) => props.setState("threshold", v)}
+              />
+              <HorizontalSlider
+                title="Ratio"
+                value={props.state.ratio}
+                output={`${props.state.ratio}:1`}
+                min={1}
+                max={20}
+                step={0.1}
+                onInput={(v) => props.setState("ratio", v)}
+              />
+              <HorizontalSlider
+                title="Attack"
+                value={props.state.attack}
+                output={`${props.state.attack.toFixed(3)}s`}
+                min={0}
+                max={1}
+                step={0.001}
+                onInput={(v) => props.setState("attack", v)}
+              />
+              <HorizontalSlider
+                title="Release"
+                value={props.state.release}
+                output={`${props.state.release.toFixed(2)}s`}
+                min={0}
+                max={1}
+                step={0.01}
+                onInput={(v) => props.setState("release", v)}
+              />
+            </div>
+          )}
+        </NodeUI>
+      ),
+    },
+    noise: {
+      dimensions: { x: 120, y: 60 },
+      ports: {
+        in: [],
+        out: [{ name: "audio" }],
+      },
+      render: (props) => <NodeUI title="Noise" {...props} />,
+    },
     destination: {
       dimensions: { x: 120, y: 60 },
       ports: {
@@ -387,6 +547,91 @@ function GraphEditor(props: { graphName: string }) {
         out: {
           value: src,
         },
+      };
+    },
+    filter(state: { frequency: number; Q: number }) {
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+
+      createEffect(() => {
+        filter.frequency.value = state.frequency;
+      });
+      createEffect(() => {
+        filter.Q.value = state.Q;
+      });
+
+      return {
+        in: { audio: filter, frequency: filter.frequency, Q: filter.Q },
+        out: { audio: filter },
+      };
+    },
+    delay(state: { delayTime: number }) {
+      const delay = ctx.createDelay(1);
+
+      createEffect(() => {
+        delay.delayTime.value = state.delayTime;
+      });
+
+      return {
+        in: { audio: delay, delayTime: delay.delayTime },
+        out: { audio: delay },
+      };
+    },
+    panner(state: { pan: number }) {
+      const panner = ctx.createStereoPanner();
+
+      createEffect(() => {
+        panner.pan.value = state.pan;
+      });
+
+      return {
+        in: { audio: panner, pan: panner.pan },
+        out: { audio: panner },
+      };
+    },
+    compressor(state: {
+      threshold: number;
+      ratio: number;
+      attack: number;
+      release: number;
+    }) {
+      const comp = ctx.createDynamicsCompressor();
+
+      createEffect(() => {
+        comp.threshold.value = state.threshold;
+      });
+      createEffect(() => {
+        comp.ratio.value = state.ratio;
+      });
+      createEffect(() => {
+        comp.attack.value = state.attack;
+      });
+      createEffect(() => {
+        comp.release.value = state.release;
+      });
+
+      return {
+        in: { audio: comp },
+        out: { audio: comp },
+      };
+    },
+    noise() {
+      const bufferSize = 2 * ctx.sampleRate;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuffer;
+      noise.loop = true;
+      noise.start();
+
+      onCleanup(() => noise.stop());
+
+      return {
+        in: {},
+        out: { audio: noise },
       };
     },
     destination() {
