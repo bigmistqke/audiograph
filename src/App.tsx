@@ -63,7 +63,9 @@ function GraphEditor(props: { graphName: string }) {
   const workletNodes = new ReactiveMap<string, AudioWorkletNode>();
   const analyserNodes = new ReactiveMap<string, AnalyserNode>();
   const envelopeTriggers = new Map<string, () => void>();
-  const [selectedType, setSelectedType] = createSignal<string | undefined>("oscillator");
+  const [selectedType, setSelectedType] = createSignal<string | undefined>(
+    "oscillator",
+  );
 
   // Persisted custom type definitions (global, shared across graphs)
   const [savedTypes, setSavedTypes] = makePersisted(
@@ -275,6 +277,69 @@ function GraphEditor(props: { graphName: string }) {
               value={props.state.gain}
               onInput={(value) => props.setState("value", value)}
             />
+          )}
+        </NodeUI>
+      ),
+    },
+    scale: {
+      dimensions: { x: 180, y: 75 },
+      ports: {
+        in: [{ name: "signal", kind: "param" }],
+        out: [{ name: "scaled", kind: "param" }],
+      },
+      state: { factor: 1000 },
+      render: (props) => (
+        <NodeUI title="Scale" {...props}>
+          {(props) => (
+            <HorizontalSlider
+              title="Factor"
+              value={props.state.factor}
+              output={props.state.factor.toFixed(0)}
+              min={-10000}
+              max={10000}
+              step={1}
+              onInput={(value) => props.setState("factor", value)}
+            />
+          )}
+        </NodeUI>
+      ),
+    },
+    range: {
+      dimensions: { x: 180, y: 100 },
+      ports: {
+        in: [{ name: "signal", kind: "param" }],
+        out: [{ name: "mapped", kind: "param" }],
+      },
+      state: { min: 200, max: 2000 },
+      render: (props) => (
+        <NodeUI title="Range" {...props}>
+          {(props) => (
+            <div
+              style={{
+                display: "flex",
+                "flex-direction": "column",
+                gap: "2px",
+              }}
+            >
+              <HorizontalSlider
+                title="Min"
+                value={props.state.min}
+                output={props.state.min.toFixed(0)}
+                min={-10000}
+                max={10000}
+                step={1}
+                onInput={(value) => props.setState("min", value)}
+              />
+              <HorizontalSlider
+                title="Max"
+                value={props.state.max}
+                output={props.state.max.toFixed(0)}
+                min={-10000}
+                max={10000}
+                step={1}
+                onInput={(value) => props.setState("max", value)}
+              />
+            </div>
           )}
         </NodeUI>
       ),
@@ -615,7 +680,7 @@ function GraphEditor(props: { graphName: string }) {
       ),
     },
     envelope: {
-      dimensions: { x: 180, y: 180 },
+      dimensions: { x: 180, y: 200 },
       ports: {
         in: [],
         out: [{ name: "envelope", kind: "param" }],
@@ -796,6 +861,36 @@ function GraphEditor(props: { graphName: string }) {
         out: {
           value: src,
         },
+      };
+    },
+    scale(state: { factor: number }) {
+      const gain = ctx.createGain();
+
+      createEffect(() => {
+        gain.gain.value = state.factor;
+      });
+
+      return {
+        in: { signal: gain },
+        out: { scaled: gain },
+      };
+    },
+    range(state: { min: number; max: number }) {
+      const scaleGain = ctx.createGain();
+      const offset = ctx.createConstantSource();
+      offset.start();
+      scaleGain.connect(offset.offset);
+
+      createEffect(() => {
+        scaleGain.gain.value = (state.max - state.min) / 2;
+        offset.offset.value = (state.min + state.max) / 2;
+      });
+
+      onCleanup(() => offset.stop());
+
+      return {
+        in: { signal: scaleGain },
+        out: { mapped: offset },
       };
     },
     filter(state: { frequency: number; Q: number }) {
@@ -1169,7 +1264,7 @@ function GraphEditor(props: { graphName: string }) {
             },
             {
               label: "Modulation",
-              types: ["lfo", "envelope"],
+              types: ["lfo", "envelope", "scale", "range"],
             },
             {
               label: "Analysis",
@@ -1194,6 +1289,8 @@ function GraphEditor(props: { graphName: string }) {
                     "panner",
                     "lfo",
                     "envelope",
+                    "scale",
+                    "range",
                     "analyser",
                     "destination",
                     "audioworklet",
@@ -1213,7 +1310,11 @@ function GraphEditor(props: { graphName: string }) {
                         styles.button,
                         selectedType() === type && styles.selected,
                       )}
-                      onClick={() => setSelectedType((prev) => prev === type ? undefined : type)}
+                      onClick={() =>
+                        setSelectedType((prev) =>
+                          prev === type ? undefined : type,
+                        )
+                      }
                     >
                       {type}
                     </button>
