@@ -18,7 +18,7 @@ import styles from "./App.module.css";
 import { GraphEdge } from "./components/GraphEdge";
 import { GraphNode } from "./components/GraphNode";
 import { GraphTemporaryEdge } from "./components/GraphTemporaryEdge";
-import { PORT_OFFSET, PORT_RADIUS, PORT_SPACING } from "./constants";
+import { PORT_RADIUS, PORT_SPACING } from "./constants";
 import { GraphContext, type TemporaryEdge } from "./context";
 import type { GraphConfig, RenderProps } from "./lib/create-graph";
 import { createGraph } from "./lib/create-graph";
@@ -43,15 +43,25 @@ function NodeUI<S extends Record<string, any>>(
         {props.title}
       </text>
       {props.children && (
-        <foreignObject
-          x={PORT_SPACING - PORT_RADIUS}
-          y={PORT_OFFSET - PORT_RADIUS}
-          width={props.dimensions.x - PORT_SPACING * 2 + PORT_RADIUS * 2}
-          height={props.dimensions.y - (PORT_OFFSET - PORT_RADIUS) - 5}
-          class={styles.foreignObject}
-        >
-          {props.children(props)}
-        </foreignObject>
+        <>
+          <line
+            x1={0}
+            y1={props.contentY}
+            x2={props.dimensions.x}
+            y2={props.contentY}
+            stroke="color-mix(in srgb, var(--color-node), white 20%)"
+            stroke-width="1"
+          />
+          <foreignObject
+            x={PORT_SPACING - PORT_RADIUS}
+            y={props.contentY}
+            width={props.dimensions.x - PORT_SPACING * 2 + PORT_RADIUS * 2}
+            height={props.dimensions.y - props.contentY - 5}
+            class={styles.foreignObject}
+          >
+            {props.children(props)}
+          </foreignObject>
+        </>
       )}
     </>
   );
@@ -81,7 +91,7 @@ function GraphEditor(props: { graphName: string }) {
     const typeName = name.trim().toLowerCase().replace(/\s+/g, "-");
     setSavedTypes(typeName, { displayName: name.trim(), code });
     setConfig(typeName, {
-      dimensions: { x: 280, y: 250 },
+      dimensions: { x: 280, y: 265 },
       resizable: true,
       ports: {
         in: [{ name: "audio" }],
@@ -219,7 +229,7 @@ function GraphEditor(props: { graphName: string }) {
 
   const [config, setConfig] = createStore<GraphConfig>({
     oscillator: {
-      dimensions: { x: 180, y: 100 },
+      dimensions: { x: 180, y: 115 },
       ports: {
         in: [{ name: "frequency", kind: "param" }],
         out: [{ name: "audio" }],
@@ -256,7 +266,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     gain: {
-      dimensions: { x: 180, y: 75 },
+      dimensions: { x: 180, y: 110 },
       ports: {
         in: [{ name: "audio" }, { name: "gain", kind: "param" }],
         out: [{ name: "audio" }],
@@ -282,7 +292,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     constant: {
-      dimensions: { x: 180, y: 75 },
+      dimensions: { x: 180, y: 90 },
       ports: {
         in: [],
         out: [{ name: "value", kind: "param" }],
@@ -304,7 +314,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     scale: {
-      dimensions: { x: 180, y: 75 },
+      dimensions: { x: 180, y: 90 },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [{ name: "scaled", kind: "param" }],
@@ -329,7 +339,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     range: {
-      dimensions: { x: 180, y: 110 },
+      dimensions: { x: 180, y: 125 },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [{ name: "mapped", kind: "param" }],
@@ -371,7 +381,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     filter: {
-      dimensions: { x: 180, y: 110 },
+      dimensions: { x: 180, y: 165 },
       ports: {
         in: [
           { name: "audio" },
@@ -419,7 +429,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     delay: {
-      dimensions: { x: 180, y: 75 },
+      dimensions: { x: 180, y: 110 },
       ports: {
         in: [{ name: "audio" }, { name: "delayTime", kind: "param" }],
         out: [{ name: "audio" }],
@@ -445,7 +455,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     panner: {
-      dimensions: { x: 180, y: 75 },
+      dimensions: { x: 180, y: 110 },
       ports: {
         in: [{ name: "audio" }, { name: "pan", kind: "param" }],
         out: [{ name: "audio" }],
@@ -471,7 +481,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     compressor: {
-      dimensions: { x: 180, y: 180 },
+      dimensions: { x: 180, y: 195 },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -531,7 +541,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     reverb: {
-      dimensions: { x: 180, y: 110 },
+      dimensions: { x: 180, y: 125 },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -574,7 +584,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     waveshaper: {
-      dimensions: { x: 180, y: 75 },
+      dimensions: { x: 180, y: 90 },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -608,7 +618,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     analyser: {
-      dimensions: { x: 200, y: 130 },
+      dimensions: { x: 200, y: 145 },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -672,7 +682,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     meter: {
-      dimensions: { x: 60, y: 130 },
+      dimensions: { x: 60, y: 145 },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -737,7 +747,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     debug: {
-      dimensions: { x: 160, y: 75 },
+      dimensions: { x: 160, y: 90 },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [],
@@ -778,7 +788,7 @@ function GraphEditor(props: { graphName: string }) {
       },
     },
     noise: {
-      dimensions: { x: 120, y: 60 },
+      dimensions: { x: 120, y: 75 },
       ports: {
         in: [],
         out: [{ name: "audio" }],
@@ -786,7 +796,7 @@ function GraphEditor(props: { graphName: string }) {
       render: (props) => <NodeUI title="Noise" {...props} />,
     },
     lfo: {
-      dimensions: { x: 180, y: 110 },
+      dimensions: { x: 180, y: 125 },
       ports: {
         in: [],
         out: [{ name: "modulation", kind: "param" }],
@@ -826,7 +836,7 @@ function GraphEditor(props: { graphName: string }) {
       ),
     },
     envelope: {
-      dimensions: { x: 180, y: 200 },
+      dimensions: { x: 180, y: 215 },
       ports: {
         in: [{ name: "gate", kind: "param" }],
         out: [{ name: "envelope", kind: "param" }],
@@ -898,7 +908,7 @@ function GraphEditor(props: { graphName: string }) {
       ),
     },
     sequencer: {
-      dimensions: { x: 280, y: 120 },
+      dimensions: { x: 280, y: 135 },
       resizable: true,
       ports: {
         in: [],
@@ -1050,7 +1060,7 @@ function GraphEditor(props: { graphName: string }) {
       ),
     },
     destination: {
-      dimensions: { x: 120, y: 60 },
+      dimensions: { x: 120, y: 75 },
       ports: {
         in: [{ name: "audio" }],
         out: [],
@@ -1058,7 +1068,7 @@ function GraphEditor(props: { graphName: string }) {
       render: (props) => <NodeUI title="Output" {...props} />,
     },
     audioworklet: {
-      dimensions: { x: 280, y: 250 },
+      dimensions: { x: 280, y: 265 },
       resizable: true,
       ports: {
         in: [{ name: "audio" }],
@@ -1074,7 +1084,7 @@ function GraphEditor(props: { graphName: string }) {
     const data = savedTypes[key];
     if (data && !config[key]) {
       setConfig(key, {
-        dimensions: { x: 280, y: 250 },
+        dimensions: { x: 280, y: 265 },
         resizable: true,
         ports: {
           in: [{ name: "audio" }],

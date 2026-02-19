@@ -118,17 +118,6 @@ body {
   stroke: color-mix(in srgb, var(--color-port-output), black 20%);
 }
 
-.portLabels {
-  opacity: 0;
-  transition: opacity 1s ease 1s;
-  pointer-events: none;
-}
-
-.portLabels[data-visible] {
-  opacity: 1;
-  transition: opacity 0.15s ease;
-}
-
 .portLabel {
   font-size: 10px;
   fill: #666;
@@ -144,5 +133,7 @@ body {
   pointer-events: none;
   & > * {
     pointer-events: all;
+    padding-top: 6px;
+    box-sizing: border-box;
   }
 }

@@ -6,29 +6,28 @@ import type { NodeInstance } from "../lib/create-graph";
 import { minni } from "../lib/minni";
 import { GraphPort } from "./GraphPort";
 
-const PROXIMITY_THRESHOLD = 60;
-
 export function GraphNode(props: { node: NodeInstance }) {
-  const { graph, setDragging, getCursorPosition, getTemporaryEdge } =
-    useGraph();
+  const { graph, setDragging } = useGraph();
   const typeDef = () => graph.config[props.node.type];
+
+  const dimensions = () =>
+    typeDef()?.resizable ? props.node.dimensions : typeDef()?.dimensions ?? props.node.dimensions;
 
   const borderColor = createMemo(() => {
     const kind = (typeDef()?.ports?.out?.[0]?.kind as string) || "audio";
     return `var(--color-port-${kind})`;
   });
 
-  const isNearby = createMemo(() => {
-    const cursor = getCursorPosition();
-    if (!cursor) return false;
-    const nx = props.node.x;
-    const ny = props.node.y;
-    const nw = props.node.dimensions.x;
-    const nh = props.node.dimensions.y;
-    const dx = Math.max(nx - cursor.x, 0, cursor.x - (nx + nw));
-    const dy = Math.max(ny - cursor.y, 0, cursor.y - (ny + nh));
-    return Math.sqrt(dx * dx + dy * dy) < PROXIMITY_THRESHOLD;
-  });
+  const maxPorts = () =>
+    Math.max(
+      typeDef()?.ports?.in?.length ?? 0,
+      typeDef()?.ports?.out?.length ?? 0,
+    );
+
+  const contentY = () =>
+    maxPorts() > 0
+      ? PORT_OFFSET + (maxPorts() - 1) * PORT_SPACING + PORT_RADIUS + 5
+      : PORT_OFFSET;
 
   const rendered = () => {
     const def = typeDef();
@@ -38,7 +37,8 @@ export function GraphNode(props: { node: NodeInstance }) {
       id: props.node.id,
       state: entry?.state,
       setState: entry?.setState,
-      dimensions: props.node.dimensions,
+      dimensions: dimensions(),
+      contentY: contentY(),
       setDimensions: (dims: Partial<{ x: number; y: number }>) =>
         graph.updateNode(props.node.id, { dimensions: dims }),
       isInputConnected: (portName: string) =>
@@ -79,11 +79,11 @@ export function GraphNode(props: { node: NodeInstance }) {
       >
         <rect
           class={styles.nodeRect}
-          width={props.node.dimensions.x}
-          height={props.node.dimensions.y}
+          width={dimensions().x}
+          height={dimensions().y}
         />
         {rendered()}
-        <g transform={`translate(${props.node.dimensions.x - 20}, 5)`}>
+        <g transform={`translate(${dimensions().x - 20}, 5)`}>
           <foreignObject width="15" height="15">
             <button
               class={styles.deleteButton}
@@ -95,25 +95,47 @@ export function GraphNode(props: { node: NodeInstance }) {
           </foreignObject>
         </g>
         {typeDef().ports.in?.map((port: any, index: number) => (
-          <GraphPort
-            name={port.name}
-            index={index}
-            kind="in"
-            dataKind={port.kind}
-          />
+          <>
+            <GraphPort
+              name={port.name}
+              index={index}
+              kind="in"
+              dataKind={port.kind}
+            />
+            <text
+              x={PORT_RADIUS + 8}
+              y={index * PORT_SPACING + PORT_OFFSET}
+              text-anchor="start"
+              dominant-baseline="middle"
+              class={styles.portLabel}
+            >
+              {port.name}
+            </text>
+          </>
         ))}
         {typeDef().ports.out?.map((port: any, index: number) => (
-          <GraphPort
-            name={port.name}
-            index={index}
-            kind="out"
-            dataKind={port.kind}
-          />
+          <>
+            <GraphPort
+              name={port.name}
+              index={index}
+              kind="out"
+              dataKind={port.kind}
+            />
+            <text
+              x={dimensions().x - PORT_RADIUS - 8}
+              y={index * PORT_SPACING + PORT_OFFSET}
+              text-anchor="end"
+              dominant-baseline="middle"
+              class={styles.portLabel}
+            >
+              {port.name}
+            </text>
+          </>
         ))}
         {typeDef().resizable && (
           <>
             <polygon
-              points={`${props.node.dimensions.x},${props.node.dimensions.y - 10} ${props.node.dimensions.x},${props.node.dimensions.y} ${props.node.dimensions.x - 10},${props.node.dimensions.y}`}
+              points={`${dimensions().x},${dimensions().y - 10} ${dimensions().x},${dimensions().y} ${dimensions().x - 10},${dimensions().y}`}
               fill="transparent"
               stroke="none"
               style={{ cursor: "nwse-resize" }}
@@ -133,47 +155,16 @@ export function GraphNode(props: { node: NodeInstance }) {
               }}
             />
             <line
-              x1={props.node.dimensions.x}
-              y1={props.node.dimensions.y - 10}
-              x2={props.node.dimensions.x - 10}
-              y2={props.node.dimensions.y}
+              x1={dimensions().x}
+              y1={dimensions().y - 10}
+              x2={dimensions().x - 10}
+              y2={dimensions().y}
               stroke="var(--color-stroke)"
               stroke-width="1.5"
               pointer-events="none"
             />
           </>
         )}
-        <g
-          class={styles.portLabels}
-          data-visible={
-            isNearby() ||
-            getTemporaryEdge()?.node === props.node.id ||
-            undefined
-          }
-        >
-          {typeDef().ports.in?.map((port: any, index: number) => (
-            <text
-              x={PORT_RADIUS * -3}
-              y={index * PORT_SPACING + PORT_OFFSET}
-              text-anchor="end"
-              dominant-baseline="middle"
-              class={styles.portLabel}
-            >
-              {port.name}
-            </text>
-          ))}
-          {typeDef().ports.out?.map((port: any, index: number) => (
-            <text
-              x={props.node.dimensions.x + PORT_RADIUS * 3}
-              y={index * PORT_SPACING + PORT_OFFSET}
-              text-anchor="start"
-              dominant-baseline="middle"
-              class={styles.portLabel}
-            >
-              {port.name}
-            </text>
-          ))}
-        </g>
       </g>
     </NodeContext.Provider>
   );

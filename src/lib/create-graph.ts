@@ -14,6 +14,7 @@ export interface RenderProps<
   state: S;
   setState: SetStoreFunction<S>;
   dimensions: { x: number; y: number };
+  contentY: number;
   isInputConnected(portName: string): boolean;
   setDimensions(dimensions: Partial<{ x: number; y: number }>): void;
 }
