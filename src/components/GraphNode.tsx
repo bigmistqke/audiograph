@@ -1,10 +1,9 @@
-import clsx from "clsx";
 import { createMemo, Show } from "solid-js";
-import styles from "./GraphNode.module.css";
-import { headerHeight, PORT_OFFSET, PORT_SPACING } from "../constants";
+import { headerHeight } from "../constants";
 import { NodeContext, useGraph } from "../context";
 import type { NodeInstance } from "../lib/create-graph";
 import { minni } from "../lib/minni";
+import styles from "./GraphNode.module.css";
 import { GraphPort } from "./GraphPort";
 
 export function GraphNode(props: { node: NodeInstance }) {
@@ -76,10 +75,7 @@ export function GraphNode(props: { node: NodeInstance }) {
         }}
       >
         {/* HTML node body */}
-        <foreignObject
-          width={dimensions().x}
-          height={dimensions().y}
-        >
+        <foreignObject width={dimensions().x} height={dimensions().y}>
           <div class={styles.node}>
             <div
               class={styles.nodeHeader}
@@ -93,26 +89,8 @@ export function GraphNode(props: { node: NodeInstance }) {
                   graph.deleteNode(props.node.id);
                 }}
               />
-              {typeDef().ports.in?.map((port: any, index: number) => (
-                <span
-                  class={clsx(styles.portLabel, styles.portLabelIn)}
-                  style={{ top: `${index * PORT_SPACING + PORT_OFFSET}px` }}
-                >
-                  {port.name}
-                </span>
-              ))}
-              {typeDef().ports.out?.map((port: any, index: number) => (
-                <span
-                  class={clsx(styles.portLabel, styles.portLabelOut)}
-                  style={{ top: `${index * PORT_SPACING + PORT_OFFSET}px` }}
-                >
-                  {port.name}
-                </span>
-              ))}
             </div>
-            <div class={styles.nodeContent}>
-              {rendered()}
-            </div>
+            <div class={styles.nodeContent}>{rendered()}</div>
             <Show when={typeDef().resizable}>
               <div
                 class={styles.resizeHandle}

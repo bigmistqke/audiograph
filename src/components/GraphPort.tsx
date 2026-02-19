@@ -1,9 +1,10 @@
 import { minni } from "@bigmistqke/minni";
 import {
+  CONTENT_GAP,
   PORT_INSET,
-  PORT_OFFSET,
   PORT_RADIUS,
   PORT_SPACING,
+  TITLE_HEIGHT,
 } from "../constants";
 import { useGraph, useNode } from "../context";
 import type { EdgeHandle } from "../lib/create-graph";
@@ -26,16 +27,31 @@ export function GraphPort(props: {
 
   const cx = () =>
     props.kind === "in" ? PORT_INSET : node.dimensions.x - PORT_INSET;
-  const cy = () => props.index * PORT_SPACING + PORT_OFFSET;
+  const cy = () => props.index * PORT_SPACING + TITLE_HEIGHT;
+
+  const labelX = () =>
+    props.kind === "in"
+      ? PORT_RADIUS + CONTENT_GAP
+      : node.dimensions.x - PORT_RADIUS - CONTENT_GAP;
 
   return (
-    <circle
-      cx={cx()}
-      cy={cy()}
-      r={PORT_RADIUS}
-      data-kind={props.dataKind}
-      class={styles.port}
-      onPointerDown={async (event) => {
+    <g>
+      <text
+        x={labelX()}
+        y={cy()}
+        dy="0.35em"
+        text-anchor={props.kind === "in" ? "start" : "end"}
+        class={styles.label}
+      >
+        {props.name}
+      </text>
+      <circle
+        cx={cx()}
+        cy={cy()}
+        r={PORT_RADIUS}
+        data-kind={props.dataKind}
+        class={styles.port}
+        onPointerDown={async (event) => {
         event.stopPropagation();
         setDragging(true);
 
@@ -105,5 +121,6 @@ export function GraphPort(props: {
         graph.link(output, input);
       }}
     />
+    </g>
   );
 }

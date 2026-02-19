@@ -20,12 +20,13 @@ import { GraphTemporaryEdge } from "./components/GraphTemporaryEdge";
 import {
   calcNodeHeight,
   CONTENT_GAP,
-  CONTENT_PADDING,
+  CONTENT_PADDING_BLOCK,
+  CONTENT_PADDING_INLINE,
   ELEMENT_HEIGHT,
   PORT_INSET,
-  PORT_OFFSET,
   PORT_RADIUS,
   PORT_SPACING,
+  TITLE_HEIGHT,
 } from "./constants";
 import { GraphContext, type TemporaryEdge } from "./context";
 import type { GraphConfig, RenderProps } from "./lib/create-graph";
@@ -80,119 +81,113 @@ function GraphEditor(props: { graphName: string }) {
     const isSaved = typeKey !== "audioworklet";
 
     return (props: RenderProps<{ name: string; code: string }>) => {
-        if (isSaved) {
-            createEffect(
-              on(
-                () => config[typeKey]?.state?.code as string | undefined,
-                (savedCode) => {
-                  if (!savedCode || !props.state.name) return;
-                  props.setState("code", savedCode);
-                  workletFS.writeFile(
-                    `/${props.state.name}/source.js`,
-                    savedCode,
-                  );
-                },
-                { defer: true },
-              ),
-            );
-          }
+      if (isSaved) {
+        createEffect(
+          on(
+            () => config[typeKey]?.state?.code as string | undefined,
+            (savedCode) => {
+              if (!savedCode || !props.state.name) return;
+              props.setState("code", savedCode);
+              workletFS.writeFile(`/${props.state.name}/source.js`, savedCode);
+            },
+            { defer: true },
+          ),
+        );
+      }
 
-          const params = () => {
-            const node = workletNodes.get(props.state.name);
-            if (!node) return [];
-            return Array.from(node.parameters.entries());
-          };
+      const params = () => {
+        const node = workletNodes.get(props.state.name);
+        if (!node) return [];
+        return Array.from(node.parameters.entries());
+      };
 
-          return (
-            <div
-              style={{
-                display: "flex",
-                "flex-direction": "column",
-                height: `calc(100% - ${PORT_RADIUS}px)`,
-                gap: "2px",
-              }}
-            >
-              <For each={params()}>
-                {([name, param]) => {
-                  const min = param.minValue < -1e30 ? 0 : param.minValue;
-                  const max = param.maxValue > 1e30 ? 1 : param.maxValue;
-                  const [value, setValue] = createSignal(param.defaultValue);
-                  return (
-                    <HorizontalSlider
-                      title={name}
-                      output={value().toFixed(2)}
-                      value={value()}
-                      min={min}
-                      max={max}
-                      step={(max - min) / 1000}
-                      onInput={(value) => {
-                        setValue(value);
-                        param.value = value;
-                      }}
-                    />
-                  );
-                }}
-              </For>
-              <textarea
+      return (
+        <div
+          style={{
+            display: "flex",
+            "flex-direction": "column",
+            height: `calc(100% - ${PORT_RADIUS}px)`,
+            gap: "2px",
+          }}
+        >
+          <For each={params()}>
+            {([name, param]) => {
+              const min = param.minValue < -1e30 ? 0 : param.minValue;
+              const max = param.maxValue > 1e30 ? 1 : param.maxValue;
+              const [value, setValue] = createSignal(param.defaultValue);
+              return (
+                <HorizontalSlider
+                  title={name}
+                  output={value().toFixed(2)}
+                  value={value()}
+                  min={min}
+                  max={max}
+                  step={(max - min) / 1000}
+                  onInput={(value) => {
+                    setValue(value);
+                    param.value = value;
+                  }}
+                />
+              );
+            }}
+          </For>
+          <textarea
+            style={{
+              flex: 1,
+              width: "100%",
+              "font-family": "monospace",
+              "font-size": "9px",
+              resize: "none",
+              border: "1px solid #ccc",
+              "box-sizing": "border-box",
+              "tab-size": "2",
+            }}
+            spellcheck={false}
+            value={props.state.code}
+            onInput={(e) => {
+              const newCode = e.currentTarget.value;
+              props.setState("code", newCode);
+              workletFS.writeFile(`/${props.state.name}/source.js`, newCode);
+            }}
+          />
+          <div
+            style={{
+              display: "flex",
+              gap: "2px",
+            }}
+          >
+            {isSaved && (
+              <button
                 style={{
                   flex: 1,
-                  width: "100%",
-                  "font-family": "monospace",
-                  "font-size": "9px",
-                  resize: "none",
-                  border: "1px solid #ccc",
-                  "box-sizing": "border-box",
-                  "tab-size": "2",
+                  padding: "2px 4px",
+                  "font-size": "10px",
+                  cursor: "pointer",
                 }}
-                spellcheck={false}
-                value={props.state.code}
-                onInput={(e) => {
-                  const newCode = e.currentTarget.value;
-                  props.setState("code", newCode);
-                  workletFS.writeFile(
-                    `/${props.state.name}/source.js`,
-                    newCode,
-                  );
-                }}
-              />
-              <div
-                style={{
-                  display: "flex",
-                  gap: "2px",
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => {
+                  setSavedTypes(typeKey, "code", props.state.code);
+                  setConfig(typeKey, "state", "code", props.state.code);
                 }}
               >
-                {isSaved && (
-                  <button
-                    style={{
-                      flex: 1,
-                      padding: "2px 4px",
-                      "font-size": "10px",
-                      cursor: "pointer",
-                    }}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={() => {
-                      setSavedTypes(typeKey, "code", props.state.code);
-                      setConfig(typeKey, "state", "code", props.state.code);
-                    }}
-                  >
-                    Save
-                  </button>
-                )}
-                <button
-                  style={{
-                    flex: 1,
-                    padding: "2px 4px",
-                    "font-size": "10px",
-                    cursor: "pointer",
-                  }}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={() => saveAsNewType(props.state.code, props.id)}
-                >
-                  {isSaved ? "Save as" : "Save as Type"}
-                </button>
-              </div>
-            </div>
-          );
+                Save
+              </button>
+            )}
+            <button
+              style={{
+                flex: 1,
+                padding: "2px 4px",
+                "font-size": "10px",
+                cursor: "pointer",
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => saveAsNewType(props.state.code, props.id)}
+            >
+              {isSaved ? "Save as" : "Save as Type"}
+            </button>
+          </div>
+        </div>
+      );
     };
   }
 
@@ -207,29 +202,27 @@ function GraphEditor(props: { graphName: string }) {
       state: { frequency: 440, type: "sine" as OscillatorType },
       render(props) {
         return (
-          (
-              <div
-                style={{
-                  display: "flex",
-                  "flex-direction": "column",
-                  gap: "2px",
-                }}
-              >
-                <Select
-                  title="kind"
-                  value={props.state.type}
-                  options={["sine", "square", "sawtooth", "triangle"] as const}
-                  onChange={(value) => props.setState("type", value)}
-                />
-                <HorizontalSlider
-                  title="frequency"
-                  value={props.state.frequency}
-                  output={`${Math.round(props.state.frequency)}Hz`}
-                  disabled={props.isInputConnected("frequency")}
-                  onInput={(value) => props.setState("frequency", value)}
-                />
-              </div>
-          )
+          <div
+            style={{
+              display: "flex",
+              "flex-direction": "column",
+              gap: "2px",
+            }}
+          >
+            <Select
+              title="kind"
+              value={props.state.type}
+              options={["sine", "square", "sawtooth", "triangle"] as const}
+              onChange={(value) => props.setState("type", value)}
+            />
+            <HorizontalSlider
+              title="frequency"
+              value={props.state.frequency}
+              output={`${Math.round(props.state.frequency)}Hz`}
+              disabled={props.isInputConnected("frequency")}
+              onInput={(value) => props.setState("frequency", value)}
+            />
+          </div>
         );
       },
     },
@@ -243,18 +236,16 @@ function GraphEditor(props: { graphName: string }) {
       state: { gain: 0.5 },
       render(props) {
         return (
-          (
-              <HorizontalSlider
-                title="gain"
-                output={props.state.gain.toFixed(2)}
-                value={props.state.gain}
-                min={0}
-                max={1}
-                step={0.001}
-                disabled={props.isInputConnected("gain")}
-                onInput={(value) => props.setState("gain", value)}
-              />
-          )
+          <HorizontalSlider
+            title="gain"
+            output={props.state.gain.toFixed(2)}
+            value={props.state.gain}
+            min={0}
+            max={1}
+            step={0.001}
+            disabled={props.isInputConnected("gain")}
+            onInput={(value) => props.setState("gain", value)}
+          />
         );
       },
     },
@@ -268,14 +259,12 @@ function GraphEditor(props: { graphName: string }) {
       state: { value: 440 },
       render(props) {
         return (
-          (
-              <HorizontalSlider
-                title="value"
-                output={props.state.value}
-                value={props.state.gain}
-                onInput={(value) => props.setState("value", value)}
-              />
-          )
+          <HorizontalSlider
+            title="value"
+            output={props.state.value}
+            value={props.state.gain}
+            onInput={(value) => props.setState("value", value)}
+          />
         );
       },
     },
@@ -289,17 +278,15 @@ function GraphEditor(props: { graphName: string }) {
       state: { factor: 1000 },
       render(props) {
         return (
-          (
-              <HorizontalSlider
-                title="factor"
-                value={props.state.factor}
-                output={props.state.factor.toFixed(0)}
-                min={-10000}
-                max={10000}
-                step={1}
-                onInput={(value) => props.setState("factor", value)}
-              />
-          )
+          <HorizontalSlider
+            title="factor"
+            value={props.state.factor}
+            output={props.state.factor.toFixed(0)}
+            min={-10000}
+            max={10000}
+            step={1}
+            onInput={(value) => props.setState("factor", value)}
+          />
         );
       },
     },
@@ -313,34 +300,32 @@ function GraphEditor(props: { graphName: string }) {
       state: { min: 200, max: 2000 },
       render(props) {
         return (
-          (
-              <div
-                style={{
-                  display: "flex",
-                  "flex-direction": "column",
-                  gap: "2px",
-                }}
-              >
-                <HorizontalSlider
-                  title="min"
-                  value={props.state.min}
-                  output={props.state.min.toFixed(0)}
-                  min={0}
-                  max={10000}
-                  step={1}
-                  onInput={(value) => props.setState("min", value)}
-                />
-                <HorizontalSlider
-                  title="max"
-                  value={props.state.max}
-                  output={props.state.max.toFixed(0)}
-                  min={0}
-                  max={10000}
-                  step={1}
-                  onInput={(value) => props.setState("max", value)}
-                />
-              </div>
-          )
+          <div
+            style={{
+              display: "flex",
+              "flex-direction": "column",
+              gap: "2px",
+            }}
+          >
+            <HorizontalSlider
+              title="min"
+              value={props.state.min}
+              output={props.state.min.toFixed(0)}
+              min={0}
+              max={10000}
+              step={1}
+              onInput={(value) => props.setState("min", value)}
+            />
+            <HorizontalSlider
+              title="max"
+              value={props.state.max}
+              output={props.state.max.toFixed(0)}
+              min={0}
+              max={10000}
+              step={1}
+              onInput={(value) => props.setState("max", value)}
+            />
+          </div>
         );
       },
     },
@@ -358,36 +343,34 @@ function GraphEditor(props: { graphName: string }) {
       state: { frequency: 1000, Q: 1 },
       render(props) {
         return (
-          (
-              <div
-                style={{
-                  display: "flex",
-                  "flex-direction": "column",
-                  gap: "2px",
-                }}
-              >
-                <HorizontalSlider
-                  title="freq"
-                  value={props.state.frequency}
-                  output={`${Math.round(props.state.frequency)}Hz`}
-                  min={20}
-                  max={20000}
-                  step={1}
-                  disabled={props.isInputConnected("frequency")}
-                  onInput={(value) => props.setState("frequency", value)}
-                />
-                <HorizontalSlider
-                  title="q"
-                  value={props.state.Q}
-                  output={props.state.Q.toFixed(1)}
-                  min={0.1}
-                  max={20}
-                  step={0.1}
-                  disabled={props.isInputConnected("Q")}
-                  onInput={(value) => props.setState("Q", value)}
-                />
-              </div>
-          )
+          <div
+            style={{
+              display: "flex",
+              "flex-direction": "column",
+              gap: "2px",
+            }}
+          >
+            <HorizontalSlider
+              title="freq"
+              value={props.state.frequency}
+              output={`${Math.round(props.state.frequency)}Hz`}
+              min={20}
+              max={20000}
+              step={1}
+              disabled={props.isInputConnected("frequency")}
+              onInput={(value) => props.setState("frequency", value)}
+            />
+            <HorizontalSlider
+              title="q"
+              value={props.state.Q}
+              output={props.state.Q.toFixed(1)}
+              min={0.1}
+              max={20}
+              step={0.1}
+              disabled={props.isInputConnected("Q")}
+              onInput={(value) => props.setState("Q", value)}
+            />
+          </div>
         );
       },
     },
@@ -401,18 +384,16 @@ function GraphEditor(props: { graphName: string }) {
       state: { delayTime: 0.3 },
       render(props) {
         return (
-          (
-              <HorizontalSlider
-                title="time"
-                value={props.state.delayTime}
-                output={`${props.state.delayTime.toFixed(2)}s`}
-                min={0}
-                max={1}
-                step={0.01}
-                disabled={props.isInputConnected("delayTime")}
-                onInput={(value) => props.setState("delayTime", value)}
-              />
-          )
+          <HorizontalSlider
+            title="time"
+            value={props.state.delayTime}
+            output={`${props.state.delayTime.toFixed(2)}s`}
+            min={0}
+            max={1}
+            step={0.01}
+            disabled={props.isInputConnected("delayTime")}
+            onInput={(value) => props.setState("delayTime", value)}
+          />
         );
       },
     },
@@ -426,18 +407,16 @@ function GraphEditor(props: { graphName: string }) {
       state: { pan: 0 },
       render(props) {
         return (
-          (
-              <HorizontalSlider
-                title="pan"
-                value={props.state.pan}
-                output={props.state.pan.toFixed(2)}
-                min={-1}
-                max={1}
-                step={0.01}
-                disabled={props.isInputConnected("pan")}
-                onInput={(value) => props.setState("pan", value)}
-              />
-          )
+          <HorizontalSlider
+            title="pan"
+            value={props.state.pan}
+            output={props.state.pan.toFixed(2)}
+            min={-1}
+            max={1}
+            step={0.01}
+            disabled={props.isInputConnected("pan")}
+            onInput={(value) => props.setState("pan", value)}
+          />
         );
       },
     },
@@ -451,52 +430,50 @@ function GraphEditor(props: { graphName: string }) {
       state: { threshold: -24, ratio: 12, attack: 0.003, release: 0.25 },
       render(props) {
         return (
-          (
-              <div
-                style={{
-                  display: "flex",
-                  "flex-direction": "column",
-                  gap: "2px",
-                }}
-              >
-                <HorizontalSlider
-                  title="threshold"
-                  value={props.state.threshold}
-                  output={`${props.state.threshold}dB`}
-                  min={-100}
-                  max={0}
-                  step={1}
-                  onInput={(v) => props.setState("threshold", v)}
-                />
-                <HorizontalSlider
-                  title="ratio"
-                  value={props.state.ratio}
-                  output={`${props.state.ratio}:1`}
-                  min={1}
-                  max={20}
-                  step={0.1}
-                  onInput={(v) => props.setState("ratio", v)}
-                />
-                <HorizontalSlider
-                  title="attack"
-                  value={props.state.attack}
-                  output={`${props.state.attack.toFixed(3)}s`}
-                  min={0}
-                  max={1}
-                  step={0.001}
-                  onInput={(v) => props.setState("attack", v)}
-                />
-                <HorizontalSlider
-                  title="release"
-                  value={props.state.release}
-                  output={`${props.state.release.toFixed(2)}s`}
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  onInput={(v) => props.setState("release", v)}
-                />
-              </div>
-          )
+          <div
+            style={{
+              display: "flex",
+              "flex-direction": "column",
+              gap: "2px",
+            }}
+          >
+            <HorizontalSlider
+              title="threshold"
+              value={props.state.threshold}
+              output={`${props.state.threshold}dB`}
+              min={-100}
+              max={0}
+              step={1}
+              onInput={(v) => props.setState("threshold", v)}
+            />
+            <HorizontalSlider
+              title="ratio"
+              value={props.state.ratio}
+              output={`${props.state.ratio}:1`}
+              min={1}
+              max={20}
+              step={0.1}
+              onInput={(v) => props.setState("ratio", v)}
+            />
+            <HorizontalSlider
+              title="attack"
+              value={props.state.attack}
+              output={`${props.state.attack.toFixed(3)}s`}
+              min={0}
+              max={1}
+              step={0.001}
+              onInput={(v) => props.setState("attack", v)}
+            />
+            <HorizontalSlider
+              title="release"
+              value={props.state.release}
+              output={`${props.state.release.toFixed(2)}s`}
+              min={0}
+              max={1}
+              step={0.01}
+              onInput={(v) => props.setState("release", v)}
+            />
+          </div>
         );
       },
     },
@@ -510,35 +487,33 @@ function GraphEditor(props: { graphName: string }) {
       state: { decay: 2, mix: 0.5 },
       render(props) {
         return (
-          (
-              <div
-                style={{
-                  display: "flex",
-                  "flex-direction": "column",
-                  gap: "2px",
-                }}
-              >
-                <HorizontalSlider
-                  title="decay"
-                  value={props.state.decay}
-                  output={`${props.state.decay.toFixed(1)}s`}
-                  min={0.1}
-                  max={10}
-                  step={0.1}
-                  disabled={props.isInputConnected("decay")}
-                  onInput={(value) => props.setState("decay", value)}
-                />
-                <HorizontalSlider
-                  title="mix"
-                  value={props.state.mix}
-                  output={`${Math.round(props.state.mix * 100)}%`}
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  onInput={(value) => props.setState("mix", value)}
-                />
-              </div>
-          )
+          <div
+            style={{
+              display: "flex",
+              "flex-direction": "column",
+              gap: "2px",
+            }}
+          >
+            <HorizontalSlider
+              title="decay"
+              value={props.state.decay}
+              output={`${props.state.decay.toFixed(1)}s`}
+              min={0.1}
+              max={10}
+              step={0.1}
+              disabled={props.isInputConnected("decay")}
+              onInput={(value) => props.setState("decay", value)}
+            />
+            <HorizontalSlider
+              title="mix"
+              value={props.state.mix}
+              output={`${Math.round(props.state.mix * 100)}%`}
+              min={0}
+              max={1}
+              step={0.01}
+              onInput={(value) => props.setState("mix", value)}
+            />
+          </div>
         );
       },
     },
@@ -552,26 +527,24 @@ function GraphEditor(props: { graphName: string }) {
       state: { amount: 50, oversample: "4x" as OverSampleType },
       render(props) {
         return (
-          (
-              <div
-                style={{
-                  display: "flex",
-                  "flex-direction": "column",
-                  gap: "2px",
-                }}
-              >
-                <HorizontalSlider
-                  title="drive"
-                  value={props.state.amount}
-                  output={`${Math.round(props.state.amount)}%`}
-                  min={0}
-                  max={100}
-                  step={1}
-                  disabled={props.isInputConnected("amount")}
-                  onInput={(value) => props.setState("amount", value)}
-                />
-              </div>
-          )
+          <div
+            style={{
+              display: "flex",
+              "flex-direction": "column",
+              gap: "2px",
+            }}
+          >
+            <HorizontalSlider
+              title="drive"
+              value={props.state.amount}
+              output={`${Math.round(props.state.amount)}%`}
+              min={0}
+              max={100}
+              step={1}
+              disabled={props.isInputConnected("amount")}
+              onInput={(value) => props.setState("amount", value)}
+            />
+          </div>
         );
       },
     },
@@ -584,57 +557,53 @@ function GraphEditor(props: { graphName: string }) {
       },
       render(props) {
         return (
-          (
-              <canvas
-                ref={(canvas) => {
-                  const canvasCtx = canvas.getContext("2d")!;
-                  let animId: number;
-                  const draw = () => {
-                    const analyser = analyserNodes.get(props.id);
-                    const w = canvas.width;
-                    const h = canvas.height;
-                    canvasCtx.fillStyle = "#1a1a2e";
-                    canvasCtx.fillRect(0, 0, w, h);
-                    if (analyser) {
-                      const dataArray = new Uint8Array(
-                        analyser.frequencyBinCount,
-                      );
-                      analyser.getByteTimeDomainData(dataArray);
-                      canvasCtx.lineWidth = 1.5;
-                      canvasCtx.strokeStyle = "#4a9eff";
-                      canvasCtx.beginPath();
-                      const sliceWidth = w / dataArray.length;
-                      let x = 0;
-                      for (let i = 0; i < dataArray.length; i++) {
-                        const v = dataArray[i] / 128.0;
-                        const y = (v * h) / 2;
-                        if (i === 0) canvasCtx.moveTo(x, y);
-                        else canvasCtx.lineTo(x, y);
-                        x += sliceWidth;
-                      }
-                      canvasCtx.lineTo(w, h / 2);
-                      canvasCtx.stroke();
-                    } else {
-                      canvasCtx.strokeStyle = "#4a9eff33";
-                      canvasCtx.beginPath();
-                      canvasCtx.moveTo(0, h / 2);
-                      canvasCtx.lineTo(w, h / 2);
-                      canvasCtx.stroke();
-                    }
-                    animId = requestAnimationFrame(draw);
-                  };
-                  draw();
-                  onCleanup(() => cancelAnimationFrame(animId));
-                }}
-                width={170}
-                height={80}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  "border-radius": "2px",
-                }}
-              />
-          )
+          <canvas
+            ref={(canvas) => {
+              const canvasCtx = canvas.getContext("2d")!;
+              let animId: number;
+              const draw = () => {
+                const analyser = analyserNodes.get(props.id);
+                const w = canvas.width;
+                const h = canvas.height;
+                canvasCtx.fillStyle = "#1a1a2e";
+                canvasCtx.fillRect(0, 0, w, h);
+                if (analyser) {
+                  const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                  analyser.getByteTimeDomainData(dataArray);
+                  canvasCtx.lineWidth = 1.5;
+                  canvasCtx.strokeStyle = "#4a9eff";
+                  canvasCtx.beginPath();
+                  const sliceWidth = w / dataArray.length;
+                  let x = 0;
+                  for (let i = 0; i < dataArray.length; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = (v * h) / 2;
+                    if (i === 0) canvasCtx.moveTo(x, y);
+                    else canvasCtx.lineTo(x, y);
+                    x += sliceWidth;
+                  }
+                  canvasCtx.lineTo(w, h / 2);
+                  canvasCtx.stroke();
+                } else {
+                  canvasCtx.strokeStyle = "#4a9eff33";
+                  canvasCtx.beginPath();
+                  canvasCtx.moveTo(0, h / 2);
+                  canvasCtx.lineTo(w, h / 2);
+                  canvasCtx.stroke();
+                }
+                animId = requestAnimationFrame(draw);
+              };
+              draw();
+              onCleanup(() => cancelAnimationFrame(animId));
+            }}
+            width={170}
+            height={80}
+            style={{
+              width: "100%",
+              height: "100%",
+              "border-radius": "2px",
+            }}
+          />
         );
       },
     },
@@ -654,8 +623,7 @@ function GraphEditor(props: { graphName: string }) {
             const data = new Float32Array(node.fftSize);
             node.getFloatTimeDomainData(data);
             let sum = 0;
-            for (let i = 0; i < data.length; i++)
-              sum += data[i] * data[i];
+            for (let i = 0; i < data.length; i++) sum += data[i] * data[i];
             setLevel(Math.sqrt(sum / data.length));
           }
           animId = requestAnimationFrame(poll);
@@ -751,34 +719,32 @@ function GraphEditor(props: { graphName: string }) {
       },
       state: { rate: 2, depth: 0.5, type: "sine" as OscillatorType },
       render: (props) => (
-        (
-            <div
-              style={{
-                display: "flex",
-                "flex-direction": "column",
-                gap: "2px",
-              }}
-            >
-              <HorizontalSlider
-                title="rate"
-                value={props.state.rate}
-                output={`${props.state.rate.toFixed(1)}Hz`}
-                min={0.01}
-                max={20}
-                step={0.01}
-                onInput={(value) => props.setState("rate", value)}
-              />
-              <HorizontalSlider
-                title="depth"
-                value={props.state.depth}
-                output={props.state.depth.toFixed(2)}
-                min={0}
-                max={1}
-                step={0.01}
-                onInput={(value) => props.setState("depth", value)}
-              />
-            </div>
-        )
+        <div
+          style={{
+            display: "flex",
+            "flex-direction": "column",
+            gap: "2px",
+          }}
+        >
+          <HorizontalSlider
+            title="rate"
+            value={props.state.rate}
+            output={`${props.state.rate.toFixed(1)}Hz`}
+            min={0.01}
+            max={20}
+            step={0.01}
+            onInput={(value) => props.setState("rate", value)}
+          />
+          <HorizontalSlider
+            title="depth"
+            value={props.state.depth}
+            output={props.state.depth.toFixed(2)}
+            min={0}
+            max={1}
+            step={0.01}
+            onInput={(value) => props.setState("depth", value)}
+          />
+        </div>
       ),
     },
     envelope: {
@@ -790,66 +756,64 @@ function GraphEditor(props: { graphName: string }) {
       },
       state: { attack: 0.1, decay: 0.2, sustain: 0.7, release: 0.5 },
       render: (props) => (
-        (
-            <div
-              style={{
-                display: "flex",
-                "flex-direction": "column",
-                gap: "2px",
-              }}
-            >
-              <HorizontalSlider
-                title="attack"
-                value={props.state.attack}
-                output={`${props.state.attack.toFixed(2)}s`}
-                min={0.001}
-                max={2}
-                step={0.001}
-                onInput={(value) => props.setState("attack", value)}
-              />
-              <HorizontalSlider
-                title="decay"
-                value={props.state.decay}
-                output={`${props.state.decay.toFixed(2)}s`}
-                min={0.001}
-                max={2}
-                step={0.001}
-                onInput={(value) => props.setState("decay", value)}
-              />
-              <HorizontalSlider
-                title="sustain"
-                value={props.state.sustain}
-                output={props.state.sustain.toFixed(2)}
-                min={0}
-                max={1}
-                step={0.01}
-                onInput={(value) => props.setState("sustain", value)}
-              />
-              <HorizontalSlider
-                title="release"
-                value={props.state.release}
-                output={`${props.state.release.toFixed(2)}s`}
-                min={0.001}
-                max={5}
-                step={0.001}
-                onInput={(value) => props.setState("release", value)}
-              />
-              <button
-                style={{
-                  padding: "2px 4px",
-                  "font-size": "10px",
-                  cursor: "pointer",
-                }}
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => {
-                  const id = props.id;
-                  envelopeTriggers.get(id)?.();
-                }}
-              >
-                Trigger
-              </button>
-            </div>
-        )
+        <div
+          style={{
+            display: "flex",
+            "flex-direction": "column",
+            gap: "2px",
+          }}
+        >
+          <HorizontalSlider
+            title="attack"
+            value={props.state.attack}
+            output={`${props.state.attack.toFixed(2)}s`}
+            min={0.001}
+            max={2}
+            step={0.001}
+            onInput={(value) => props.setState("attack", value)}
+          />
+          <HorizontalSlider
+            title="decay"
+            value={props.state.decay}
+            output={`${props.state.decay.toFixed(2)}s`}
+            min={0.001}
+            max={2}
+            step={0.001}
+            onInput={(value) => props.setState("decay", value)}
+          />
+          <HorizontalSlider
+            title="sustain"
+            value={props.state.sustain}
+            output={props.state.sustain.toFixed(2)}
+            min={0}
+            max={1}
+            step={0.01}
+            onInput={(value) => props.setState("sustain", value)}
+          />
+          <HorizontalSlider
+            title="release"
+            value={props.state.release}
+            output={`${props.state.release.toFixed(2)}s`}
+            min={0.001}
+            max={5}
+            step={0.001}
+            onInput={(value) => props.setState("release", value)}
+          />
+          <button
+            style={{
+              padding: "2px 4px",
+              "font-size": "10px",
+              cursor: "pointer",
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => {
+              const id = props.id;
+              envelopeTriggers.get(id)?.();
+            }}
+          >
+            Trigger
+          </button>
+        </div>
       ),
     },
     sequencer: {
@@ -1701,10 +1665,11 @@ function GraphEditor(props: { graphName: string }) {
           "--port-radius": `${PORT_RADIUS}px`,
           "--port-inset": `${PORT_INSET}px`,
           "--port-spacing": `${PORT_SPACING}px`,
-          "--port-offset": `${PORT_OFFSET}px`,
+          "--port-offset": `${TITLE_HEIGHT}px`,
           "--element-height": `${ELEMENT_HEIGHT}px`,
           "--content-gap": `${CONTENT_GAP}px`,
-          "--content-padding": `${CONTENT_PADDING}px`,
+          "--content-padding-block": `${CONTENT_PADDING_BLOCK}px`,
+          "--content-padding-inline": `${CONTENT_PADDING_INLINE}px`,
         }}
         data-dragging={store.dragging || undefined}
         onPointerMove={(event) => {

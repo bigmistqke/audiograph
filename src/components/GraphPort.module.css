@@ -11,3 +11,9 @@
   fill: var(--color-port-output);
   stroke: color-mix(in srgb, var(--color-port-output), black 20%);
 }
+
+.label {
+  font-size: 10px;
+  fill: #666;
+  pointer-events: none;
+}

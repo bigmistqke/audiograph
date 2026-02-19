@@ -7,6 +7,7 @@
   display: grid;
   grid-template-rows: auto 1fr;
   overflow: hidden;
+  cursor: move;
 }
 
 .nodeHeader {
@@ -18,37 +19,22 @@
 .nodeTitle {
   font-size: 12px;
   color: var(--color-text);
-  padding-left: 10px;
+  padding-left: calc(var(--content-padding-inline) + var(--port-radius));
   line-height: 20px;
 }
 
 .nodeContent {
   overflow: hidden;
-  padding: var(--content-padding);
+  padding-block: var(--content-padding-block);
+  padding-inline: var(--content-padding-inline);
   display: grid;
   gap: var(--content-gap);
 }
 
-.portLabel {
-  position: absolute;
-  font-size: 10px;
-  color: #666;
-  transform: translateY(-50%);
-  white-space: nowrap;
-}
-
-.portLabelIn {
-  left: calc(var(--port-radius) + var(--content-gap));
-}
-
-.portLabelOut {
-  right: calc(var(--port-radius) + var(--content-gap));
-}
-
 .deleteButton {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: var(--content-padding-inline);
+  right: var(--content-padding-inline);
   width: 15px;
   height: 15px;
   padding: 0px;
@@ -62,4 +48,6 @@
   width: 10px;
   height: 10px;
   cursor: nwse-resize;
+  background-color: color-mix(in srgb, var(--color-node), white 60%);
+  clip-path: polygon(100% 100%, 100% 0, 0 100%);
 }
