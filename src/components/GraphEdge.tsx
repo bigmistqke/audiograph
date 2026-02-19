@@ -39,16 +39,12 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
     );
   };
 
-  const EDGE_COLORS: Record<string, string> = {
-    param: "#ff6b6b",
-    output: "#51cf66",
-  };
-  const DEFAULT_EDGE_COLOR = "#4a9eff";
-
   const edgeColor = () => {
     const port = fromPort();
     const kind = (port as any)?.kind as string | undefined;
-    return kind ? (EDGE_COLORS[kind] ?? DEFAULT_EDGE_COLOR) : DEFAULT_EDGE_COLOR;
+    if (kind === "param") return "var(--color-port-param)";
+    if (kind === "output") return "var(--color-port-output)";
+    return "var(--color-port-audio)";
   };
 
   return (

@@ -6,6 +6,9 @@ body {
   --color-stroke: #b2b2b2;
   --color-text: #121212;
   --color-edge: #313131;
+  --color-port-audio: #4a9eff;
+  --color-port-param: #ff6b6b;
+  --color-port-output: #51cf66;
 }
 
 .sidebar {
@@ -94,19 +97,19 @@ body {
 }
 
 .port {
-  fill: #4a9eff;
-  stroke: #2a6cc7;
+  fill: var(--color-port-audio);
+  stroke: color-mix(in srgb, var(--color-port-audio), black 20%);
   stroke-width: 1.5;
 }
 
 .port[data-kind="param"] {
-  fill: #ff6b6b;
-  stroke: #c74a4a;
+  fill: var(--color-port-param);
+  stroke: color-mix(in srgb, var(--color-port-param), black 20%);
 }
 
 .port[data-kind="output"] {
-  fill: #51cf66;
-  stroke: #37a34d;
+  fill: var(--color-port-output);
+  stroke: color-mix(in srgb, var(--color-port-output), black 20%);
 }
 
 .portLabels {
