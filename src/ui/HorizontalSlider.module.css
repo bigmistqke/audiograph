@@ -44,6 +44,7 @@
   border-radius: 1px;
   outline: none;
   transition: opacity 0.25s;
+  cursor: ew-resize;
 }
 
 .slider::-webkit-slider-thumb {
@@ -53,7 +54,6 @@
   height: calc(var(--port-radius) * 2);
   border-radius: 50%;
   background: var(--color-node);
-  cursor: pointer;
 }
 
 .slider::-moz-range-thumb {
@@ -62,7 +62,6 @@
   border-radius: 50%;
   border: none;
   background: var(--color-node);
-  cursor: pointer;
 }
 
 .slider::-moz-range-track {

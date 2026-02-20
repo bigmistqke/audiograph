@@ -60,20 +60,6 @@ export function GraphNode(props: { node: NodeInstance }) {
       <g
         transform={`translate(${props.node.x}, ${props.node.y})`}
         style={{ "--color-node": borderColor() }}
-        onPointerDown={async (event) => {
-          if (event.target.closest("[data-pointerevents-block=true]")) {
-            return;
-          }
-          const startPos = { x: props.node.x, y: props.node.y };
-          setDragging(true);
-          await minni(event, (delta) => {
-            graph.updateNode(props.node.id, {
-              x: snapToGrid(startPos.x + delta.x),
-              y: snapToGrid(startPos.y - delta.y),
-            });
-          });
-          setDragging(false);
-        }}
       >
         {/* HTML node body */}
         <foreignObject width={dimensions().x} height={dimensions().y}>
@@ -81,6 +67,20 @@ export function GraphNode(props: { node: NodeInstance }) {
             <div
               class={styles.nodeHeader}
               style={{ height: `${contentY()}px` }}
+              onPointerDown={async (event) => {
+                if (event.target.closest("[data-pointerevents-block=true]")) {
+                  return;
+                }
+                const startPos = { x: props.node.x, y: props.node.y };
+                setDragging(true);
+                await minni(event, (delta) => {
+                  graph.updateNode(props.node.id, {
+                    x: snapToGrid(startPos.x + delta.x),
+                    y: snapToGrid(startPos.y - delta.y),
+                  });
+                });
+                setDragging(false);
+              }}
             >
               <div class={styles.nodeTitle}>{typeDef()?.title}</div>
               <button

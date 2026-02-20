@@ -7,7 +7,6 @@
   display: grid;
   grid-template-rows: auto 1fr;
   overflow: hidden;
-  cursor: move;
 }
 
 .nodeHeader {
@@ -16,6 +15,7 @@
   grid-template-columns: 1fr min-content;
   background: color-mix(in srgb, var(--color-node), white 95%);
   border-bottom: 1px solid color-mix(in srgb, var(--color-node), white 60%);
+  cursor: move;
 }
 
 .nodeTitle {
