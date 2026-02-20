@@ -18,7 +18,7 @@ export function GraphPort(props: {
   dataKind?: string;
   hideLabels?: boolean;
 }) {
-  const { node, typeDef } = useNode();
+  const { node } = useNode();
   const {
     graph,
     setTemporaryEdge,
@@ -47,12 +47,31 @@ export function GraphPort(props: {
           {props.name}
         </text>
       </Show>
+
       <circle
         cx={cx()}
         cy={cy()}
-        r={PORT_RADIUS}
+        r={PORT_RADIUS * 2}
+        class={styles.portExtended}
         data-kind={props.dataKind}
-        class={styles.port}
+        onPointerUp={(event) => {
+          event.stopPropagation();
+          const edgeHandle = getTemporaryEdge();
+          if (!edgeHandle) return;
+          if (edgeHandle.kind === props.kind) return;
+
+          const output: EdgeHandle =
+            props.kind === "in"
+              ? { node: edgeHandle.node, port: edgeHandle.port }
+              : { node: node.id, port: props.name };
+
+          const input: EdgeHandle =
+            props.kind === "out"
+              ? { node: edgeHandle.node, port: edgeHandle.port }
+              : { node: node.id, port: props.name };
+
+          graph.link(output, input);
+        }}
         onPointerDown={async (event) => {
           event.stopPropagation();
           setDragging(true);
@@ -107,24 +126,13 @@ export function GraphPort(props: {
           setTemporaryEdge(undefined);
           setDragging(false);
         }}
-        onPointerUp={(event) => {
-          event.stopPropagation();
-          const edgeHandle = getTemporaryEdge();
-          if (!edgeHandle) return;
-          if (edgeHandle.kind === props.kind) return;
-
-          const output: EdgeHandle =
-            props.kind === "in"
-              ? { node: edgeHandle.node, port: edgeHandle.port }
-              : { node: node.id, port: props.name };
-
-          const input: EdgeHandle =
-            props.kind === "out"
-              ? { node: edgeHandle.node, port: edgeHandle.port }
-              : { node: node.id, port: props.name };
-
-          graph.link(output, input);
-        }}
+      />
+      <circle
+        cx={cx()}
+        cy={cy()}
+        r={PORT_RADIUS}
+        data-kind={props.dataKind}
+        class={styles.port}
       />
     </g>
   );

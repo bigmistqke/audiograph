@@ -1,5 +1,277 @@
 [
   {
+    "hash": "389f6d6f7c1ec51444a29e5afd5e6033fd7a1420",
+    "short_hash": "389f6d6",
+    "author": "bigmistqke",
+    "date": "2026-02-20T00:54:34+01:00",
+    "message": "Add 10px grid with snap-to-grid and dot pattern\n\n- Visible dot grid via SVG pattern in userSpaceOnUse\n- Node drag and resize snap to 10px grid\n- addNode positions snap to grid\n- Meter width 33 -> 30 for grid alignment\n- Tuned layout constants for grid compatibility",
+    "files_changed": 6
+  },
+  {
+    "hash": "5f8c31fd720b90a87402496908e6c577917d51c7",
+    "short_hash": "5f8c31f",
+    "author": "bigmistqke",
+    "date": "2026-02-20T00:20:34+01:00",
+    "message": "Move sequencer to AudioWorklet for sample-accurate timing\n\nSequencer gate signal is now generated directly in the audio thread's\nprocess loop, eliminating rAF and look-ahead scheduling entirely. Both\nsequencer and envelope run as AudioWorklets with sample-accurate timing.",
+    "files_changed": 3
+  },
+  {
+    "hash": "569171a63ded7bb566812d5713e277b4a5ec3e1f",
+    "short_hash": "569171a",
+    "author": "bigmistqke",
+    "date": "2026-02-20T00:06:15+01:00",
+    "message": "Add Button CSS module and update local settings\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
+    "hash": "03ed15ea7878c826358cb8b977e0550ef799523a",
+    "short_hash": "03ed15e",
+    "author": "bigmistqke",
+    "date": "2026-02-19T23:53:50+01:00",
+    "message": "Replace setTimeout sequencer with global rAF tick + Web Audio look-ahead scheduling\n\nSequencer now uses a shared requestAnimationFrame loop and schedules gate\nchanges ahead via setValueAtTime for sample-accurate timing. Envelope\nreplaced with an AudioWorklet that detects gate transitions at sample rate\nand generates ADSR curves directly on the audio thread.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 6
+  },
+  {
+    "hash": "6c80b9866a31481b505360895c34019b96a7db83",
+    "short_hash": "6c80b98",
+    "author": "bigmistqke",
+    "date": "2026-02-19T22:18:48+01:00",
+    "message": "Merge audio projection into createGraph, eliminate side-channel Maps\n\nMove audio factory into NodeTypeDef alongside render, so each node type\nis self-contained. createGraph now accepts an optional audioContext and\nhandles audio node lifecycle + edge connections internally.\n\nAudio factory returns a `data` field exposed via RenderProps.audio,\nreplacing the 6 external Maps (analyserNodes, meterNodes, debugNodes,\nworkletNodes, envelopeTriggers, sequencerGates) that were used as\nside-channels between render and audio.\n\nDelete create-graph-projection.ts — its logic is absorbed into createGraph.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 12
+  },
+  {
+    "hash": "73c70133eafeaa6d78cc1a40d536a4beb537fd67",
+    "short_hash": "73c7013",
+    "author": "bigmistqke",
+    "date": "2026-02-19T19:48:41+01:00",
+    "message": "Refine heading/port layout constants and fix port vertical alignment\n\nAdd HEADING_PADDING_BLOCK/INLINE constants, use them for node title and\ndelete button positioning. Fix port cy to include PORT_RADIUS offset for\nproper vertical centering. Use transparent stroke on ports, fix indentation\nin GraphPort event handlers.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 7
+  },
+  {
+    "hash": "acbb245d9dafbb490d6d9029f65e6cfbd9474418",
+    "short_hash": "acbb245",
+    "author": "bigmistqke",
+    "date": "2026-02-19T19:28:14+01:00",
+    "message": "Move node CSS to GraphNode.module.css, port labels to SVG text in GraphPort\n\nExtract node-related styles from App.module.css into GraphNode.module.css.\nMove port label rendering from HTML spans in GraphNode to SVG <text> elements\nin GraphPort. Rename constants for clarity (PORT_OFFSET→TITLE_HEIGHT,\nCONTENT_PADDING→CONTENT_PADDING_BLOCK/INLINE) and refine layout calculations.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 8
+  },
+  {
+    "hash": "0b0d1043f756c224ac27b6a8bbf3899559828fa1",
+    "short_hash": "0b0d104",
+    "author": "bigmistqke",
+    "date": "2026-02-19T18:49:57+01:00",
+    "message": "Add design system constants with height calculator, replace hardcoded values\n\nExtract ELEMENT_HEIGHT, CONTENT_GAP, CONTENT_PADDING into constants.ts with\nheaderHeight() and calcNodeHeight() functions. Pass values as CSS variables\nand use them in component styles. Replace CSS composes with clsx.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 6
+  },
+  {
+    "hash": "bc8cd76b2d6ab578719db33fcc454445bc148e1a",
+    "short_hash": "bc8cd76",
+    "author": "bigmistqke",
+    "date": "2026-02-19T18:38:06+01:00",
+    "message": "Refactor GraphNode to single foreignObject HTML body, remove NodeUI\n\nNode body (header, title, labels, delete button, content, resize\nhandle) is now all HTML inside one foreignObject. Only SVG port\ncircles remain as SVG. NodeUI wrapper removed and all render\nfunctions inlined.",
+    "files_changed": 3
+  },
+  {
+    "hash": "d148d6682dfa9bd9bbef154409aeb0da9197d522",
+    "short_hash": "d148d66",
+    "author": "bigmistqke",
+    "date": "2026-02-19T18:24:46+01:00",
+    "message": "Move title to NodeTypeDef and render in GraphNode, lighter borders\n\nTitle is now part of the node type config and rendered by GraphNode\ndirectly. NodeUI simplified to just a foreignObject wrapper. Borders\nand separator lines use lighter color-mix. Includes user CSS tweaks\nto port labels, foreignObject sizing, and UI components.",
+    "files_changed": 8
+  },
+  {
+    "hash": "3601b78dd9212be5850a6c0a34c5423b77571dd7",
+    "short_hash": "3601b78",
+    "author": "bigmistqke",
+    "date": "2026-02-19T15:43:44+01:00",
+    "message": "White background for node UI content area, colored header for ports",
+    "files_changed": 1
+  },
+  {
+    "hash": "641b968ba79f7d6169747a9a23adb9d4b826ddad",
+    "short_hash": "641b968",
+    "author": "bigmistqke",
+    "date": "2026-02-19T15:41:54+01:00",
+    "message": "Redesign node layout: UI content below ports with always-visible labels\n\nMove node UI content beneath port area using contentY, add separator\nline between ports and content, show port labels inside nodes at all\ntimes, and derive non-resizable node dimensions from template config.",
+    "files_changed": 4
+  },
+  {
+    "hash": "89787a955b6e71d8c79d203d74a510bb9c1a166c",
+    "short_hash": "89787a9",
+    "author": "bigmistqke",
+    "date": "2026-02-19T14:39:06+01:00",
+    "message": "Move drag handler to group element, add pointer event blocking for sliders",
+    "files_changed": 6
+  },
+  {
+    "hash": "ab529fd58e6621f620a453eb186a984465bff1ba",
+    "short_hash": "ab529fd",
+    "author": "bigmistqke",
+    "date": "2026-02-19T14:37:36+01:00",
+    "message": "Add volume meter node with RMS level bar\n\nPass-through audio with a vertical bar showing RMS level.\nGreen below 0.5, yellow below 0.8, red above.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "9b998aa68a8a9d48b4e658647b7cb56706f434d3",
+    "short_hash": "9b998aa",
+    "author": "bigmistqke",
+    "date": "2026-02-19T11:39:16+01:00",
+    "message": "Zero AudioParam intrinsic value when signal is connected\n\nWeb Audio connections are additive, so the connected signal was being\nadded to the slider value. Now the param value is saved and zeroed on\nconnect, and restored on disconnect.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "fedbe9cf036044db0e979e461d18d74fd849c1ce",
+    "short_hash": "fedbe9c",
+    "author": "bigmistqke",
+    "date": "2026-02-19T11:35:25+01:00",
+    "message": "Add debug node that displays param signal value as live text\n\nReads incoming signal via AnalyserNode and polls with\nrequestAnimationFrame to show the current value.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "8b6ca1da32fdb41041f89be68106bf7ceedefb3a",
+    "short_hash": "8b6ca1d",
+    "author": "bigmistqke",
+    "date": "2026-02-19T10:59:48+01:00",
+    "message": "Deselect sidebar node type after placing and start with none selected\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "a6011931c9ad550323c008fac3136ecc3da59a93",
+    "short_hash": "a601193",
+    "author": "bigmistqke",
+    "date": "2026-02-19T10:49:26+01:00",
+    "message": "Color temporary edge by source port kind\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "ee883b9eb9bbf2a7a22af69f6c7e2b31d58d0cb4",
+    "short_hash": "ee883b9",
+    "author": "bigmistqke",
+    "date": "2026-02-19T10:45:29+01:00",
+    "message": "Use --color-node CSS variable for node and button colors\n\nSet --color-node on elements and derive fill/stroke/background/border\nvia color-mix in CSS instead of inline style computation.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
+    "hash": "6bbf885001e8ba5f1f3a5bc086763abd9ba4a32b",
+    "short_hash": "6bbf885",
+    "author": "bigmistqke",
+    "date": "2026-02-19T10:38:51+01:00",
+    "message": "Color node and button borders by first output port kind\n\nUse dynamic var(--color-port-${kind}) for node rect stroke, sidebar\nbutton border, and edge stroke. Lightened with color-mix for borders.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
+    "hash": "7e2ff1780e5e83c778d086baafc4c364d5c74fed",
+    "short_hash": "7e2ff17",
+    "author": "bigmistqke",
+    "date": "2026-02-19T02:41:55+01:00",
+    "message": "Use CSS variables for port and edge colors\n\nDefine --color-port-audio, --color-port-param, --color-port-output\nand derive port strokes with color-mix.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "467815594244db1082ac7848a067e7477a483398",
+    "short_hash": "4678155",
+    "author": "bigmistqke",
+    "date": "2026-02-19T02:40:09+01:00",
+    "message": "Color edges to match their output port kind\n\nBlue for audio, red for param, green for output.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "ad45dbdab63321c111d6ad5e323ff13673c005cd",
+    "short_hash": "ad45dbd",
+    "author": "bigmistqke",
+    "date": "2026-02-19T02:26:56+01:00",
+    "message": "Fix envelope to properly reach zero using setTargetAtTime\n\nReplace linearRampToValueAtTime with setTargetAtTime which works from\nthe current automated value without needing to read src.offset.value\n(which only returns the intrinsic value, not the scheduled one).\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "11f53bb1e7207123ca5c1aa247488a7d67c386f9",
+    "short_hash": "11f53bb",
+    "author": "bigmistqke",
+    "date": "2026-02-19T02:15:21+01:00",
+    "message": "Fix sequencer BPM to update in real-time without resetting position\n\nReplace setInterval with recursive setTimeout so each step reads the\ncurrent BPM value when scheduling the next tick.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "5a0b93433e3d702055aba3bcd93b5eeb03f0ee30",
+    "short_hash": "5a0b934",
+    "author": "bigmistqke",
+    "date": "2026-02-19T02:08:07+01:00",
+    "message": "Add Select component and use it for oscillator type switching\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "fc6f5c2f079a23ced5fe6536deaa93f29935fcdf",
+    "short_hash": "fc6f5c2",
+    "author": "bigmistqke",
+    "date": "2026-02-19T02:02:19+01:00",
+    "message": "Add step sequencer node with gate output and envelope gate input\n\nSequencer has a 16-step grid with play/stop and BPM control, outputting\na gate signal (0/1). Envelope now accepts a gate input that detects\ntransitions via AnalyserNode polling — gate high triggers attack/decay/\nsustain, gate low triggers release.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "4bc796371fed5c9f91fa116b512d8f675d9042dd",
+    "short_hash": "4bc7963",
+    "author": "bigmistqke",
+    "date": "2026-02-19T01:53:47+01:00",
+    "message": "Add scale and range modulation nodes\n\nScale multiplies a signal by a factor. Range maps a [-1,1] signal to a\n[min,max] range using gain + constant source offset, making it easy to\nroute an LFO to meaningful parameter ranges like filter frequency.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "003b765590aeef1714a19d9b7fbd5f5706d00ce9",
+    "short_hash": "003b765",
+    "author": "bigmistqke",
+    "date": "2026-02-19T01:45:06+01:00",
+    "message": "Allow deselecting node type by clicking active sidebar button\n\nClicking an already-selected button deselects it. Clicking the canvas\nwith no type selected no longer spawns a node.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "57b31dd21ebcf698651d33f72ec90579ce8a44f0",
+    "short_hash": "57b31dd",
+    "author": "bigmistqke",
+    "date": "2026-02-19T01:37:50+01:00",
+    "message": "Style sidebar as single column with left scrollbar and backdrop blur\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "c6b954cbbbae15b1467e1b52bf60e702538cd357",
+    "short_hash": "c6b954c",
+    "author": "bigmistqke",
+    "date": "2026-02-19T01:26:43+01:00",
+    "message": "Add reverb, waveshaper, and analyser nodes\n\nReverb uses ConvolverNode with algorithmic impulse response (decay + dry/wet mix).\nWaveshaper provides distortion via WaveShaperNode with 4x oversampling.\nAnalyser renders a live oscilloscope waveform on canvas, passing audio through.\nAlso passes nodeId to projection factories so analyser can register itself.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "bd0f5ccfe4f07771c146c693621d7015323242c0",
+    "short_hash": "bd0f5cc",
+    "author": "bigmistqke",
+    "date": "2026-02-19T01:20:08+01:00",
+    "message": "Add filter, delay, panner, compressor, and noise nodes",
+    "files_changed": 1
+  },
+  {
+    "hash": "927e8bdb66625ba67a8f28b779f8d4ec54d943ae",
+    "short_hash": "927e8bd",
+    "author": "bigmistqke",
+    "date": "2026-02-19T01:06:23+01:00",
+    "message": "Add persistence with makePersisted and routing with @solidjs/router\n\n- Graph topology and node states persisted to localStorage via makePersisted\n- Each route /:graphName is a separate persisted graph\n- Custom types persisted globally, reconstructed with render functions on load\n- Worklet files initialized from persisted state on graph load\n- createGraph accepts persistName option, uses consolidated store for nodeStates\n- Replaced ReactiveMap with store-based adapter in createGraph for serializability\n- App split into thin route wrapper + GraphEditor (re-mounts on graph switch)\n- HUD shows graph name, \"New Graph\" button navigates to new route",
+    "files_changed": 5
+  },
+  {
+    "hash": "19e507da0fc833886f69b1cd08e4f67fc29c5a19",
+    "short_hash": "19e507d",
+    "author": "bigmistqke",
+    "date": "2026-02-19T00:50:03+01:00",
+    "message": "Add save custom node as reusable type with reactive shared source\n\n- Config is now a reactive store (createStore), new types appear in toolbar\n- Custom nodes get \"Save as Type\" button that prompts for name and registers type\n- Saved nodes show \"Save\" (updates all instances) and \"Save as\" (new type)\n- Saving transforms the current node into the saved type\n- Projection uses Proxy fallback to custom factory for dynamic types\n- GraphNode typeDef is now reactive to support type switching\n- RenderProps includes node id, updateNode accepts type changes",
+    "files_changed": 3
+  },
+  {
+    "hash": "6fc858b2dc33a8d2693eb03fdeb63b45725ec6b2",
+    "short_hash": "6fc858b",
+    "author": "bigmistqke",
+    "date": "2026-02-19T00:18:07+01:00",
+    "message": "Add deciduous decision graph, Claude Code config, and GitHub workflows",
+    "files_changed": 16
+  },
+  {
     "hash": "74b5925f5ac77c693dc2dc974c0bbaf970327550",
     "short_hash": "74b5925",
     "author": "bigmistqke",

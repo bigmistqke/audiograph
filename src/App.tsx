@@ -1587,7 +1587,7 @@ function GraphEditor(props: { graphName: string }) {
           }}
           class={styles.button}
         >
-          New Graph
+          new graph
         </Button>
         <Button
           onClick={() => {
@@ -1595,7 +1595,7 @@ function GraphEditor(props: { graphName: string }) {
           }}
           class={styles.button}
         >
-          Resume Audio
+          resume audio
         </Button>
       </div>
       <svg

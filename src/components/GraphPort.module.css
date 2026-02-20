@@ -1,14 +1,28 @@
+.portExtended {
+  --color: var(--color-port-audio);
+  stroke: var(--color);
+  fill: transparent;
+  opacity: 0;
+  &:hover {
+    opacity: 1;
+  }
+}
+
 .port {
-  fill: var(--color-port-audio);
+  --color: var(--color-port-audio);
+  fill: var(--color);
   stroke: transparent;
+  pointer-events: none;
 }
 
+.portExtended[data-kind="param"],
 .port[data-kind="param"] {
-  fill: var(--color-port-param);
+  --color: var(--color-port-param);
 }
 
+.portExtended[data-kind="output"],
 .port[data-kind="output"] {
-  fill: var(--color-port-output);
+  --color: var(--color-port-output);
 }
 
 .label {
