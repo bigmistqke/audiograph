@@ -21,8 +21,10 @@ interface AudioPorts {
 
 export interface ConstructProps<
   S extends Record<string, any> = Record<string, any>,
+  C = any,
 > {
   id: string;
+  ctx: C;
   state: S;
   setState: SetStoreFunction<S>;
   isInputConnected(portName: string): boolean;
@@ -36,6 +38,7 @@ export interface ConstructResult {
 
 export interface NodeTypeDef<
   S extends Record<string, any> = Record<string, any>,
+  C = any,
 > {
   title?: string;
   dimensions: { x: number; y: number };
@@ -46,10 +49,11 @@ export interface NodeTypeDef<
   state?: S;
   resizable?: boolean;
   hideLabels?: boolean;
-  construct(props: ConstructProps<S>): ConstructResult;
+  construct(props: ConstructProps<S, C>): ConstructResult;
 }
 
-export type GraphConfig = Record<string, NodeTypeDef<any>>;
+export type GraphConfig<C = any> = Record<string, NodeTypeDef<any, C>>;
+
 
 export interface NodeInstance {
   id: string;
@@ -74,8 +78,9 @@ interface GraphStore {
   edges: Edge[];
 }
 
-export function createGraph<T extends GraphConfig>(
+export function createGraph<C, T extends GraphConfig<C>>(
   config: T,
+  context: C,
   options?: { persistName?: string },
 ) {
   const [graph, setGraph] = options?.persistName
@@ -134,6 +139,7 @@ export function createGraph<T extends GraphConfig>(
       const state = stateEntry?.state ?? {};
       const result = typeDef.construct({
         id: node.id,
+        ctx: context,
         state,
         setState: stateEntry?.setState ?? (() => {}),
         isInputConnected: (portName: string) =>

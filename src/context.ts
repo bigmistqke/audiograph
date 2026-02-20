@@ -9,7 +9,7 @@ export interface TemporaryEdge {
   y?: number;
 }
 
-export type GraphAPI = ReturnType<typeof createGraph<any>>;
+export type GraphAPI = ReturnType<typeof createGraph<any, any>>;
 
 export const GraphContext = createContext<{
   graph: GraphAPI;

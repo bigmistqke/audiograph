@@ -4,7 +4,7 @@ import styles from "./HorizontalSlider.module.css";
 export function HorizontalSlider(props: {
   value: number;
   title: string;
-  output: string;
+  output: string | number;
   disabled?: boolean;
   onInput: (value: number) => void;
   min?: number;
