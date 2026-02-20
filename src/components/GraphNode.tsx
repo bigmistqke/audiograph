@@ -29,23 +29,8 @@ export function GraphNode(props: { node: NodeInstance }) {
   const contentY = () => headerHeight(maxPorts());
 
   const rendered = () => {
-    const def = typeDef();
-    if (!def?.render) return null;
-    const entry = graph.nodeStates.get(props.node.id);
-    return def.render({
-      id: props.node.id,
-      state: entry?.state,
-      setState: entry?.setState,
-      dimensions: dimensions(),
-      contentY: contentY(),
-      setDimensions: (dims: Partial<{ x: number; y: number }>) =>
-        graph.updateNode(props.node.id, { dimensions: dims }),
-      isInputConnected: (portName: string) =>
-        graph.graph.edges.some(
-          (e) => e.input.node === props.node.id && e.input.port === portName,
-        ),
-      audio: graph.audioData.get(props.node.id),
-    });
+    const ui = graph.nodeUIs.get(props.node.id);
+    return ui?.();
   };
 
   return (
