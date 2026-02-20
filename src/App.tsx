@@ -141,7 +141,7 @@ function GraphEditor(props: { graphName: string }) {
       return {
         in: { audio: inputGain },
         out: { audio: outputGain },
-        data: { workletNode },
+        props: { workletNode },
       };
     };
   }

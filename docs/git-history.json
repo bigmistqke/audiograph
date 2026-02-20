@@ -1,5 +1,13 @@
 [
   {
+    "hash": "916d18c9264808fdcaecd31992f61b24c4c589fd",
+    "short_hash": "916d18c",
+    "author": "bigmistqke",
+    "date": "2026-02-20T09:47:31+01:00",
+    "message": "Add extended port hit area, lowercase button labels, sync decision graph\n\n- Split GraphPort into two circles: larger transparent hit area for easier\n  edge connections and smaller visible port dot (pointer-events: none)\n- Move onPointerUp handler to extended circle for better UX\n- Lowercase button labels (\"new graph\", \"resume audio\")\n- Sync decision graph with missing commit history (30+ nodes added)",
+    "files_changed": 5
+  },
+  {
     "hash": "389f6d6f7c1ec51444a29e5afd5e6033fd7a1420",
     "short_hash": "389f6d6",
     "author": "bigmistqke",

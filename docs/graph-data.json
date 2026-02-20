@@ -901,6 +901,17 @@
       "created_at": "2026-02-20T09:38:07.713756+01:00",
       "updated_at": "2026-02-20T09:38:07.713756+01:00",
       "metadata_json": "{\"branch\":\"main\",\"confidence\":100}"
+    },
+    {
+      "id": 83,
+      "change_id": "79c8025a-0fa2-4298-a636-c0ea802d60c7",
+      "node_type": "outcome",
+      "title": "Extended port hit area, lowercase labels, decision graph synced",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-20T09:47:34.438417+01:00",
+      "updated_at": "2026-02-20T09:47:34.438417+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"916d18c\",\"confidence\":100}"
     }
   ],
   "edges": [
@@ -1695,6 +1706,17 @@
       "weight": 1.0,
       "rationale": "Button CSS extraction",
       "created_at": "2026-02-20T09:38:18.245508+01:00"
+    },
+    {
+      "id": 73,
+      "from_node_id": 50,
+      "to_node_id": 83,
+      "from_change_id": "673668fe-0f69-48dc-b9cb-c0bdd9445aad",
+      "to_change_id": "79c8025a-0fa2-4298-a636-c0ea802d60c7",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Port UX and graph sync complete",
+      "created_at": "2026-02-20T09:47:37.207385+01:00"
     }
   ]
 }
