@@ -229,7 +229,7 @@
       "status": "pending",
       "created_at": "2026-02-19T00:17:12.995865+01:00",
       "updated_at": "2026-02-19T00:17:12.995865+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"a4f6194\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"06dc2b8\", \"confidence\": 100}"
     },
     {
       "id": 22,
@@ -240,7 +240,7 @@
       "status": "pending",
       "created_at": "2026-02-19T00:17:13.031369+01:00",
       "updated_at": "2026-02-19T00:17:13.031369+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"6c30fe5\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"22a75e7\", \"confidence\": 100}"
     },
     {
       "id": 23,
@@ -251,7 +251,7 @@
       "status": "pending",
       "created_at": "2026-02-19T00:17:13.066672+01:00",
       "updated_at": "2026-02-19T00:17:13.066672+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"513d90d\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"5ff4212\", \"confidence\": 100}"
     },
     {
       "id": 24,
@@ -262,7 +262,7 @@
       "status": "pending",
       "created_at": "2026-02-19T00:17:18.211382+01:00",
       "updated_at": "2026-02-19T00:17:18.211382+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"8bda4ee\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"a62c3dc\", \"confidence\": 100}"
     },
     {
       "id": 25,
@@ -273,7 +273,7 @@
       "status": "pending",
       "created_at": "2026-02-19T00:17:18.246152+01:00",
       "updated_at": "2026-02-19T00:17:18.246152+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"75bd335\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"cdcd21a\", \"confidence\": 100}"
     },
     {
       "id": 26,
@@ -284,7 +284,7 @@
       "status": "pending",
       "created_at": "2026-02-19T00:17:18.292737+01:00",
       "updated_at": "2026-02-19T00:17:18.292737+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"6812bbc\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"8e0f7b5\", \"confidence\": 100}"
     },
     {
       "id": 27,
@@ -295,7 +295,7 @@
       "status": "pending",
       "created_at": "2026-02-19T00:17:18.329055+01:00",
       "updated_at": "2026-02-19T00:17:18.329055+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"678b4ea\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"8baa92b\", \"confidence\": 100}"
     },
     {
       "id": 28,
@@ -306,7 +306,7 @@
       "status": "pending",
       "created_at": "2026-02-19T00:17:18.368111+01:00",
       "updated_at": "2026-02-19T00:17:18.368111+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"38326eb\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"3b3eff1\", \"confidence\": 100}"
     },
     {
       "id": 29,
@@ -317,7 +317,7 @@
       "status": "pending",
       "created_at": "2026-02-19T00:17:21.463893+01:00",
       "updated_at": "2026-02-19T00:17:21.463893+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"6986f4e\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"958939a\", \"confidence\": 100}"
     },
     {
       "id": 30,
@@ -328,7 +328,7 @@
       "status": "pending",
       "created_at": "2026-02-19T00:17:21.497776+01:00",
       "updated_at": "2026-02-19T00:17:21.497776+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"3a678b8\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"7e7754c\", \"confidence\": 100}"
     },
     {
       "id": 31,
@@ -339,7 +339,7 @@
       "status": "pending",
       "created_at": "2026-02-19T00:17:21.534511+01:00",
       "updated_at": "2026-02-19T00:17:21.534511+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"74b5925\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"ba34a4f\", \"confidence\": 100}"
     },
     {
       "id": 32,
@@ -350,7 +350,7 @@
       "status": "pending",
       "created_at": "2026-02-19T00:18:12.141521+01:00",
       "updated_at": "2026-02-19T00:18:12.141521+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"6fc858b\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"f408fd0\", \"confidence\": 100}"
     },
     {
       "id": 33,
@@ -372,7 +372,7 @@
       "status": "pending",
       "created_at": "2026-02-19T00:50:08.217135+01:00",
       "updated_at": "2026-02-19T00:50:08.217135+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"19e507d\",\"confidence\":90}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"6427cee\", \"confidence\": 90}"
     },
     {
       "id": 35,
@@ -383,7 +383,7 @@
       "status": "pending",
       "created_at": "2026-02-19T01:06:29.988925+01:00",
       "updated_at": "2026-02-19T01:06:29.988925+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"927e8bd\",\"confidence\":90}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"6f27501\", \"confidence\": 90}"
     },
     {
       "id": 36,
@@ -427,7 +427,7 @@
       "status": "pending",
       "created_at": "2026-02-19T01:26:52.762259+01:00",
       "updated_at": "2026-02-19T01:26:52.762259+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"c6b954c\",\"confidence\":95}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"69f9ddf\", \"confidence\": 95}"
     },
     {
       "id": 40,
@@ -471,7 +471,7 @@
       "status": "pending",
       "created_at": "2026-02-20T00:20:43.316146+01:00",
       "updated_at": "2026-02-20T00:20:43.316146+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"5f8c31f\",\"confidence\":95}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"058c6ca\", \"confidence\": 95}"
     },
     {
       "id": 44,
@@ -559,7 +559,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:36:39.818457+01:00",
       "updated_at": "2026-02-20T09:36:39.818457+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"bd0f5cc\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"a7981e4\", \"confidence\": 100}"
     },
     {
       "id": 52,
@@ -570,7 +570,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:36:41.927825+01:00",
       "updated_at": "2026-02-20T09:36:41.927825+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"57b31dd\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"0705ca7\", \"confidence\": 100}"
     },
     {
       "id": 53,
@@ -581,7 +581,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:36:42.070196+01:00",
       "updated_at": "2026-02-20T09:36:42.070196+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"003b765\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"83877ce\", \"confidence\": 100}"
     },
     {
       "id": 54,
@@ -592,7 +592,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:36:42.593799+01:00",
       "updated_at": "2026-02-20T09:36:42.593799+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"8b6ca1d\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"9ca62e7\", \"confidence\": 100}"
     },
     {
       "id": 55,
@@ -603,7 +603,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:36:45.886747+01:00",
       "updated_at": "2026-02-20T09:36:45.886747+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"4bc7963\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"fe2dc81\", \"confidence\": 100}"
     },
     {
       "id": 56,
@@ -614,7 +614,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:36:46.077264+01:00",
       "updated_at": "2026-02-20T09:36:46.077264+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"fc6f5c2\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"bfe666e\", \"confidence\": 100}"
     },
     {
       "id": 57,
@@ -625,7 +625,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:36:46.656943+01:00",
       "updated_at": "2026-02-20T09:36:46.656943+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"5a0b934\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"24742f1\", \"confidence\": 100}"
     },
     {
       "id": 58,
@@ -636,7 +636,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:01.856216+01:00",
       "updated_at": "2026-02-20T09:37:01.856216+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"11f53bb\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"aec86b7\", \"confidence\": 100}"
     },
     {
       "id": 59,
@@ -647,7 +647,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:02.019262+01:00",
       "updated_at": "2026-02-20T09:37:02.019262+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"ad45dbd\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"e822afc\", \"confidence\": 100}"
     },
     {
       "id": 60,
@@ -658,7 +658,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:03.679940+01:00",
       "updated_at": "2026-02-20T09:37:03.679940+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"4678155\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"8070cb1\", \"confidence\": 100}"
     },
     {
       "id": 61,
@@ -669,7 +669,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:05.334582+01:00",
       "updated_at": "2026-02-20T09:37:05.334582+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"7e2ff17\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"a55a456\", \"confidence\": 100}"
     },
     {
       "id": 62,
@@ -680,7 +680,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:05.495886+01:00",
       "updated_at": "2026-02-20T09:37:05.495886+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"6bbf885\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"7510af8\", \"confidence\": 100}"
     },
     {
       "id": 63,
@@ -691,7 +691,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:05.632295+01:00",
       "updated_at": "2026-02-20T09:37:05.632295+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"ee883b9\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"2d51e73\", \"confidence\": 100}"
     },
     {
       "id": 64,
@@ -702,7 +702,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:05.763166+01:00",
       "updated_at": "2026-02-20T09:37:05.763166+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"a601193\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"8be8f1b\", \"confidence\": 100}"
     },
     {
       "id": 65,
@@ -713,7 +713,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:12.854907+01:00",
       "updated_at": "2026-02-20T09:37:12.854907+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"fedbe9c\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"5a21488\", \"confidence\": 100}"
     },
     {
       "id": 66,
@@ -724,7 +724,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:13.219127+01:00",
       "updated_at": "2026-02-20T09:37:13.219127+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"9b998aa\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"d504c97\", \"confidence\": 100}"
     },
     {
       "id": 67,
@@ -735,7 +735,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:13.523899+01:00",
       "updated_at": "2026-02-20T09:37:13.523899+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"ab529fd\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"3c38ca2\", \"confidence\": 100}"
     },
     {
       "id": 68,
@@ -746,7 +746,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:16.562378+01:00",
       "updated_at": "2026-02-20T09:37:16.562378+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"89787a9\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"a6b395d\", \"confidence\": 100}"
     },
     {
       "id": 69,
@@ -757,7 +757,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:16.994656+01:00",
       "updated_at": "2026-02-20T09:37:16.994656+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"641b968\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"8e89b59\", \"confidence\": 100}"
     },
     {
       "id": 70,
@@ -768,7 +768,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:17.464301+01:00",
       "updated_at": "2026-02-20T09:37:17.464301+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"3601b78\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"398eb68\", \"confidence\": 100}"
     },
     {
       "id": 71,
@@ -779,7 +779,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:18.017544+01:00",
       "updated_at": "2026-02-20T09:37:18.017544+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"d148d66\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"8b4f395\", \"confidence\": 100}"
     },
     {
       "id": 72,
@@ -790,7 +790,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:29.389656+01:00",
       "updated_at": "2026-02-20T09:37:29.389656+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"bc8cd76\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"b93730b\", \"confidence\": 100}"
     },
     {
       "id": 73,
@@ -801,7 +801,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:30.055251+01:00",
       "updated_at": "2026-02-20T09:37:30.055251+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"0b0d104\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"f9c60b6\", \"confidence\": 100}"
     },
     {
       "id": 74,
@@ -812,7 +812,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:31.469583+01:00",
       "updated_at": "2026-02-20T09:37:31.469583+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"acbb245\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"446803e\", \"confidence\": 100}"
     },
     {
       "id": 75,
@@ -823,7 +823,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:32.800281+01:00",
       "updated_at": "2026-02-20T09:37:32.800281+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"73c7013\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"12bab5e\", \"confidence\": 100}"
     },
     {
       "id": 76,
@@ -834,7 +834,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:35.984722+01:00",
       "updated_at": "2026-02-20T09:37:35.984722+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"6c80b98\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"723dfed\", \"confidence\": 100}"
     },
     {
       "id": 77,
@@ -845,7 +845,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:38.089718+01:00",
       "updated_at": "2026-02-20T09:37:38.089718+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"03ed15e\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"21c434c\", \"confidence\": 100}"
     },
     {
       "id": 78,
@@ -856,7 +856,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:39.215039+01:00",
       "updated_at": "2026-02-20T09:37:39.215039+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"5f8c31f\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"058c6ca\", \"confidence\": 100}"
     },
     {
       "id": 79,
@@ -867,7 +867,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:48.177201+01:00",
       "updated_at": "2026-02-20T09:37:48.177201+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"389f6d6\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"b897cc7\", \"confidence\": 100}"
     },
     {
       "id": 80,
@@ -878,7 +878,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:37:48.354929+01:00",
       "updated_at": "2026-02-20T09:37:48.354929+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"569171a\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"c72a14e\", \"confidence\": 100}"
     },
     {
       "id": 81,
@@ -911,7 +911,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:47:34.438417+01:00",
       "updated_at": "2026-02-20T09:47:34.438417+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"916d18c\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"74e41e8\", \"confidence\": 100}"
     },
     {
       "id": 84,
@@ -922,7 +922,7 @@
       "status": "pending",
       "created_at": "2026-02-20T09:50:24.205744+01:00",
       "updated_at": "2026-02-20T09:50:24.205744+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"df9ba03\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"721db61\", \"confidence\": 100}"
     },
     {
       "id": 85,
@@ -966,7 +966,7 @@
       "status": "pending",
       "created_at": "2026-02-20T10:00:10.857952+01:00",
       "updated_at": "2026-02-20T10:00:10.857952+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"50b76ed\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"02b9c75\", \"confidence\": 100}"
     },
     {
       "id": 89,
@@ -988,7 +988,7 @@
       "status": "pending",
       "created_at": "2026-02-20T18:30:56.519039+01:00",
       "updated_at": "2026-02-20T18:30:56.519039+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"ee8a9df\",\"confidence\":100}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"916ffb0\", \"confidence\": 100}"
     },
     {
       "id": 91,
@@ -999,7 +999,7 @@
       "status": "pending",
       "created_at": "2026-02-21T14:52:42.711249+01:00",
       "updated_at": "2026-02-21T14:52:42.711249+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"353e731\",\"confidence\":95,\"files\":[\"src/App.tsx\",\"src/built-ins.tsx\",\"src/context.ts\",\"src/lib/create-graph.ts\"]}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"5d32213\", \"confidence\": 95, \"files\": [\"src/App.tsx\", \"src/built-ins.tsx\", \"src/context.ts\", \"src/lib/create-graph.ts\"]}"
     },
     {
       "id": 92,
@@ -1010,7 +1010,29 @@
       "status": "pending",
       "created_at": "2026-02-21T14:52:47.522312+01:00",
       "updated_at": "2026-02-21T14:52:47.522312+01:00",
-      "metadata_json": "{\"branch\":\"main\",\"commit\":\"353e731\",\"confidence\":95}"
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"5d32213\", \"confidence\": 95}"
+    },
+    {
+      "id": 93,
+      "change_id": "e366c865-6b5d-4146-8e5b-9910c2264f57",
+      "node_type": "goal",
+      "title": "Refactor create-graph: extract graph-store, consolidate node state into Record",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-21T14:56:54.670339+01:00",
+      "updated_at": "2026-02-21T14:56:54.670339+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"let's look into create-graph: couple of observations: 1. graph-store should live outside of create-graph and be imported. create-graph should not be the thing that makePersisted, but should just be containing the logic around managing the graph-store. update the store via event-listeners in the declaration 2. currently we have nodes: Node[] and then a bunch of additional state that is being synchronized: nodeStates.get/nodeUIs/... -> it seems to me that its reason is that nodes is an array -> turn nodes into a Record<id: string, Node> (clean break, we don't care about backward compatibility), i don't want additional state that needs to be synchronized\"}"
+    },
+    {
+      "id": 94,
+      "change_id": "4a2da0f1-760b-4a5e-a04b-faebf3bc440d",
+      "node_type": "action",
+      "title": "Refactor graph store from node array to record, extract GraphEditor to own file",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-21T20:17:03.009954+01:00",
+      "updated_at": "2026-02-21T20:17:03.009954+01:00",
+      "metadata_json": "{\"branch\": \"main\", \"commit\": \"807f5a8\", \"confidence\": 95}"
     }
   ],
   "edges": [
@@ -1904,6 +1926,17 @@
       "weight": 1.0,
       "rationale": "Extraction complete",
       "created_at": "2026-02-21T14:52:54.296628+01:00"
+    },
+    {
+      "id": 82,
+      "from_node_id": 91,
+      "to_node_id": 94,
+      "from_change_id": "b5289b48-61db-4bf7-9397-cc01d22a27ce",
+      "to_change_id": "4a2da0f1-760b-4a5e-a04b-faebf3bc440d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Continued architecture refactor",
+      "created_at": "2026-02-21T20:17:07.721402+01:00"
     }
   ]
 }
