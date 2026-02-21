@@ -1,6 +1,10 @@
-import { ReactiveMap } from "@solid-primitives/map";
-import { makePersisted } from "@solid-primitives/storage";
-import { createEffect, mapArray, onCleanup, type JSX } from "solid-js";
+import {
+  createComputed,
+  createEffect,
+  mapArray,
+  onCleanup,
+  type JSX,
+} from "solid-js";
 import { createStore, produce, type SetStoreFunction } from "solid-js/store";
 import { snapToGrid } from "../constants";
 
@@ -26,7 +30,7 @@ export interface ConstructProps<
   id: string;
   ctx: C;
   state: S;
-  setState: SetStoreFunction<S>;
+  setState: SetStoreFunction<NoInfer<S>>;
   isInputConnected(portName: string): boolean;
 }
 
@@ -54,13 +58,15 @@ export interface NodeTypeDef<
 
 export type GraphConfig<C = any> = Record<string, NodeTypeDef<any, C>>;
 
-
-export interface NodeInstance {
+export interface NodeInstance<
+  S extends Record<string, any> = Record<string, any>,
+> {
   id: string;
   type: string;
   x: number;
   y: number;
   dimensions: { x: number; y: number };
+  state?: S;
 }
 
 export interface EdgeHandle {
@@ -73,50 +79,30 @@ export interface Edge {
   input: EdgeHandle;
 }
 
-interface GraphStore {
-  nodes: NodeInstance[];
+export interface GraphStore {
+  nodes: Record<string, NodeInstance>;
   edges: Edge[];
 }
 
-export function createGraph<C, T extends GraphConfig<C>>(
-  config: T,
-  context: C,
-  options?: { persistName?: string },
-) {
-  const [graph, setGraph] = options?.persistName
-    ? makePersisted(createStore<GraphStore>({ nodes: [], edges: [] }), {
-        name: `${options.persistName}-graph`,
-      })
-    : createStore<GraphStore>({ nodes: [], edges: [] });
-
-  const [allNodeStates, setAllNodeStates] = options?.persistName
-    ? makePersisted(createStore<Record<string, Record<string, any>>>({}), {
-        name: `${options.persistName}-states`,
-      })
-    : createStore<Record<string, Record<string, any>>>({});
-
+export function createGraph<C, T extends GraphConfig<C>>({
+  config,
+  context,
+  store: store,
+  setStore: setStore,
+}: {
+  config: T;
+  context: C;
+  store: GraphStore;
+  setStore: SetStoreFunction<GraphStore>;
+}) {
   // Recover ID counter from persisted nodes
-  let nextId = graph.nodes.reduce(
-    (max, n) => Math.max(max, (parseInt(n.id) || 0) + 1),
+  let nextId = Object.keys(store.nodes).reduce(
+    (max, n) => Math.max(max, (parseInt(n) || 0) + 1),
     0,
   );
 
-  const nodeStates = {
-    get(
-      id: string,
-    ): { state: any; setState: SetStoreFunction<any> } | undefined {
-      const state = allNodeStates[id];
-      if (!state) return undefined;
-      return {
-        state,
-        setState: ((...args: any[]) =>
-          (setAllNodeStates as any)(id, ...args)) as SetStoreFunction<any>,
-      };
-    },
-  };
-
   function getPortDef(nodeId: string, portName: string) {
-    const node = graph.nodes.find((n) => n.id === nodeId);
+    const node = store.nodes[nodeId];
     if (!node) return undefined;
     const typeDef = config[node.type];
     return (
@@ -124,153 +110,132 @@ export function createGraph<C, T extends GraphConfig<C>>(
       typeDef.ports.out?.find((p: PortDef) => p.name === portName)
     );
   }
+  const [nodes, setNodes] = createStore<Record<string, ConstructResult>>({});
 
-  const nodeUIs = new ReactiveMap<string, () => JSX.Element>();
-  const projectedNodes = new ReactiveMap<string, AudioPorts>();
+  createComputed(
+    mapArray(
+      () => Object.keys(store.nodes),
+      (id) => {
+        createComputed(() => {
+          const node = store.nodes[id];
+          const typeDef = config[node.type];
 
-  // Node lifecycle: construct nodes when graph nodes appear
-  const mappedNodes = mapArray(
-    () => graph.nodes,
-    (node) => {
-      const typeDef = config[node.type];
-      if (!typeDef?.construct) return;
-
-      const stateEntry = nodeStates.get(node.id);
-      const state = stateEntry?.state ?? {};
-      const result = typeDef.construct({
-        id: node.id,
-        ctx: context,
-        state,
-        setState: stateEntry?.setState ?? (() => {}),
-        isInputConnected: (portName: string) =>
-          graph.edges.some(
-            (e) => e.input.node === node.id && e.input.port === portName,
-          ),
-      });
-
-      if (result.in || result.out) {
-        projectedNodes.set(node.id, { in: result.in, out: result.out });
-      }
-
-      if (result.ui) {
-        nodeUIs.set(node.id, result.ui);
-      }
-
-      onCleanup(() => {
-        if (result.out) {
-          for (const port of Object.values(result.out) as Connectable[]) {
-            port.disconnect();
+          if (!typeDef?.construct) {
+            throw new Error(
+              `Expected ${node.type} to be defined in the graph-config. Valid node-kinds: ${Object.keys(config)}`,
+            );
           }
-        }
-        projectedNodes.delete(node.id);
-        nodeUIs.delete(node.id);
-      });
 
-      return result;
-    },
+          setNodes(
+            id,
+            typeDef.construct({
+              id: node.id,
+              ctx: context,
+              get state() {
+                return node.state;
+              },
+              setState(...args: any[]) {
+                return setStore("nodes", id, ...args);
+              },
+              isInputConnected: (portName: string) =>
+                store.edges.some(
+                  (e) => e.input.node === node.id && e.input.port === portName,
+                ),
+            }),
+          );
+        });
+      },
+    ),
   );
-
-  createEffect(() => mappedNodes());
 
   // Edge lifecycle: connect/disconnect audio ports when edges change
-  const mappedEdges = mapArray(
-    () => graph.edges,
-    (edge) => {
-      createEffect(() => {
-        const from = projectedNodes.get(edge.output.node);
-        const to = projectedNodes.get(edge.input.node);
+  createEffect(
+    mapArray(
+      () => store.edges,
+      (edge) => {
+        createEffect(() => {
+          const from = nodes[edge.output.node];
+          const to = nodes[edge.input.node];
 
-        if (!from || !to) return;
+          if (!from || !to) return;
 
-        const outPort = from.out?.[edge.output.port];
-        const inPort = to.in?.[edge.input.port];
+          const outPort = from.out?.[edge.output.port];
+          const inPort = to.in?.[edge.input.port];
 
-        if (!outPort || !inPort) return;
+          if (!outPort || !inPort) return;
 
-        // When connecting to an AudioParam, zero its intrinsic value
-        // so only the connected signal controls it (connections are additive)
-        let savedValue: number | undefined;
-        if (inPort instanceof AudioParam) {
-          savedValue = inPort.value;
-          inPort.value = 0;
-        }
-
-        outPort.connect(inPort);
-        onCleanup(() => {
-          outPort.disconnect(inPort);
-          if (inPort instanceof AudioParam && savedValue !== undefined) {
-            inPort.value = savedValue;
+          // When connecting to an AudioParam, zero its intrinsic value
+          // so only the connected signal controls it (connections are additive)
+          let savedValue: number | undefined;
+          if (inPort instanceof AudioParam) {
+            savedValue = inPort.value;
+            inPort.value = 0;
           }
-        });
-      });
-    },
-  );
 
-  createEffect(() => mappedEdges());
+          outPort.connect(inPort);
+          onCleanup(() => {
+            outPort.disconnect(inPort);
+            if (inPort instanceof AudioParam && savedValue !== undefined) {
+              inPort.value = savedValue;
+            }
+          });
+        });
+      },
+    ),
+  );
 
   return {
     config,
-    graph,
-    nodeStates,
-    nodeUIs,
+    store,
+    nodes,
     getPortDef,
     addNode(type: keyof T & string, position: { x: number; y: number }) {
       const id = (nextId++).toString();
       const typeDef = config[type];
-      const initialState = typeDef.state ? { ...typeDef.state } : {};
 
-      if (!allNodeStates[id]) {
-        setAllNodeStates(id, initialState);
-      }
-
-      setGraph(
+      setStore(
         "nodes",
         produce((nodes) => {
-          nodes.push({
+          nodes[id] = {
             id,
             type,
             x: snapToGrid(position.x),
             y: snapToGrid(position.y),
             dimensions: { ...typeDef.dimensions },
-          });
+            state: config[type]?.state,
+          };
         }),
       );
 
       return id;
     },
     deleteNode(id: string) {
-      setGraph(
+      setStore(
         produce((graph) => {
-          const idx = graph.nodes.findIndex((node) => node.id === id);
-          if (idx !== -1) graph.nodes.splice(idx, 1);
+          delete graph.nodes[id];
           graph.edges = graph.edges.filter(
             (edge) => edge.output.node !== id && edge.input.node !== id,
           );
         }),
       );
-      setAllNodeStates(
-        produce((states: any) => {
-          delete states[id];
-        }),
-      );
     },
     unlink(output: EdgeHandle, input: EdgeHandle) {
-      setGraph(
+      setStore(
         "edges",
         produce((edges) => {
-          const idx = edges.findIndex(
+          const index = edges.findIndex(
             (e) =>
               e.output.node === output.node &&
               e.output.port === output.port &&
               e.input.node === input.node &&
               e.input.port === input.port,
           );
-          if (idx !== -1) edges.splice(idx, 1);
+          if (index !== -1) edges.splice(index, 1);
         }),
       );
     },
     link(output: EdgeHandle, input: EdgeHandle) {
-      const exists = graph.edges.find(
+      const exists = store.edges.find(
         (e) =>
           e.output.node === output.node &&
           e.output.port === output.port &&
@@ -283,7 +248,7 @@ export function createGraph<C, T extends GraphConfig<C>>(
       const toPort = getPortDef(input.node, input.port);
       if (fromPort?.kind !== toPort?.kind) return;
 
-      setGraph(
+      setStore(
         "edges",
         produce((edges) => edges.push({ output, input })),
       );
@@ -294,14 +259,12 @@ export function createGraph<C, T extends GraphConfig<C>>(
         dimensions?: Partial<{ x: number; y: number }>;
       },
     ) {
-      setGraph(
+      setStore(
         "nodes",
         produce((nodes) => {
-          const idx = nodes.findIndex((n) => n.id === id);
-          if (idx === -1) return;
           const { dimensions, ...rest } = update;
-          Object.assign(nodes[idx], rest);
-          if (dimensions) Object.assign(nodes[idx].dimensions, dimensions);
+          Object.assign(nodes[id], rest);
+          if (dimensions) Object.assign(nodes[id].dimensions, dimensions);
         }),
       );
     },

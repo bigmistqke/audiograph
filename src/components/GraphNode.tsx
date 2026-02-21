@@ -29,8 +29,7 @@ export function GraphNode(props: { node: NodeInstance }) {
   const contentY = () => headerHeight(maxPorts());
 
   const rendered = () => {
-    const ui = graph.nodeUIs.get(props.node.id);
-    return ui?.();
+    return graph.nodes[props.node.id].ui?.();
   };
 
   return (

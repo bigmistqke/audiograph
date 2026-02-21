@@ -1,5 +1,37 @@
 [
   {
+    "hash": "353e731f64c363ee692ac009e44e6ebf78950192",
+    "short_hash": "353e731",
+    "author": "bigmistqke",
+    "date": "2026-02-20T18:58:52+01:00",
+    "message": "Extract built-in nodes to dedicated file, add createNodeDefFactory for state type inference\n\nMove all built-in audio node definitions from App.tsx into src/built-ins.tsx\nusing a new createNodeDefFactory<C>() utility that enables TypeScript to\ninfer the state type from the config object and flow it into construct props.\nUse props.ctx instead of audioCtx closure for better decoupling.",
+    "files_changed": 5
+  },
+  {
+    "hash": "ee8a9df75c685e6ba940cefc24c8da22b090f51d",
+    "short_hash": "ee8a9df",
+    "author": "bigmistqke",
+    "date": "2026-02-20T18:30:51+01:00",
+    "message": "Merge audio() and render() into single construct() per node type\n\nAudio nodes are now created and closed over directly by the ui function\nreturned from construct(), eliminating the audioData ReactiveMap and the\nRenderProps/AudioFactoryResult type threading that caused the data/props\nnaming bug. Each node type defines one construct(props) that returns\n{ in, out, ui }. audioContext removed from createGraph options since\nnodes close over it from their defining scope.",
+    "files_changed": 3
+  },
+  {
+    "hash": "50b76ed4d4a3f667b32ebbd48b3edfadca300e2d",
+    "short_hash": "50b76ed",
+    "author": "bigmistqke",
+    "date": "2026-02-20T10:00:05+01:00",
+    "message": "Fix worklet param UI by renaming data to props in audio factory return\n\nThe audio factory returned { data: { workletNode } } but the render\nprops expected { props: { workletNode } }, so the param sliders never\nreceived the AudioWorkletNode reference.",
+    "files_changed": 3
+  },
+  {
+    "hash": "df9ba0389a0a9e5cf7e2414b1b12e9bf54248805",
+    "short_hash": "df9ba03",
+    "author": "bigmistqke",
+    "date": "2026-02-20T09:50:20+01:00",
+    "message": "Move drag handler from node group to header, refine cursors\n\n- Drag handler moved from SVG <g> to nodeHeader div so dragging only\n  initiates from the header area, not the entire node body\n- cursor: move applied to header instead of whole node\n- Slider cursor changed to ew-resize on track, removed pointer on thumb",
+    "files_changed": 3
+  },
+  {
     "hash": "916d18c9264808fdcaecd31992f61b24c4c589fd",
     "short_hash": "916d18c",
     "author": "bigmistqke",

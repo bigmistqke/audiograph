@@ -912,6 +912,105 @@
       "created_at": "2026-02-20T09:47:34.438417+01:00",
       "updated_at": "2026-02-20T09:47:34.438417+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"916d18c\",\"confidence\":100}"
+    },
+    {
+      "id": 84,
+      "change_id": "cd06646a-450e-478b-86fe-d87636b1aaf2",
+      "node_type": "action",
+      "title": "Move drag handler from node group to header, refine cursors",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-20T09:50:24.205744+01:00",
+      "updated_at": "2026-02-20T09:50:24.205744+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"df9ba03\",\"confidence\":100}"
+    },
+    {
+      "id": 85,
+      "change_id": "bbe07700-1e35-49ed-948c-9400363c0f76",
+      "node_type": "goal",
+      "title": "Restore auto-generated UI for AudioWorklet parameterDescriptors",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-20T09:57:21.976142+01:00",
+      "updated_at": "2026-02-20T09:57:21.976142+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"we used to create ui for the audioworklet-node based on its parameterDescriptors -> what happened with that? -> check git history and add back feature\"}"
+    },
+    {
+      "id": 86,
+      "change_id": "6b65bb0e-957e-4eaa-8ed3-479a71fd176b",
+      "node_type": "observation",
+      "title": "AudioWorklet parameterDescriptors UI is still present in codebase at App.tsx:172-206, was not removed during refactors",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-20T09:58:32.366500+01:00",
+      "updated_at": "2026-02-20T09:58:32.366500+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":100}"
+    },
+    {
+      "id": 87,
+      "change_id": "5aa86594-043e-4f9c-a88d-e1471cce0f29",
+      "node_type": "action",
+      "title": "Add debug logging to worklet param UI pipeline",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-20T09:59:04.494143+01:00",
+      "updated_at": "2026-02-20T09:59:04.494143+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 88,
+      "change_id": "dd54f54c-610e-4185-aa57-74f08c40ccc1",
+      "node_type": "outcome",
+      "title": "Fixed worklet param UI: renamed data to props in audio factory return",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-20T10:00:10.857952+01:00",
+      "updated_at": "2026-02-20T10:00:10.857952+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"50b76ed\",\"confidence\":100}"
+    },
+    {
+      "id": 89,
+      "change_id": "70cb5d06-853f-4ecb-98d4-a9f97c9aa35d",
+      "node_type": "action",
+      "title": "Refactor audio()+render() into construct() pattern",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-20T18:13:03.786354+01:00",
+      "updated_at": "2026-02-20T18:13:03.786354+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90}"
+    },
+    {
+      "id": 90,
+      "change_id": "39f2cfe0-3ae0-4af0-8345-99815bd53e2f",
+      "node_type": "outcome",
+      "title": "Merged audio()+render() into construct() for all 20 node types",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-20T18:30:56.519039+01:00",
+      "updated_at": "2026-02-20T18:30:56.519039+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"ee8a9df\",\"confidence\":100}"
+    },
+    {
+      "id": 91,
+      "change_id": "b5289b48-61db-4bf7-9397-cc01d22a27ce",
+      "node_type": "action",
+      "title": "Extract built-in nodes to dedicated file, add createNodeDefFactory for state type inference",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-21T14:52:42.711249+01:00",
+      "updated_at": "2026-02-21T14:52:42.711249+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"353e731\",\"confidence\":95,\"files\":[\"src/App.tsx\",\"src/built-ins.tsx\",\"src/context.ts\",\"src/lib/create-graph.ts\"]}"
+    },
+    {
+      "id": 92,
+      "change_id": "72028f73-803d-44a2-a14b-153b394bbd59",
+      "node_type": "outcome",
+      "title": "Built-in nodes extracted to src/built-ins.tsx with createNodeDefFactory enabling state type inference",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-21T14:52:47.522312+01:00",
+      "updated_at": "2026-02-21T14:52:47.522312+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"353e731\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -1717,6 +1816,94 @@
       "weight": 1.0,
       "rationale": "Port UX and graph sync complete",
       "created_at": "2026-02-20T09:47:37.207385+01:00"
+    },
+    {
+      "id": 74,
+      "from_node_id": 47,
+      "to_node_id": 84,
+      "from_change_id": "e94e0491-e0a6-494d-a67a-9a8978fd8f02",
+      "to_change_id": "cd06646a-450e-478b-86fe-d87636b1aaf2",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Node layout UX refinement",
+      "created_at": "2026-02-20T09:50:27.736111+01:00"
+    },
+    {
+      "id": 75,
+      "from_node_id": 85,
+      "to_node_id": 86,
+      "from_change_id": "bbe07700-1e35-49ed-948c-9400363c0f76",
+      "to_change_id": "6b65bb0e-957e-4eaa-8ed3-479a71fd176b",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Investigation finding",
+      "created_at": "2026-02-20T09:58:32.377438+01:00"
+    },
+    {
+      "id": 76,
+      "from_node_id": 85,
+      "to_node_id": 87,
+      "from_change_id": "bbe07700-1e35-49ed-948c-9400363c0f76",
+      "to_change_id": "5aa86594-043e-4f9c-a88d-e1471cce0f29",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Debugging missing gain slider",
+      "created_at": "2026-02-20T09:59:04.507379+01:00"
+    },
+    {
+      "id": 77,
+      "from_node_id": 85,
+      "to_node_id": 88,
+      "from_change_id": "bbe07700-1e35-49ed-948c-9400363c0f76",
+      "to_change_id": "dd54f54c-610e-4185-aa57-74f08c40ccc1",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Fix identified and applied",
+      "created_at": "2026-02-20T10:00:10.871693+01:00"
+    },
+    {
+      "id": 78,
+      "from_node_id": 85,
+      "to_node_id": 89,
+      "from_change_id": "bbe07700-1e35-49ed-948c-9400363c0f76",
+      "to_change_id": "70cb5d06-853f-4ecb-98d4-a9f97c9aa35d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation",
+      "created_at": "2026-02-20T18:13:03.800519+01:00"
+    },
+    {
+      "id": 79,
+      "from_node_id": 89,
+      "to_node_id": 90,
+      "from_change_id": "70cb5d06-853f-4ecb-98d4-a9f97c9aa35d",
+      "to_change_id": "39f2cfe0-3ae0-4af0-8345-99815bd53e2f",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Refactor complete",
+      "created_at": "2026-02-20T18:30:56.532365+01:00"
+    },
+    {
+      "id": 80,
+      "from_node_id": 5,
+      "to_node_id": 91,
+      "from_change_id": "d62787c5-fa16-49ab-89d8-542b3dc946bf",
+      "to_change_id": "b5289b48-61db-4bf7-9397-cc01d22a27ce",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Architecture refactor: extract built-ins and add factory",
+      "created_at": "2026-02-21T14:52:54.284277+01:00"
+    },
+    {
+      "id": 81,
+      "from_node_id": 91,
+      "to_node_id": 92,
+      "from_change_id": "b5289b48-61db-4bf7-9397-cc01d22a27ce",
+      "to_change_id": "72028f73-803d-44a2-a14b-153b394bbd59",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Extraction complete",
+      "created_at": "2026-02-21T14:52:54.296628+01:00"
     }
   ]
 }

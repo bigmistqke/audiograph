@@ -78,14 +78,12 @@ export function GraphPort(props: {
 
           // If dragging from an in-port with an existing edge, detach it
           if (props.kind === "in") {
-            const existingEdge = graph.graph.edges.find(
+            const existingEdge = graph.store.edges.find(
               (e) => e.input.node === node.id && e.input.port === props.name,
             );
             if (existingEdge) {
               graph.unlink(existingEdge.output, existingEdge.input);
-              const fromNode = graph.graph.nodes.find(
-                (n) => n.id === existingEdge.output.node,
-              );
+              const fromNode = graph.store.nodes[existingEdge.output.node];
               if (fromNode) {
                 const position = {
                   x: node.x + cx(),

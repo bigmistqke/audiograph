@@ -15,12 +15,8 @@ function portY(index: number) {
 export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
   const { graph } = useGraph();
 
-  const fromNode = createMemo(() =>
-    graph.graph.nodes.find((n) => n.id === props.output.node),
-  );
-  const toNode = createMemo(() =>
-    graph.graph.nodes.find((n) => n.id === props.input.node),
-  );
+  const fromNode = createMemo(() => graph.store.nodes[props.output.node]);
+  const toNode = createMemo(() => graph.store.nodes[props.input.node]);
 
   const fromPort = () => {
     const node = fromNode();

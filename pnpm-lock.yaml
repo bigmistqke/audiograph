@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@bigmistqke/minni':
-        specifier: ^0.0.8
-        version: 0.0.8
+        specifier: ^0.0.10
+        version: 0.0.10
       '@bigmistqke/repl':
         specifier: ^0.2.7
         version: 0.2.7(@babel/standalone@7.29.1)(dom-serializer@2.0.0)(domutils@3.2.2)(htmlparser2@10.1.0)(monaco-editor@0.52.2)(solid-js@1.9.9)(typescript@5.9.2)
@@ -142,8 +142,8 @@ packages:
     resolution: {integrity: sha512-bkFqkLhh3pMBUQQkpVgWDWq/lqzc2678eUyDlTBhRqhCHFguYYGM0Efga7tYk4TogG/3x0EEl66/OQ+WGbWB/Q==}
     engines: {node: '>=6.9.0'}
 
-  '@bigmistqke/minni@0.0.8':
-    resolution: {integrity: sha512-Vwfcnqs/f1LjJbpUqS0jpADGV6Eao/psHSbiBtsMRh4hm34JkmqLNLEVgWO60XGbce+i0hb8hzHJfsBtfpme0A==}
+  '@bigmistqke/minni@0.0.10':
+    resolution: {integrity: sha512-86DOaES+cnQ1bX+hkviR4M4OyZRPlSEm6PougOL+A9BiTh0DppzqOuNRmNoe6vzoKzVfJYHdfwtKGFlG9KmfIg==}
 
   '@bigmistqke/repl@0.2.7':
     resolution: {integrity: sha512-g+aziLX3P3THXuXCbM2ZAnaHDBjZAF4xHqHOsAu2JMqq59K/7GRQbnzJRAISnntVJCHWeFXd6RekBrT8tVwFpg==}
@@ -1076,7 +1076,7 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
 
-  '@bigmistqke/minni@0.0.8':
+  '@bigmistqke/minni@0.0.10':
     dependencies:
       bumpp: 10.4.1
       typescript: 4.9.5

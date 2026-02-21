@@ -1,4 +1,4 @@
-import { createMemo, Show } from "solid-js";
+import { Show } from "solid-js";
 import {
   PORT_INSET,
   PORT_RADIUS,
@@ -14,27 +14,23 @@ function portY(index: number) {
 export function GraphTemporaryEdge(props: TemporaryEdge) {
   const { graph } = useGraph();
 
-  const node = createMemo(() =>
-    graph.graph.nodes.find((n) => n.id === props.node),
-  );
-
   const port = () => {
-    const n = node();
-    if (!n) return undefined;
+    const node = graph.store.nodes[props.node];
+    if (!node) return undefined;
     const ports =
       props.kind === "in"
-        ? graph.config[n.type].ports.in
-        : graph.config[n.type].ports.out;
+        ? graph.config[node.type].ports.in
+        : graph.config[node.type].ports.out;
     return ports.find((p: any) => p.name === props.port);
   };
 
   const portIndex = () => {
-    const n = node();
-    if (!n) return -1;
+    const node = graph.store.nodes[props.node];
+    if (!node) return -1;
     const ports =
       props.kind === "in"
-        ? graph.config[n.type].ports.in
-        : graph.config[n.type].ports.out;
+        ? graph.config[node.type].ports.in
+        : graph.config[node.type].ports.out;
     return ports.indexOf(port()!);
   };
 
@@ -44,15 +40,23 @@ export function GraphTemporaryEdge(props: TemporaryEdge) {
   };
 
   return (
-    <Show when={props.x !== undefined && props.y !== undefined && node()}>
-      {(n) => (
+    <Show
+      when={
+        props.x !== undefined &&
+        props.y !== undefined &&
+        graph.store.nodes[props.node]
+      }
+    >
+      {(node) => (
         <line
           pointer-events="none"
           x1={
-            n().x +
-            (props.kind === "in" ? PORT_INSET : n().dimensions.x - PORT_INSET)
+            node().x +
+            (props.kind === "in"
+              ? PORT_INSET
+              : node().dimensions.x - PORT_INSET)
           }
-          y1={n().y + portY(portIndex())}
+          y1={node().y + portY(portIndex())}
           x2={props.x}
           y2={props.y}
           stroke={edgeColor()}
