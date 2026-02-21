@@ -2,16 +2,14 @@ import { minni } from "@bigmistqke/minni";
 import { makePersisted } from "@solid-primitives/storage";
 import { useNavigate } from "@solidjs/router";
 import clsx from "clsx";
-import { createEffect, createSignal, For, on, onCleanup, Show } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import styles from "./App.module.css";
-import { builtIns } from "./built-ins";
+import { builtIns, type AudioGraphContext } from "./built-ins";
 import { GraphEdge } from "./components/GraphEdge";
 import { GraphNode } from "./components/GraphNode";
-import { GraphNodeContent } from "./components/GraphNodeContent";
 import { GraphTemporaryEdge } from "./components/GraphTemporaryEdge";
 import {
-  calcNodeHeight,
   CONTENT_PADDING_BLOCK,
   CONTENT_PADDING_INLINE,
   ELEMENT_HEIGHT,
@@ -26,11 +24,7 @@ import {
   TITLE_HEIGHT,
 } from "./constants";
 import { GraphContext, type TemporaryEdge } from "./context";
-import type {
-  ConstructProps,
-  GraphConfig,
-  GraphStore,
-} from "./lib/create-graph";
+import type { GraphConfig, GraphStore } from "./lib/create-graph";
 import { createGraph } from "./lib/create-graph";
 import {
   createWorkletFileSystem,
@@ -38,7 +32,6 @@ import {
   getWorkletEntry,
 } from "./lib/worklet-file-system";
 import { Button } from "./ui/Button";
-import { HorizontalSlider } from "./ui/HorizontalSlider";
 
 export function GraphEditor(props: {
   graphName: string;
@@ -48,215 +41,14 @@ export function GraphEditor(props: {
   const workletFS = createWorkletFileSystem();
   const [selectedType, setSelectedType] = createSignal<string | undefined>();
 
-  // Persisted custom type definitions (global, shared across graphs)
-  const [savedTypes, setSavedTypes] = makePersisted(
-    createStore<Record<string, { displayName: string; code: string }>>({}),
-    { name: "audiograph-custom-types" },
-  );
+  const ctx: AudioGraphContext = {
+    audio: props.context,
+    workletFS,
+  };
 
-  function saveAsNewType(code: string, nodeId: string) {
-    const name = prompt("Name for this node type:");
-    if (!name?.trim()) return;
-    const typeName = name.trim().toLowerCase().replace(/\s+/g, "-");
-    setSavedTypes(typeName, { displayName: name.trim(), code });
-    setConfig(typeName, {
-      title: name.trim(),
-      dimensions: { x: 280, y: calcNodeHeight(1, 7) },
-      resizable: true,
-      ports: {
-        in: [{ name: "audio" }],
-        out: [{ name: "audio" }],
-      },
-      state: { name: "", code },
-      construct: createWorkletConstruct(typeName),
-    });
-    graph.updateNode(nodeId, { type: typeName });
-  }
-
-  function createWorkletConstruct(typeKey: string) {
-    const isSaved = typeKey !== "audioworklet";
-
-    return (props: ConstructProps<{ name: string; code: string }>) => {
-      const inputGain = props.ctx.createGain();
-      const outputGain = props.ctx.createGain();
-      const [workletNode, setWorkletNode] =
-        createSignal<AudioWorkletNode | null>(null);
-
-      let currentWorkletNode: AudioWorkletNode | null = null;
-      let loadGeneration = 0;
-
-      createEffect(() => {
-        const name = props.state.name;
-        if (!name) return;
-
-        const url = workletFS.fileUrls.get(`/${name}/worklet.js`);
-        const processorName = workletFS.getProcessorName(name);
-        if (!url) return;
-
-        const gen = ++loadGeneration;
-
-        if (currentWorkletNode) {
-          inputGain.disconnect(currentWorkletNode);
-          currentWorkletNode.disconnect(outputGain);
-          currentWorkletNode = null;
-        }
-
-        props.ctx.audioWorklet
-          .addModule(url)
-          .then(() => {
-            if (loadGeneration !== gen) return;
-            const node = new AudioWorkletNode(props.ctx, processorName);
-            currentWorkletNode = node;
-            inputGain.connect(node);
-            node.connect(outputGain);
-            setWorkletNode(node);
-          })
-          .catch((err) => {
-            console.error(`Failed to load worklet "${processorName}":`, err);
-          });
-      });
-
-      onCleanup(() => {
-        if (currentWorkletNode) {
-          inputGain.disconnect(currentWorkletNode);
-          currentWorkletNode.disconnect(outputGain);
-        }
-        inputGain.disconnect();
-        outputGain.disconnect();
-      });
-
-      if (isSaved) {
-        createEffect(
-          on(
-            () => config[typeKey]?.state?.code as string | undefined,
-            (savedCode) => {
-              if (!savedCode || !props.state.name) return;
-              props.setState("code", savedCode);
-              workletFS.writeFile(`/${props.state.name}/source.js`, savedCode);
-            },
-            { defer: true },
-          ),
-        );
-      }
-
-      const params = () => {
-        const node = workletNode();
-        if (!node) return [];
-        return Array.from(node.parameters.entries());
-      };
-
-      return {
-        in: { audio: inputGain },
-        out: { audio: outputGain },
-        ui: () => (
-          <GraphNodeContent
-            style={{
-              display: "flex",
-              "flex-direction": "column",
-              gap: "var(--gap)",
-            }}
-          >
-            <For each={params()}>
-              {([name, param]) => {
-                const min = param.minValue < -1e30 ? 0 : param.minValue;
-                const max = param.maxValue > 1e30 ? 1 : param.maxValue;
-                const [value, setValue] = createSignal(param.defaultValue);
-                return (
-                  <HorizontalSlider
-                    title={name}
-                    output={value().toFixed(2)}
-                    value={value()}
-                    min={min}
-                    max={max}
-                    step={(max - min) / 1000}
-                    onInput={(value) => {
-                      setValue(value);
-                      param.value = value;
-                    }}
-                  />
-                );
-              }}
-            </For>
-            <textarea
-              style={{
-                flex: 1,
-                width: "100%",
-                "font-family": "monospace",
-                "font-size": "9px",
-                resize: "none",
-                border: "1px solid #ccc",
-                "box-sizing": "border-box",
-                "tab-size": "2",
-              }}
-              spellcheck={false}
-              value={props.state.code}
-              onInput={(e) => {
-                const newCode = e.currentTarget.value;
-                props.setState("code", newCode);
-                workletFS.writeFile(`/${props.state.name}/source.js`, newCode);
-              }}
-            />
-            <div
-              style={{
-                display: "flex",
-                gap: "var(--gap)",
-              }}
-            >
-              {isSaved && (
-                <Button
-                  style={{
-                    flex: 1,
-                    padding: "2px 4px",
-                    "font-size": "10px",
-                    cursor: "pointer",
-                  }}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={() => {
-                    setSavedTypes(typeKey, "code", props.state.code);
-                    setConfig(typeKey, "state", "code", props.state.code);
-                  }}
-                >
-                  Save
-                </Button>
-              )}
-              <Button
-                style={{
-                  flex: 1,
-                  padding: "2px 4px",
-                  "font-size": "10px",
-                  cursor: "pointer",
-                }}
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => saveAsNewType(props.state.code, props.id)}
-              >
-                {isSaved ? "Save as" : "Save as Type"}
-              </Button>
-            </div>
-          </GraphNodeContent>
-        ),
-      };
-    };
-  }
-
-  const [config, setConfig] = createStore<GraphConfig>(builtIns);
-
-  // Reconstruct saved custom types from persistence
-  for (const key of Object.keys(savedTypes)) {
-    const data = savedTypes[key];
-    if (data && !config[key]) {
-      setConfig(key, {
-        title: data.displayName,
-        dimensions: { x: 280, y: calcNodeHeight(1, 7) },
-        resizable: true,
-        ports: {
-          in: [{ name: "audio" }],
-          out: [{ name: "audio" }],
-        },
-        state: { name: "", code: data.code },
-        construct: createWorkletConstruct(key),
-      });
-    }
-  }
+  const [config, setConfig] = createStore<GraphConfig<AudioGraphContext>>({
+    ...builtIns,
+  });
 
   const [graphStore, setGraphStore] = makePersisted(
     createStore<GraphStore>({ nodes: {}, edges: [] }),
@@ -265,9 +57,20 @@ export function GraphEditor(props: {
     },
   );
 
+  // Derive custom types from persisted nodes
+  for (const node of Object.values(graphStore.nodes)) {
+    if (!config[node.type] && node.state?.code !== undefined) {
+      setConfig(node.type, {
+        ...builtIns.audioworklet,
+        title: node.type,
+        state: { name: "", code: node.state.code },
+      });
+    }
+  }
+
   const graph = createGraph({
     config,
-    context: props.context,
+    context: ctx,
     store: graphStore,
     setStore: setGraphStore,
   });
@@ -280,6 +83,42 @@ export function GraphEditor(props: {
       if (!workletFS.readFile(`/${name}/source.js`)) {
         workletFS.writeFile(`/${name}/source.js`, state.code);
         workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
+      }
+    }
+  }
+
+  // --- Save callbacks ---
+
+  function saveAsNewType(code: string, nodeId: string) {
+    const name = prompt("Name for this node type:");
+    if (!name?.trim()) return;
+    const typeName = name.trim().toLowerCase().replace(/\s+/g, "-");
+    setConfig(typeName, {
+      ...builtIns.audioworklet,
+      title: name.trim(),
+      state: { name: "", code },
+    });
+    graph.updateNode(nodeId, { type: typeName });
+  }
+
+  function saveType(nodeId: string) {
+    const node = graphStore.nodes[nodeId];
+    if (!node) return;
+    const typeName = node.type;
+    const code = node.state?.code;
+    if (!code || typeName === "audioworklet") return;
+
+    // Update the config template
+    setConfig(typeName, "state", "code", code);
+
+    // Push code to all other nodes of the same type
+    for (const [otherId, otherNode] of Object.entries(graphStore.nodes)) {
+      if (otherNode.type === typeName && otherId !== nodeId) {
+        setGraphStore("nodes", otherId, "state", "code", code);
+        const name = otherNode.state?.name;
+        if (name) {
+          workletFS.writeFile(`/${name}/source.js`, code);
+        }
       }
     }
   }
@@ -322,6 +161,8 @@ export function GraphEditor(props: {
         getCursorPosition() {
           return store.cursorPosition;
         },
+        saveType,
+        saveAsNewType,
       }}
     >
       <div class={styles.sidebar}>
@@ -496,12 +337,13 @@ export function GraphEditor(props: {
             };
 
             const typeDef = config[type];
-
             if (typeDef?.state && "code" in typeDef.state) {
               const nodeId = graph.addNode(type, position);
               const name = `custom-${nodeId}`;
               const code = typeDef.state.code || getSourceBoilerplate();
 
+              setGraphStore("nodes", nodeId, "state", "name", name);
+              setGraphStore("nodes", nodeId, "state", "code", code);
               workletFS.writeFile(`/${name}/source.js`, code);
               workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
             } else {

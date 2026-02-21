@@ -135,7 +135,7 @@ export function createGraph<C, T extends GraphConfig<C>>({
                 return node.state;
               },
               setState(...args: any[]) {
-                return setStore("nodes", id, ...args);
+                return (setStore as any)("nodes", id, "state", ...args);
               },
               isInputConnected: (portName: string) =>
                 store.edges.some(

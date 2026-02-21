@@ -18,6 +18,8 @@ export const GraphContext = createContext<{
   updateTemporaryEdge(x: number, y: number): void;
   setDragging(dragging: boolean): void;
   getCursorPosition(): { x: number; y: number } | undefined;
+  saveType(nodeId: string): void;
+  saveAsNewType(code: string, nodeId: string): void;
 }>();
 
 export function useGraph() {
