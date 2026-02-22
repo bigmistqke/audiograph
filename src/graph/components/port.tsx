@@ -8,7 +8,7 @@ import {
   TITLE_HEIGHT,
 } from "../constants";
 import { useGraph, useNode } from "../context";
-import type { EdgeHandle } from "../create-graph";
+import type { EdgeHandle } from "../create-graph-api";
 import styles from "./port.module.css";
 
 export function GraphPort(props: {
@@ -20,7 +20,7 @@ export function GraphPort(props: {
 }) {
   const { node } = useNode();
   const {
-    graph,
+    graphAPI: graph,
     setTemporaryEdge,
     getTemporaryEdge,
     updateTemporaryEdge,

@@ -1,6 +1,8 @@
 import { minni } from "@bigmistqke/minni";
-import { For, Show } from "solid-js";
-import { createStore, SetStoreFunction } from "solid-js/store";
+import clsx from "clsx";
+import { For, mergeProps, Show, splitProps } from "solid-js";
+import { JSX } from "solid-js/h/jsx-runtime";
+import { createStore } from "solid-js/store";
 import { GraphEdge } from "./components/edge";
 import { GraphNode } from "./components/node";
 import { GraphTemporaryEdge } from "./components/temporary-edge";
@@ -19,24 +21,30 @@ import {
   TITLE_HEIGHT,
 } from "./constants";
 import { GraphContext, type TemporaryEdge } from "./context";
-import type { GraphAPI, GraphConfig, GraphStore } from "./create-graph";
-import { createGraph } from "./create-graph";
+import type {
+  CreateGraphAPIConfig,
+  GraphAPI,
+  GraphConfig,
+} from "./create-graph-api";
+import { createGraphAPI } from "./create-graph-api";
 import styles from "./graph-editor.module.css";
 
-export function GraphEditor<T>(props: {
-  graphName: string;
-  context: T;
-  config: GraphConfig<T>;
-  setConfig: SetStoreFunction<GraphConfig<T>>;
-  store: GraphStore;
-  setStore: SetStoreFunction<GraphStore>;
+export interface GraphEditorProps<
+  TContext extends Record<string, any>,
+> extends CreateGraphAPIConfig<unknown, TContext> {
+  style?: JSX.CSSProperties;
+  class?: string;
   onClick(event: {
     x: number;
     y: number;
-    graph: GraphAPI<GraphConfig<T>>;
+    graph: GraphAPI<GraphConfig<TContext>>;
   }): void;
-}) {
-  const [store, setStore] = createStore<{
+}
+
+export function GraphEditor<TContext extends Record<string, any>>(
+  props: GraphEditorProps<TContext>,
+) {
+  const [UIState, setUIState] = createStore<{
     origin: { x: number; y: number };
     dimensions: { width: number; height: number };
     temporaryEdge: TemporaryEdge | undefined;
@@ -49,53 +57,44 @@ export function GraphEditor<T>(props: {
     dragging: false,
     cursorPosition: undefined,
   });
+  const [graphProps, rest] = splitProps(props, [
+    "config",
+    "context",
+    "setGraphStore",
+    "graphStore",
+  ]);
 
-  const graph = createGraph(props);
+  const graphAPI = createGraphAPI(graphProps);
 
-  // // Initialize worklet files for persisted custom nodes
-  // for (const node of Object.values(graph.store.nodes)) {
-  //   const { state } = props.store.nodes[node.id];
-  //   if (state?.name && state?.code) {
-  //     const name = state.name;
-  //     if (!workletFS.readFile(`/${name}/source.js`)) {
-  //       workletFS.writeFile(`/${name}/source.js`, state.code);
-  //       workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
-  //     }
-  //   }
-  // }
+  const context = mergeProps(graphAPI, {
+    setTemporaryEdge(edge: TemporaryEdge) {
+      setUIState("temporaryEdge", edge);
+    },
+    getTemporaryEdge() {
+      return UIState.temporaryEdge;
+    },
+    updateTemporaryEdge(x: number, y: number) {
+      setUIState("temporaryEdge", (edge) => (edge ? { ...edge, x, y } : edge));
+    },
+    setDragging(dragging: boolean) {
+      if (dragging) window.getSelection()?.removeAllRanges();
+      setUIState("dragging", dragging);
+    },
+    getCursorPosition() {
+      return UIState.cursorPosition;
+    },
+  });
 
   return (
-    <GraphContext.Provider
-      value={{
-        graph,
-        setTemporaryEdge(edge) {
-          setStore("temporaryEdge", edge);
-        },
-        getTemporaryEdge() {
-          return store.temporaryEdge;
-        },
-        updateTemporaryEdge(x, y) {
-          setStore("temporaryEdge", (edge) =>
-            edge ? { ...edge, x, y } : edge,
-          );
-        },
-        setDragging(dragging) {
-          if (dragging) window.getSelection()?.removeAllRanges();
-          setStore("dragging", dragging);
-        },
-        getCursorPosition() {
-          return store.cursorPosition;
-        },
-      }}
-    >
+    <GraphContext.Provider value={context}>
       <svg
         ref={(element) => {
           new ResizeObserver(() => {
-            setStore("dimensions", element.getBoundingClientRect());
+            setUIState("dimensions", element.getBoundingClientRect());
           }).observe(element);
         }}
-        viewBox={`${-store.origin.x} ${store.origin.y} ${store.dimensions.width} ${store.dimensions.height}`}
-        class={styles.svg}
+        viewBox={`${-UIState.origin.x} ${UIState.origin.y} ${UIState.dimensions.width} ${UIState.dimensions.height}`}
+        class={clsx(styles.svg, rest.class)}
         style={{
           "--port-radius": `${PORT_RADIUS}px`,
           "--port-inset": `${PORT_INSET}px`,
@@ -108,36 +107,37 @@ export function GraphEditor<T>(props: {
           "--content-padding-inline": `${CONTENT_PADDING_INLINE}px`,
           "--heading-padding-block": `${HEADING_PADDING_BLOCK}px`,
           "--heading-padding-inline": `${HEADING_PADDING_INLINE}px`,
+          ...rest.style,
         }}
-        data-dragging={store.dragging || undefined}
+        data-dragging={UIState.dragging || undefined}
         onPointerMove={(event) => {
           const rect = event.currentTarget.getBoundingClientRect();
-          setStore("cursorPosition", {
-            x: event.clientX - rect.left - store.origin.x,
-            y: event.clientY - rect.top + store.origin.y,
+          setUIState("cursorPosition", {
+            x: event.clientX - rect.left - UIState.origin.x,
+            y: event.clientY - rect.top + UIState.origin.y,
           });
         }}
-        onPointerLeave={() => {
-          setStore("cursorPosition", undefined);
+        onPointerLeave={(event) => {
+          setUIState("cursorPosition", undefined);
         }}
         onPointerDown={async (event) => {
           if (event.target !== event.currentTarget) return;
-          const _origin = { ...store.origin };
+          const _origin = { ...UIState.origin };
           const start = performance.now();
 
-          setStore("dragging", true);
+          setUIState("dragging", true);
           await minni(event, (delta) => {
-            setStore("origin", {
+            setUIState("origin", {
               x: _origin.x + delta.x,
               y: _origin.y + delta.y,
             });
           });
-          setStore("dragging", false);
+          setUIState("dragging", false);
 
           if (performance.now() - start < 250) {
-            const x = snapToGrid(event.offsetX - store.origin.x);
-            const y = snapToGrid(event.offsetY + store.origin.y);
-            props.onClick({ x, y, graph });
+            const x = snapToGrid(event.offsetX - UIState.origin.x);
+            const y = snapToGrid(event.offsetY + UIState.origin.y);
+            rest.onClick({ x, y, graph: graphAPI });
           }
         }}
       >
@@ -152,18 +152,20 @@ export function GraphEditor<T>(props: {
           </pattern>
         </defs>
         <rect
-          x={-store.origin.x}
-          y={store.origin.y}
-          width={store.dimensions.width}
-          height={store.dimensions.height}
+          x={-UIState.origin.x}
+          y={UIState.origin.y}
+          width={UIState.dimensions.width}
+          height={UIState.dimensions.height}
           fill="url(#grid)"
           pointer-events="none"
         />
-        <For each={Object.values(graph.store.nodes)}>
+        <For each={Object.values(props.graphStore.nodes)}>
           {(node) => <GraphNode node={node} />}
         </For>
-        <For each={graph.store.edges}>{(edge) => <GraphEdge {...edge} />}</For>
-        <Show when={store.temporaryEdge}>
+        <For each={props.graphStore.edges}>
+          {(edge) => <GraphEdge {...edge} />}
+        </For>
+        <Show when={UIState.temporaryEdge}>
           {(edge) => <GraphTemporaryEdge {...edge()} />}
         </Show>
       </svg>

@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { createResource, createSignal, For, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { AudioGraphContext, builtIns } from "../built-ins";
-import { GraphConfig, GraphStore } from "../graph/create-graph";
+import { GraphConfig, GraphStore } from "../graph/create-graph-api";
 import { GraphEditor } from "../graph/graph-editor";
 import envelopeProcessorUrl from "../lib/envelope-processor?url";
 import sequencerProcessorUrl from "../lib/sequencer-processor?url";
@@ -37,6 +37,18 @@ export function GraphRoute() {
       name: `audiograph-${params.id}`,
     },
   );
+
+  // Initialize worklet files for persisted custom nodes
+  for (const node of Object.values(graphStore.nodes)) {
+    const { state } = graphStore.nodes[node.id];
+    if (state?.name && state?.code) {
+      const name = state.name;
+      if (!workletFS.readFile(`/${name}/source.js`)) {
+        workletFS.writeFile(`/${name}/source.js`, state.code);
+        workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
+      }
+    }
+  }
 
   function saveAsNewType(code: string, nodeId: string) {
     const name = prompt("Name for this node type:");
@@ -216,8 +228,8 @@ export function GraphRoute() {
             context={context}
             config={config}
             setConfig={setConfig}
-            store={graphStore}
-            setStore={setGraphStore}
+            graphStore={graphStore}
+            setGraphStore={setGraphStore}
             onClick={({ x, y, graph }) => {
               const type = selectedType();
               if (!type) return;

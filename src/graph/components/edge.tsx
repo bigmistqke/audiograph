@@ -6,14 +6,14 @@ import {
   TITLE_HEIGHT,
 } from "../constants";
 import { useGraph } from "../context";
-import type { EdgeHandle } from "../create-graph";
+import type { EdgeHandle } from "../create-graph-api";
 
 function portY(index: number) {
   return index * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS;
 }
 
 export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
-  const { graph } = useGraph();
+  const { graphAPI: graph } = useGraph();
 
   const fromNode = createMemo(() => graph.store.nodes[props.output.node]);
   const toNode = createMemo(() => graph.store.nodes[props.input.node]);

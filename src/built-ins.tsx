@@ -5,7 +5,7 @@ import type {
   ConstructResult,
   GraphConfig,
   NodeTypeDef,
-} from "./graph/create-graph";
+} from "./graph/create-graph-api";
 import type { WorkletFileSystem } from "./lib/worklet-file-system";
 import { Button } from "./ui/button";
 import { HorizontalSlider } from "./ui/horizontal-slider";

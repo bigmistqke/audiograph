@@ -43,8 +43,8 @@ export interface ConstructResult {
 }
 
 export interface NodeTypeDef<
-  S extends Record<string, any> = Record<string, any>,
-  C = any,
+  TState extends Record<string, any> = Record<string, any>,
+  TContext = any,
 > {
   title?: string;
   dimensions: { x: number; y: number };
@@ -52,13 +52,16 @@ export interface NodeTypeDef<
     in?: PortDef[];
     out?: PortDef[];
   };
-  state?: S;
+  state?: TState;
   resizable?: boolean;
   hideLabels?: boolean;
-  construct(props: ConstructProps<S, C>): ConstructResult;
+  construct(props: ConstructProps<TState, TContext>): ConstructResult;
 }
 
-export type GraphConfig<C = any> = Record<string, NodeTypeDef<any, C>>;
+export type GraphConfig<TContext = any> = Record<
+  string,
+  NodeTypeDef<any, TContext>
+>;
 
 export interface NodeInstance<
   S extends Record<string, any> = Record<string, any>,
@@ -90,7 +93,6 @@ export type GraphAPI<
   TConfig extends GraphConfig<unknown> = GraphConfig<unknown>,
 > = {
   config: TConfig;
-  store: GraphStore;
   nodes: Record<string, ConstructResult>;
   getPortDef: (nodeId: string, portName: string) => PortDef | undefined;
   addNode(
@@ -114,25 +116,35 @@ export type GraphAPI<
   ): void;
 };
 
-export function createGraph<TContext, TConfig extends GraphConfig<TContext>>({
-  config,
-  context,
-  store: graph,
-  setStore: setGraph,
-}: {
+export interface CreateGraphAPIConfig<
+  TContext,
+  TConfig extends GraphConfig<TContext>,
+> {
   config: TConfig;
   context: TContext;
-  store: GraphStore;
-  setStore: SetStoreFunction<GraphStore>;
-}): GraphAPI<TConfig> {
+  graphStore: GraphStore;
+  setGraphStore: SetStoreFunction<GraphStore>;
+}
+
+export function createGraphAPI<
+  TContext,
+  TConfig extends GraphConfig<TContext>,
+>({
+  config,
+  context,
+  graphStore,
+  setGraphStore,
+}: CreateGraphAPIConfig<TContext, TConfig>): GraphAPI<TConfig> {
+  const [nodes, setNodes] = createStore<Record<string, ConstructResult>>({});
+
   // Recover ID counter from persisted nodes
-  let nextId = Object.keys(graph.nodes).reduce(
+  let nextId = Object.keys(graphStore.nodes).reduce(
     (max, n) => Math.max(max, (parseInt(n) || 0) + 1),
     0,
   );
 
   function getPortDef(nodeId: string, portName: string) {
-    const node = graph.nodes[nodeId];
+    const node = graphStore.nodes[nodeId];
     if (!node) return undefined;
     const typeDef = config[node.type];
     return (
@@ -140,14 +152,13 @@ export function createGraph<TContext, TConfig extends GraphConfig<TContext>>({
       typeDef.ports.out?.find((p: PortDef) => p.name === portName)
     );
   }
-  const [nodes, setNodes] = createStore<Record<string, ConstructResult>>({});
 
   createComputed(
     mapArray(
-      () => Object.keys(graph.nodes),
+      () => Object.keys(graphStore.nodes),
       (id) => {
         createComputed(() => {
-          const node = graph.nodes[id];
+          const node = graphStore.nodes[id];
           const typeDef = config[node.type];
 
           if (!typeDef?.construct) {
@@ -161,16 +172,16 @@ export function createGraph<TContext, TConfig extends GraphConfig<TContext>>({
             typeDef.construct({
               id: node.id,
               context,
-              graph,
-              setGraph,
+              graph: graphStore,
+              setGraph: setGraphStore,
               get state() {
                 return node.state;
               },
               setState(...args: any[]) {
-                return (setGraph as any)("nodes", id, "state", ...args);
+                return (setGraphStore as any)("nodes", id, "state", ...args);
               },
               isInputConnected: (portName: string) =>
-                graph.edges.some(
+                graphStore.edges.some(
                   (e) => e.input.node === node.id && e.input.port === portName,
                 ),
             }),
@@ -183,7 +194,7 @@ export function createGraph<TContext, TConfig extends GraphConfig<TContext>>({
   // Edge lifecycle: connect/disconnect audio ports when edges change
   createEffect(
     mapArray(
-      () => graph.edges,
+      () => graphStore.edges,
       (edge) => {
         createEffect(() => {
           const from = nodes[edge.output.node];
@@ -218,14 +229,13 @@ export function createGraph<TContext, TConfig extends GraphConfig<TContext>>({
 
   return {
     config,
-    store: graph,
     nodes,
     getPortDef,
     addNode(type: keyof TConfig & string, position: { x: number; y: number }) {
       const id = (nextId++).toString();
       const typeDef = config[type];
 
-      setGraph(
+      setGraphStore(
         "nodes",
         produce((nodes) => {
           nodes[id] = {
@@ -242,7 +252,7 @@ export function createGraph<TContext, TConfig extends GraphConfig<TContext>>({
       return id;
     },
     deleteNode(id: string) {
-      setGraph(
+      setGraphStore(
         produce((graph) => {
           delete graph.nodes[id];
           graph.edges = graph.edges.filter(
@@ -252,7 +262,7 @@ export function createGraph<TContext, TConfig extends GraphConfig<TContext>>({
       );
     },
     unlink(output: EdgeHandle, input: EdgeHandle) {
-      setGraph(
+      setGraphStore(
         "edges",
         produce((edges) => {
           const index = edges.findIndex(
@@ -267,7 +277,7 @@ export function createGraph<TContext, TConfig extends GraphConfig<TContext>>({
       );
     },
     link(output: EdgeHandle, input: EdgeHandle) {
-      const exists = graph.edges.find(
+      const exists = graphStore.edges.find(
         (e) =>
           e.output.node === output.node &&
           e.output.port === output.port &&
@@ -280,7 +290,7 @@ export function createGraph<TContext, TConfig extends GraphConfig<TContext>>({
       const toPort = getPortDef(input.node, input.port);
       if (fromPort?.kind !== toPort?.kind) return;
 
-      setGraph(
+      setGraphStore(
         "edges",
         produce((edges) => edges.push({ output, input })),
       );
@@ -291,7 +301,7 @@ export function createGraph<TContext, TConfig extends GraphConfig<TContext>>({
         dimensions?: Partial<{ x: number; y: number }>;
       },
     ) {
-      setGraph(
+      setGraphStore(
         "nodes",
         produce((nodes) => {
           const { dimensions, ...rest } = update;

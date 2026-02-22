@@ -12,7 +12,7 @@ function portY(index: number) {
 }
 
 export function GraphTemporaryEdge(props: TemporaryEdge) {
-  const { graph } = useGraph();
+  const { graphAPI: graph } = useGraph();
 
   const port = () => {
     const node = graph.store.nodes[props.node];
