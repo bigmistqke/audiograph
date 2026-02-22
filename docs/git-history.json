@@ -1,5 +1,21 @@
 [
   {
+    "hash": "baa300eeaa20c59a4705aaf7984917bc50ba88ba",
+    "short_hash": "baa300e",
+    "author": "bigmistqke",
+    "date": "2026-02-22T19:01:41+01:00",
+    "message": "feat: multi-drag selected nodes, deselect on unselected node click",
+    "files_changed": 1
+  },
+  {
+    "hash": "a334b9bb3a48b5ddd2cb26759c85854131de344e",
+    "short_hash": "a334b9b",
+    "author": "bigmistqke",
+    "date": "2026-02-22T18:58:49+01:00",
+    "message": "feat: add multi-node selection box with shift+drag",
+    "files_changed": 5
+  },
+  {
     "hash": "c4eb5f6b5cb363abde83d64136a0f809a4d663bb",
     "short_hash": "c4eb5f6",
     "author": "bigmistqke",
