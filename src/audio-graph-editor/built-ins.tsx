@@ -1,16 +1,16 @@
 import { createEffect, createSignal, For, onCleanup } from "solid-js";
-import { calcNodeHeight } from "./graph/constants";
+import { calcNodeHeight } from "~/lib/graph/constants";
 import type {
   ConstructProps,
   ConstructResult,
   GraphConfig,
   NodeTypeDef,
-} from "./graph/create-graph-api";
-import type { WorkletFileSystem } from "./lib/worklet-file-system";
-import { Button } from "./ui/button";
-import { HorizontalSlider } from "./ui/horizontal-slider";
-import { GraphNodeContent } from "./ui/node-content";
-import { Select } from "./ui/select";
+} from "~/lib/graph/create-graph-api";
+import type { WorkletFileSystem } from "~/lib/worklet-file-system";
+import { Button } from "~/ui/button";
+import { HorizontalSlider } from "~/ui/horizontal-slider";
+import { GraphNodeContent } from "~/ui/node-content";
+import { Select } from "~/ui/select";
 
 export interface AudioGraphContext {
   audioContext: AudioContext;
