@@ -39,7 +39,7 @@ export interface ConstructProps<
 export interface ConstructResult {
   in?: Record<string, AudioNode | AudioParam | undefined>;
   out?: Record<string, Connectable | undefined>;
-  ui?: () => JSX.Element;
+  render?: () => JSX.Element;
 }
 
 export interface NodeTypeDef<

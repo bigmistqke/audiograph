@@ -2,7 +2,6 @@
   overflow: hidden;
   padding-block: var(--content-padding-block);
   padding-inline: var(--content-padding-inline);
-  display: grid;
   gap: var(--gap);
 
   &.disabled {

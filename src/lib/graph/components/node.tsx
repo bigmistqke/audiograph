@@ -28,10 +28,6 @@ export function GraphNode(props: { node: NodeInstance }) {
 
   const contentY = () => headerHeight(maxPorts());
 
-  const rendered = () => {
-    return graph.nodes[props.node.id].ui?.();
-  };
-
   return (
     <NodeContext.Provider
       value={{
@@ -108,7 +104,7 @@ export function GraphNode(props: { node: NodeInstance }) {
                 }}
               />
             </div>
-            {rendered()}
+            {graph.nodes[props.node.id].render?.()}
             <Show when={typeDef().resizable}>
               <div
                 class={styles.resizeHandle}

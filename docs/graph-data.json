@@ -1396,6 +1396,28 @@
       "created_at": "2026-02-22T22:21:43.293978+01:00",
       "updated_at": "2026-02-22T22:21:43.293978+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"9491d3e\",\"confidence\":95}"
+    },
+    {
+      "id": 128,
+      "change_id": "3867908e-8ac8-47f1-8687-157bd2d0fb9c",
+      "node_type": "action",
+      "title": "Propagate registerProcessor errors through addModule for real error messages",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T22:42:17.346059+01:00",
+      "updated_at": "2026-02-22T22:42:17.346059+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85,\"files\":[\"src/lib/worklet-file-system.ts\",\"src/audio-graph-editor/built-ins.tsx\"]}"
+    },
+    {
+      "id": 129,
+      "change_id": "294f8fe0-e010-47be-bc85-b9e08e05b480",
+      "node_type": "outcome",
+      "title": "Committed: fix: show actual registerProcessor errors via ErrorReporter worklet fallback",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T23:28:16.199478+01:00",
+      "updated_at": "2026-02-22T23:28:16.199478+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"d4829b4\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -2707,6 +2729,28 @@
       "weight": 1.0,
       "rationale": "Committed",
       "created_at": "2026-02-22T22:21:43.329288+01:00"
+    },
+    {
+      "id": 120,
+      "from_node_id": 125,
+      "to_node_id": 128,
+      "from_change_id": "1bf71d02-3f29-45b7-b510-93ad92dc5e29",
+      "to_change_id": "3867908e-8ac8-47f1-8687-157bd2d0fb9c",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Better error reporting",
+      "created_at": "2026-02-22T22:42:17.378050+01:00"
+    },
+    {
+      "id": 121,
+      "from_node_id": 128,
+      "to_node_id": 129,
+      "from_change_id": "3867908e-8ac8-47f1-8687-157bd2d0fb9c",
+      "to_change_id": "294f8fe0-e010-47be-bc85-b9e08e05b480",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-02-22T23:28:16.223697+01:00"
     }
   ]
 }

@@ -12,7 +12,7 @@ export function GraphNodeContent(
       class={clsx(
         styles.nodeContent,
         props.disabled && styles.disabled,
-        props.style,
+        props.class,
       )}
     />
   );
