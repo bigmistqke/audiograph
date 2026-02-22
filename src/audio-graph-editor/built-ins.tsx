@@ -7,7 +7,9 @@ import {
   createResource,
   createSignal,
   For,
+  mapArray,
   onCleanup,
+  Show,
 } from "solid-js";
 import { calcNodeHeight } from "~/lib/graph/constants";
 import type {
@@ -22,6 +24,7 @@ import { HorizontalSlider } from "~/ui/horizontal-slider";
 import { GraphNodeContent } from "~/ui/node-content";
 import { Select } from "~/ui/select";
 
+import { produce } from "solid-js/store";
 import envelopeProcessorUrl from "~/lib/envelope-processor?url";
 import sequencerProcessorUrl from "~/lib/sequencer-processor?url";
 
@@ -1224,25 +1227,26 @@ export const builtIns = {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
       },
-      state: { name: "", code: "" },
+      state: { name: "", code: "", metadata: {} as Record<string, number> },
     },
     (props) => {
       const inputGain = props.context.audioContext.createGain();
       const outputGain = props.context.audioContext.createGain();
-      const [workletNode, setWorkletNode] =
-        createSignal<AudioWorkletNode | null>(null);
 
       let currentWorkletNode: AudioWorkletNode | null = null;
       let loadGeneration = 0;
+      const [workletError, setWorkletError] = createSignal<string>();
 
-      createEffect(() => {
+      const url = createMemo(() => {
         const name = props.state.name;
         if (!name) return;
-
         const url = props.context.workletFS.fileUrls.get(`/${name}/worklet.js`);
-        const processorName = props.context.workletFS.getProcessorName(name);
         if (!url) return;
+        const processorName = props.context.workletFS.getProcessorName(name);
+        return { url, processorName };
+      });
 
+      const [module] = createResource(url, async ({ url, processorName }) => {
         const gen = ++loadGeneration;
 
         if (currentWorkletNode) {
@@ -1251,10 +1255,16 @@ export const builtIns = {
           currentWorkletNode = null;
         }
 
-        props.context.audioContext.audioWorklet
-          .addModule(url)
-          .then(() => {
-            if (loadGeneration !== gen) return;
+        await props.context.audioContext.audioWorklet.addModule(url);
+
+        if (loadGeneration !== gen) return;
+
+        return { url, processorName };
+      });
+
+      const workletNode = createMemo(
+        when(module, ({ processorName }) => {
+          try {
             const node = new AudioWorkletNode(
               props.context.audioContext,
               processorName,
@@ -1262,108 +1272,115 @@ export const builtIns = {
             currentWorkletNode = node;
             inputGain.connect(node);
             node.connect(outputGain);
-            setWorkletNode(node);
-          })
-          .catch((err) => {
-            console.error(`Failed to load worklet "${processorName}":`, err);
+            setWorkletError(undefined);
+            return node;
+          } catch (error) {
+            console.error("Failed to create AudioWorkletNode:", error);
+            setWorkletError(
+              error instanceof Error ? error.message : String(error),
+            );
+            return undefined;
+          }
+        }),
+      );
+
+      const params = when(
+        workletNode,
+        (node) => Array.from(node.parameters.entries()),
+        () => [],
+      );
+
+      createEffect(
+        mapArray(params, ([name, param]) => {
+          if (!(name in props.state.metadata)) {
+            props.setState(
+              produce((state) => {
+                state.metadata[name] = param.value;
+              }),
+            );
+          }
+
+          onCleanup(() => {
+            props.setState(
+              produce((state) => {
+                delete state.metadata[name];
+              }),
+            );
           });
-      });
+        }),
+      );
 
-      onCleanup(() => {
-        if (currentWorkletNode) {
-          inputGain.disconnect(currentWorkletNode);
-          currentWorkletNode.disconnect(outputGain);
-        }
-        inputGain.disconnect();
-        outputGain.disconnect();
-      });
-
-      const params = () => {
-        const node = workletNode();
-        if (!node) return [];
-        return Array.from(node.parameters.entries());
-      };
+      const nodeType = () => props.graphStore.nodes[props.id]?.type;
+      const isSaved = () => nodeType() !== "audioworklet";
 
       return {
         in: { audio: inputGain },
         out: { audio: outputGain },
-        ui: () => {
-          const nodeType = () => props.graphStore.nodes[props.id]?.type;
-          const isSaved = () => nodeType() !== "audioworklet";
+        ui: () => (
+          <GraphNodeContent
+            style={{
+              display: "flex",
+              "flex-direction": "column",
+              gap: "var(--gap)",
+            }}
+          >
+            <For each={params()}>
+              {([name, param]) => {
+                const min = () => (param.minValue < -1e30 ? 0 : param.minValue);
+                const max = () => (param.maxValue > 1e30 ? 1 : param.maxValue);
 
-          return (
-            <GraphNodeContent
+                return (
+                  <HorizontalSlider
+                    title={name}
+                    output={props.state.metadata[name]?.toFixed(2)}
+                    value={props.state.metadata[name]}
+                    min={min()}
+                    max={max()}
+                    step={(max() - min()) / 1000}
+                    onInput={(value) => {
+                      param.value = value;
+                      props.setState(
+                        produce((state) => {
+                          state.metadata[name] = param.value;
+                        }),
+                      );
+                    }}
+                  />
+                );
+              }}
+            </For>
+            <textarea
+              style={{
+                flex: 1,
+                width: "100%",
+                "font-family": "monospace",
+                "font-size": "9px",
+                resize: "none",
+                border: "none",
+                outline: workletError()
+                  ? "1px solid var(--color-error)"
+                  : "1px solid #ccc",
+                "box-sizing": "border-box",
+                "tab-size": "2",
+              }}
+              spellcheck={false}
+              value={props.state.code}
+              onInput={(e) => {
+                const newCode = e.currentTarget.value;
+                props.setState("code", newCode);
+                props.context.workletFS.writeFile(
+                  `/${props.state.name}/source.js`,
+                  newCode,
+                );
+              }}
+            />
+            <div
               style={{
                 display: "flex",
-                "flex-direction": "column",
                 gap: "var(--gap)",
               }}
             >
-              <For each={params()}>
-                {([name, param]) => {
-                  const min = param.minValue < -1e30 ? 0 : param.minValue;
-                  const max = param.maxValue > 1e30 ? 1 : param.maxValue;
-                  const [value, setValue] = createSignal(param.defaultValue);
-                  return (
-                    <HorizontalSlider
-                      title={name}
-                      output={value().toFixed(2)}
-                      value={value()}
-                      min={min}
-                      max={max}
-                      step={(max - min) / 1000}
-                      onInput={(value) => {
-                        setValue(value);
-                        param.value = value;
-                      }}
-                    />
-                  );
-                }}
-              </For>
-              <textarea
-                style={{
-                  flex: 1,
-                  width: "100%",
-                  "font-family": "monospace",
-                  "font-size": "9px",
-                  resize: "none",
-                  border: "1px solid #ccc",
-                  "box-sizing": "border-box",
-                  "tab-size": "2",
-                }}
-                spellcheck={false}
-                value={props.state.code}
-                onInput={(e) => {
-                  const newCode = e.currentTarget.value;
-                  props.setState("code", newCode);
-                  props.context.workletFS.writeFile(
-                    `/${props.state.name}/source.js`,
-                    newCode,
-                  );
-                }}
-              />
-              <div
-                style={{
-                  display: "flex",
-                  gap: "var(--gap)",
-                }}
-              >
-                {isSaved() && (
-                  <Button
-                    style={{
-                      flex: 1,
-                      padding: "2px 4px",
-                      "font-size": "10px",
-                      cursor: "pointer",
-                    }}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={() =>
-                      props.context.updateUserAudioWorkletNode(props.id)
-                    }
-                  >
-                    save
-                  </Button>
-                )}
+              <Show when={isSaved()}>
                 <Button
                   style={{
                     flex: 1,
@@ -1373,18 +1390,32 @@ export const builtIns = {
                   }}
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={() =>
-                    props.context.addUserAudioWorkletNode(
-                      props.state.code,
-                      props.id,
-                    )
+                    props.context.updateUserAudioWorkletNode(props.id)
                   }
                 >
-                  {isSaved() ? "save as" : "save as type"}
+                  save
                 </Button>
-              </div>
-            </GraphNodeContent>
-          );
-        },
+              </Show>
+              <Button
+                style={{
+                  flex: 1,
+                  padding: "2px 4px",
+                  "font-size": "10px",
+                  cursor: "pointer",
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() =>
+                  props.context.addUserAudioWorkletNode(
+                    props.state.code,
+                    props.id,
+                  )
+                }
+              >
+                {isSaved() ? "save as" : "save as type"}
+              </Button>
+            </div>
+          </GraphNodeContent>
+        ),
       };
     },
   ),

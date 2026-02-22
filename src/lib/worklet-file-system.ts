@@ -1,6 +1,6 @@
+import { createFileUrlSystem, type FileUrlSystem } from "@bigmistqke/repl";
 import { ReactiveMap } from "@solid-primitives/map";
 import { createSignal } from "solid-js";
-import { createFileUrlSystem, type FileUrlSystem } from "@bigmistqke/repl";
 
 export interface WorkletFileSystem {
   files: ReactiveMap<string, string>;
@@ -106,6 +106,11 @@ export function getSourceBoilerplate(): string {
 
 export function getWorkletEntry(name: string): string {
   return `import Processor from './source.js';
-registerProcessor("${name}", Processor);
-`;
+export let success = true;
+try {
+  registerProcessor("${name}", Processor);
+} catch(error){
+  console.error("Error while registering the processor:", error)
+  success = false;
+}`;
 }
