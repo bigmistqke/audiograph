@@ -1265,18 +1265,16 @@ export const builtIns = {
               node.disconnect(outputGain);
             });
 
-            const { promise, resolve } = Promise.withResolvers<
-              | { success: true; result: AudioWorkletNode }
-              | { success: false; error: string }
-            >();
+            const { promise, resolve, reject } =
+              Promise.withResolvers<AudioWorkletNode>();
 
             node.port.start();
             node.port.addEventListener("message", (event) => {
               if (event.data.type === "worklet-result") {
                 if (event.data.success) {
-                  resolve({ success: true, result: node });
+                  resolve(node);
                 } else {
-                  resolve({ success: false, error: event.data.error });
+                  reject(new Error(event.data.error));
                 }
               }
             });
@@ -1285,19 +1283,15 @@ export const builtIns = {
           });
 
           const workletParams = createMemo(() => {
-            const _workletNode = workletNode();
-            if (_workletNode?.success) {
-              const node = _workletNode.result;
-              return Array.from(node.parameters.entries());
-            }
-            return [];
+            if (workletNode.error) return [];
+            const node = workletNode();
+            if (!node) return [];
+            return Array.from(node.parameters.entries());
           });
 
           const workletError = () => {
-            const _workletNode = workletNode();
-            if (!_workletNode?.success) {
-              return _workletNode?.error;
-            }
+            const error = workletNode.error;
+            return error instanceof Error ? error.message : undefined;
           };
 
           const nodeType = () => props.graphStore.nodes[props.id]?.type;
