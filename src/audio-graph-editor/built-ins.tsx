@@ -23,6 +23,7 @@ import { Button } from "~/ui/button";
 import { HorizontalSlider } from "~/ui/horizontal-slider";
 import { GraphNodeContent } from "~/ui/node-content";
 import { Select } from "~/ui/select";
+import styles from "./built-ins.module.css";
 
 import { produce } from "solid-js/store";
 import envelopeProcessorUrl from "~/lib/envelope-processor?url";
@@ -1264,23 +1265,23 @@ export const builtIns = {
 
       const workletNode = createMemo(
         when(module, ({ processorName }) => {
-          try {
-            const node = new AudioWorkletNode(
-              props.context.audioContext,
-              processorName,
-            );
-            currentWorkletNode = node;
-            inputGain.connect(node);
-            node.connect(outputGain);
-            setWorkletError(undefined);
-            return node;
-          } catch (error) {
-            console.error("Failed to create AudioWorkletNode:", error);
-            setWorkletError(
-              error instanceof Error ? error.message : String(error),
-            );
-            return undefined;
-          }
+          const node = new AudioWorkletNode(
+            props.context.audioContext,
+            processorName,
+          );
+          currentWorkletNode = node;
+          inputGain.connect(node);
+          node.connect(outputGain);
+
+          setWorkletError(undefined);
+          node.port.start();
+          node.port.addEventListener("message", (event) => {
+            if (event.data.type === "worklet-error") {
+              setWorkletError(event.data.message);
+            }
+          });
+
+          return node;
         }),
       );
 
@@ -1349,31 +1350,29 @@ export const builtIns = {
                 );
               }}
             </For>
-            <textarea
-              style={{
-                flex: 1,
-                width: "100%",
-                "font-family": "monospace",
-                "font-size": "9px",
-                resize: "none",
-                border: "none",
-                outline: workletError()
-                  ? "1px solid var(--color-error)"
-                  : "1px solid #ccc",
-                "box-sizing": "border-box",
-                "tab-size": "2",
-              }}
-              spellcheck={false}
-              value={props.state.code}
-              onInput={(e) => {
-                const newCode = e.currentTarget.value;
-                props.setState("code", newCode);
-                props.context.workletFS.writeFile(
-                  `/${props.state.name}/source.js`,
-                  newCode,
-                );
-              }}
-            />
+            <div class={styles["audioworklet-textarea-container"]}>
+              <textarea
+                aria-errormessage={workletError()}
+                spellcheck={false}
+                value={props.state.code}
+                onInput={(e) => {
+                  const newCode = e.currentTarget.value;
+                  props.setState("code", newCode);
+                  props.context.workletFS.writeFile(
+                    `/${props.state.name}/source.js`,
+                    newCode,
+                  );
+                }}
+                class={styles["audioworklet-textarea"]}
+              />
+              <Show when={workletError()}>
+                {(error) => (
+                  <div class={styles["audioworklet-textarea-error"]}>
+                    {error()}
+                  </div>
+                )}
+              </Show>
+            </div>
             <div
               style={{
                 display: "flex",

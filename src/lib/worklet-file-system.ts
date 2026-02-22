@@ -45,9 +45,9 @@ export function createWorkletFileSystem(): WorkletFileSystem {
             const v = ver();
 
             return source
-              .replace(`'./source.js'`, `'${sourceUrl}'`)
-              .replace(
-                /registerProcessor\s*\(\s*["'][^"']*["']/,
+              .replaceAll("./source.js", sourceUrl)
+              .replaceAll(
+                /registerProcessor\s*\(\s*["'][^"']*["']/g,
                 `registerProcessor("${name}_v${v}"`,
               );
           };
@@ -106,11 +106,16 @@ export function getSourceBoilerplate(): string {
 
 export function getWorkletEntry(name: string): string {
   return `import Processor from './source.js';
-export let success = true;
 try {
   registerProcessor("${name}", Processor);
-} catch(error){
-  console.error("Error while registering the processor:", error)
-  success = false;
+} catch(error) {
+  class ErrorReporter extends AudioWorkletProcessor {
+    constructor() {
+      super();
+      this.port.postMessage({ type: 'worklet-error', message: error.message })
+    }
+    process() { return false; }
+  }
+  registerProcessor("${name}", ErrorReporter);
 }`;
 }
