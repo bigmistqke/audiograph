@@ -1033,6 +1033,149 @@
       "created_at": "2026-02-21T20:17:03.009954+01:00",
       "updated_at": "2026-02-21T20:17:03.009954+01:00",
       "metadata_json": "{\"branch\": \"main\", \"commit\": \"807f5a8\", \"confidence\": 95}"
+    },
+    {
+      "id": 95,
+      "change_id": "c02f99a1-89cd-4699-945c-94747f9a7691",
+      "node_type": "action",
+      "title": "Restructure project: lowercase filenames, split routes, move graph into subdir",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T13:40:49.697994+01:00",
+      "updated_at": "2026-02-22T13:40:49.697994+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"ce2cd46\",\"confidence\":95}"
+    },
+    {
+      "id": 96,
+      "change_id": "419e40ff-b96a-4437-b3b2-bcf9eddbe403",
+      "node_type": "goal",
+      "title": "Refactor audioworklet into a normal built-in node definition",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T13:51:00.048141+01:00",
+      "updated_at": "2026-02-22T13:51:00.048141+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95}"
+    },
+    {
+      "id": 97,
+      "change_id": "014d0800-342e-4d7b-b7b4-67e82578b646",
+      "node_type": "action",
+      "title": "Define AudioGraphContext { audioContext, workletFS }, update all built-in constructs",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T13:51:00.077880+01:00",
+      "updated_at": "2026-02-22T13:51:00.077880+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"edccdab\",\"confidence\":95,\"files\":[\"src/built-ins.tsx\"]}"
+    },
+    {
+      "id": 98,
+      "change_id": "6df23c9c-41d9-400e-8f56-b1bcf895f125",
+      "node_type": "action",
+      "title": "Move audioworklet node definition from GraphEditor closure to built-ins",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T13:51:00.117384+01:00",
+      "updated_at": "2026-02-22T13:51:00.117384+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"edccdab\",\"confidence\":95,\"files\":[\"src/built-ins.tsx\"]}"
+    },
+    {
+      "id": 99,
+      "change_id": "d2f35fe8-e15a-4595-9834-a3a0fa032c9b",
+      "node_type": "action",
+      "title": "Drop savedTypes persistence, derive custom types from persisted nodes on load",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T13:51:00.144510+01:00",
+      "updated_at": "2026-02-22T13:51:00.144510+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"edccdab\",\"confidence\":90,\"files\":[\"src/GraphEditor.tsx\"]}"
+    },
+    {
+      "id": 100,
+      "change_id": "a08678fc-ab5a-4c2a-a74c-9e63e1461324",
+      "node_type": "action",
+      "title": "Fix setState path bug: write to nodes[id].state.* not nodes[id].*",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T13:51:00.170983+01:00",
+      "updated_at": "2026-02-22T13:51:00.170983+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"edccdab\",\"confidence\":100,\"files\":[\"src/lib/create-graph.ts\"]}"
+    },
+    {
+      "id": 101,
+      "change_id": "b8ecd676-184a-4eb5-94a4-71c6aa859d56",
+      "node_type": "outcome",
+      "title": "Audioworklet is a normal built-in, context extended with workletFS, savedTypes eliminated",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T13:51:00.198132+01:00",
+      "updated_at": "2026-02-22T13:51:00.198132+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"edccdab\",\"confidence\":95}"
+    },
+    {
+      "id": 102,
+      "change_id": "5ab224e5-8cf2-4886-a205-f308e02f1816",
+      "node_type": "action",
+      "title": "Make GraphEditor generic: accept config/store/context/onClick as props, remove domain knowledge",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T13:51:37.640988+01:00",
+      "updated_at": "2026-02-22T13:51:37.640988+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"95daa51\",\"confidence\":95,\"files\":[\"src/graph/graph-editor.tsx\"]}"
+    },
+    {
+      "id": 103,
+      "change_id": "f970dfd5-7b8b-415d-9877-d278ed7d5a5b",
+      "node_type": "action",
+      "title": "Extract GraphRoute as application layer: sidebar, worklet setup, save callbacks, node placement",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T13:51:37.670474+01:00",
+      "updated_at": "2026-02-22T13:51:37.670474+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"95daa51\",\"confidence\":95,\"files\":[\"src/routes/graph-route.tsx\"]}"
+    },
+    {
+      "id": 104,
+      "change_id": "d40804d5-12e7-4aa3-8ffc-57d230be492f",
+      "node_type": "action",
+      "title": "Add graph/setGraph to ConstructProps for direct store access from constructs",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T13:51:37.697189+01:00",
+      "updated_at": "2026-02-22T13:51:37.697189+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"95daa51\",\"confidence\":90,\"files\":[\"src/graph/create-graph.ts\"]}"
+    },
+    {
+      "id": 105,
+      "change_id": "34b2d608-80dc-4bf2-99e8-375a4c67adde",
+      "node_type": "action",
+      "title": "Move saveType/saveAsNewType from SolidJS GraphContext to AudioGraphContext",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T13:51:37.724984+01:00",
+      "updated_at": "2026-02-22T13:51:37.724984+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"95daa51\",\"confidence\":90,\"files\":[\"src/built-ins.tsx\",\"src/graph/context.ts\"]}"
+    },
+    {
+      "id": 106,
+      "change_id": "bc016984-dfa0-4673-81b0-1983757e9772",
+      "node_type": "action",
+      "title": "Extract GraphAPI type, rename props.ctx to props.context",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T13:51:37.753167+01:00",
+      "updated_at": "2026-02-22T13:51:37.753167+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"95daa51\",\"confidence\":95,\"files\":[\"src/graph/create-graph.ts\"]}"
+    },
+    {
+      "id": 107,
+      "change_id": "4e6c492a-7566-4761-9a08-acb588da9c9d",
+      "node_type": "outcome",
+      "title": "GraphEditor is domain-agnostic, route layer handles audio concerns, clean separation of graph engine vs application",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T13:51:37.780336+01:00",
+      "updated_at": "2026-02-22T13:51:37.780336+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"95daa51\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -1937,6 +2080,237 @@
       "weight": 1.0,
       "rationale": "Continued architecture refactor",
       "created_at": "2026-02-21T20:17:07.721402+01:00"
+    },
+    {
+      "id": 83,
+      "from_node_id": 94,
+      "to_node_id": 95,
+      "from_change_id": "4a2da0f1-760b-4a5e-a04b-faebf3bc440d",
+      "to_change_id": "c02f99a1-89cd-4699-945c-94747f9a7691",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Project structure cleanup",
+      "created_at": "2026-02-22T13:40:49.719641+01:00"
+    },
+    {
+      "id": 84,
+      "from_node_id": 96,
+      "to_node_id": 97,
+      "from_change_id": "419e40ff-b96a-4437-b3b2-bcf9eddbe403",
+      "to_change_id": "014d0800-342e-4d7b-b7b4-67e82578b646",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Extend context type for workletFS access",
+      "created_at": "2026-02-22T13:51:22.665659+01:00"
+    },
+    {
+      "id": 85,
+      "from_node_id": 96,
+      "to_node_id": 98,
+      "from_change_id": "419e40ff-b96a-4437-b3b2-bcf9eddbe403",
+      "to_change_id": "6df23c9c-41d9-400e-8f56-b1bcf895f125",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Core audioworklet migration",
+      "created_at": "2026-02-22T13:51:22.678861+01:00"
+    },
+    {
+      "id": 86,
+      "from_node_id": 96,
+      "to_node_id": 99,
+      "from_change_id": "419e40ff-b96a-4437-b3b2-bcf9eddbe403",
+      "to_change_id": "d2f35fe8-e15a-4595-9834-a3a0fa032c9b",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Simplify persistence",
+      "created_at": "2026-02-22T13:51:22.688875+01:00"
+    },
+    {
+      "id": 87,
+      "from_node_id": 96,
+      "to_node_id": 100,
+      "from_change_id": "419e40ff-b96a-4437-b3b2-bcf9eddbe403",
+      "to_change_id": "a08678fc-ab5a-4c2a-a74c-9e63e1461324",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Bug fix discovered during refactor",
+      "created_at": "2026-02-22T13:51:22.699187+01:00"
+    },
+    {
+      "id": 88,
+      "from_node_id": 97,
+      "to_node_id": 101,
+      "from_change_id": "014d0800-342e-4d7b-b7b4-67e82578b646",
+      "to_change_id": "b8ecd676-184a-4eb5-94a4-71c6aa859d56",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Context extended",
+      "created_at": "2026-02-22T13:51:22.708810+01:00"
+    },
+    {
+      "id": 89,
+      "from_node_id": 98,
+      "to_node_id": 101,
+      "from_change_id": "6df23c9c-41d9-400e-8f56-b1bcf895f125",
+      "to_change_id": "b8ecd676-184a-4eb5-94a4-71c6aa859d56",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Audioworklet migrated",
+      "created_at": "2026-02-22T13:51:22.718454+01:00"
+    },
+    {
+      "id": 90,
+      "from_node_id": 99,
+      "to_node_id": 101,
+      "from_change_id": "d2f35fe8-e15a-4595-9834-a3a0fa032c9b",
+      "to_change_id": "b8ecd676-184a-4eb5-94a4-71c6aa859d56",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "savedTypes removed",
+      "created_at": "2026-02-22T13:51:22.729072+01:00"
+    },
+    {
+      "id": 91,
+      "from_node_id": 100,
+      "to_node_id": 101,
+      "from_change_id": "a08678fc-ab5a-4c2a-a74c-9e63e1461324",
+      "to_change_id": "b8ecd676-184a-4eb5-94a4-71c6aa859d56",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "setState fixed",
+      "created_at": "2026-02-22T13:51:22.738570+01:00"
+    },
+    {
+      "id": 92,
+      "from_node_id": 92,
+      "to_node_id": 96,
+      "from_change_id": "72028f73-803d-44a2-a14b-153b394bbd59",
+      "to_change_id": "419e40ff-b96a-4437-b3b2-bcf9eddbe403",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Built-ins extraction enabled audioworklet migration",
+      "created_at": "2026-02-22T13:51:22.748020+01:00"
+    },
+    {
+      "id": 93,
+      "from_node_id": 95,
+      "to_node_id": 102,
+      "from_change_id": "c02f99a1-89cd-4699-945c-94747f9a7691",
+      "to_change_id": "5ab224e5-8cf2-4886-a205-f308e02f1816",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Generic graph editor",
+      "created_at": "2026-02-22T13:51:49.091826+01:00"
+    },
+    {
+      "id": 94,
+      "from_node_id": 95,
+      "to_node_id": 103,
+      "from_change_id": "c02f99a1-89cd-4699-945c-94747f9a7691",
+      "to_change_id": "f970dfd5-7b8b-415d-9877-d278ed7d5a5b",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Application layer extraction",
+      "created_at": "2026-02-22T13:51:49.105091+01:00"
+    },
+    {
+      "id": 95,
+      "from_node_id": 95,
+      "to_node_id": 104,
+      "from_change_id": "c02f99a1-89cd-4699-945c-94747f9a7691",
+      "to_change_id": "d40804d5-12e7-4aa3-8ffc-57d230be492f",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Construct store access",
+      "created_at": "2026-02-22T13:51:49.114212+01:00"
+    },
+    {
+      "id": 96,
+      "from_node_id": 95,
+      "to_node_id": 105,
+      "from_change_id": "c02f99a1-89cd-4699-945c-94747f9a7691",
+      "to_change_id": "34b2d608-80dc-4bf2-99e8-375a4c67adde",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Save callback relocation",
+      "created_at": "2026-02-22T13:51:49.123125+01:00"
+    },
+    {
+      "id": 97,
+      "from_node_id": 95,
+      "to_node_id": 106,
+      "from_change_id": "c02f99a1-89cd-4699-945c-94747f9a7691",
+      "to_change_id": "bc016984-dfa0-4673-81b0-1983757e9772",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "API cleanup",
+      "created_at": "2026-02-22T13:51:49.131988+01:00"
+    },
+    {
+      "id": 98,
+      "from_node_id": 102,
+      "to_node_id": 107,
+      "from_change_id": "5ab224e5-8cf2-4886-a205-f308e02f1816",
+      "to_change_id": "4e6c492a-7566-4761-9a08-acb588da9c9d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Editor decoupled",
+      "created_at": "2026-02-22T13:51:49.140729+01:00"
+    },
+    {
+      "id": 99,
+      "from_node_id": 103,
+      "to_node_id": 107,
+      "from_change_id": "f970dfd5-7b8b-415d-9877-d278ed7d5a5b",
+      "to_change_id": "4e6c492a-7566-4761-9a08-acb588da9c9d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Route layer created",
+      "created_at": "2026-02-22T13:51:49.149851+01:00"
+    },
+    {
+      "id": 100,
+      "from_node_id": 104,
+      "to_node_id": 107,
+      "from_change_id": "d40804d5-12e7-4aa3-8ffc-57d230be492f",
+      "to_change_id": "4e6c492a-7566-4761-9a08-acb588da9c9d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Constructs empowered",
+      "created_at": "2026-02-22T13:51:49.158517+01:00"
+    },
+    {
+      "id": 101,
+      "from_node_id": 105,
+      "to_node_id": 107,
+      "from_change_id": "34b2d608-80dc-4bf2-99e8-375a4c67adde",
+      "to_change_id": "4e6c492a-7566-4761-9a08-acb588da9c9d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Context boundaries clarified",
+      "created_at": "2026-02-22T13:51:49.167500+01:00"
+    },
+    {
+      "id": 102,
+      "from_node_id": 106,
+      "to_node_id": 107,
+      "from_change_id": "bc016984-dfa0-4673-81b0-1983757e9772",
+      "to_change_id": "4e6c492a-7566-4761-9a08-acb588da9c9d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Types formalized",
+      "created_at": "2026-02-22T13:51:49.176263+01:00"
+    },
+    {
+      "id": 103,
+      "from_node_id": 101,
+      "to_node_id": 95,
+      "from_change_id": "b8ecd676-184a-4eb5-94a4-71c6aa859d56",
+      "to_change_id": "c02f99a1-89cd-4699-945c-94747f9a7691",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Audioworklet refactor motivated further separation",
+      "created_at": "2026-02-22T13:51:49.184720+01:00"
     }
   ]
 }
