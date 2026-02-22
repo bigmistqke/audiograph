@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import type { ComponentProps, JSX } from "solid-js";
-import styles from "./Button.module.css";
+import styles from "./button.module.css";
 
 export function Button(
   props: Omit<ComponentProps<"button">, "style"> & {
