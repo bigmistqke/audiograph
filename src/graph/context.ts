@@ -1,5 +1,5 @@
 import { createContext, useContext } from "solid-js";
-import type { createGraph, NodeInstance } from "./lib/create-graph";
+import type { GraphAPI, NodeInstance } from "./create-graph";
 
 export interface TemporaryEdge {
   kind: "in" | "out";
@@ -9,8 +9,6 @@ export interface TemporaryEdge {
   y?: number;
 }
 
-export type GraphAPI = ReturnType<typeof createGraph<any, any>>;
-
 export const GraphContext = createContext<{
   graph: GraphAPI;
   setTemporaryEdge(edge: TemporaryEdge | undefined): void;
@@ -18,8 +16,6 @@ export const GraphContext = createContext<{
   updateTemporaryEdge(x: number, y: number): void;
   setDragging(dragging: boolean): void;
   getCursorPosition(): { x: number; y: number } | undefined;
-  saveType(nodeId: string): void;
-  saveAsNewType(code: string, nodeId: string): void;
 }>();
 
 export function useGraph() {

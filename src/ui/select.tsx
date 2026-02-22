@@ -1,5 +1,5 @@
 import { For } from "solid-js";
-import styles from "./Select.module.css";
+import styles from "./select.module.css";
 
 export function Select<T extends string>(props: {
   value: T;

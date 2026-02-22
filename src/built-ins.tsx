@@ -1,21 +1,22 @@
 import { createEffect, createSignal, For, onCleanup } from "solid-js";
-import { GraphNodeContent } from "./components/GraphNodeContent";
-import { calcNodeHeight } from "./constants";
-import { useGraph } from "./context";
+import { calcNodeHeight } from "./graph/constants";
 import type {
   ConstructProps,
   ConstructResult,
   GraphConfig,
   NodeTypeDef,
-} from "./lib/create-graph";
+} from "./graph/create-graph";
 import type { WorkletFileSystem } from "./lib/worklet-file-system";
-import { Button } from "./ui/Button";
-import { HorizontalSlider } from "./ui/HorizontalSlider";
-import { Select } from "./ui/Select";
+import { Button } from "./ui/button";
+import { HorizontalSlider } from "./ui/horizontal-slider";
+import { GraphNodeContent } from "./ui/node-content";
+import { Select } from "./ui/select";
 
 export interface AudioGraphContext {
-  audio: AudioContext;
+  audioContext: AudioContext;
   workletFS: WorkletFileSystem;
+  saveType(nodeId: string): void;
+  saveAsNewType(nodeId: string, code: string): void;
 }
 
 function createNodeDef<S extends Record<string, any> = Record<string, any>>(
@@ -37,7 +38,7 @@ export const builtIns = {
       state: { frequency: 440, type: "sine" as OscillatorType },
     },
     (props) => {
-      const osc = props.ctx.audio.createOscillator();
+      const osc = props.context.audioContext.createOscillator();
       osc.start();
 
       createEffect(() => {
@@ -89,7 +90,7 @@ export const builtIns = {
       state: { gain: 0.5 },
     },
     (props) => {
-      const gainNode = props.ctx.audio.createGain();
+      const gainNode = props.context.audioContext.createGain();
 
       createEffect(() => {
         gainNode.gain.value = props.state.gain;
@@ -126,7 +127,7 @@ export const builtIns = {
       state: { value: 440 },
     },
     (props) => {
-      const src = props.ctx.audio.createConstantSource();
+      const src = props.context.audioContext.createConstantSource();
       src.start();
 
       createEffect(() => {
@@ -162,7 +163,7 @@ export const builtIns = {
       state: { factor: 1000 },
     },
     (props) => {
-      const gain = props.ctx.audio.createGain();
+      const gain = props.context.audioContext.createGain();
 
       createEffect(() => {
         gain.gain.value = props.state.factor;
@@ -198,8 +199,8 @@ export const builtIns = {
       state: { min: 200, max: 2000 },
     },
     (props) => {
-      const scaleGain = props.ctx.audio.createGain();
-      const offset = props.ctx.audio.createConstantSource();
+      const scaleGain = props.context.audioContext.createGain();
+      const offset = props.context.audioContext.createConstantSource();
       offset.start();
       scaleGain.connect(offset.offset);
 
@@ -259,7 +260,7 @@ export const builtIns = {
       state: { frequency: 1000, Q: 1 },
     },
     (props) => {
-      const filter = props.ctx.audio.createBiquadFilter();
+      const filter = props.context.audioContext.createBiquadFilter();
       filter.type = "lowpass";
 
       createEffect(() => {
@@ -316,7 +317,7 @@ export const builtIns = {
       state: { delayTime: 0.3 },
     },
     (props) => {
-      const delay = props.ctx.audio.createDelay(1);
+      const delay = props.context.audioContext.createDelay(1);
 
       createEffect(() => {
         delay.delayTime.value = props.state.delayTime;
@@ -353,7 +354,7 @@ export const builtIns = {
       state: { pan: 0 },
     },
     (props) => {
-      const panner = props.ctx.audio.createStereoPanner();
+      const panner = props.context.audioContext.createStereoPanner();
 
       createEffect(() => {
         panner.pan.value = props.state.pan;
@@ -390,7 +391,7 @@ export const builtIns = {
       state: { threshold: -24, ratio: 12, attack: 0.003, release: 0.25 },
     },
     (props) => {
-      const comp = props.ctx.audio.createDynamicsCompressor();
+      const comp = props.context.audioContext.createDynamicsCompressor();
 
       createEffect(() => {
         comp.threshold.value = props.state.threshold;
@@ -468,15 +469,19 @@ export const builtIns = {
       state: { decay: 2, mix: 0.5 },
     },
     (props) => {
-      const convolver = props.ctx.audio.createConvolver();
-      const dry = props.ctx.audio.createGain();
-      const wet = props.ctx.audio.createGain();
-      const input = props.ctx.audio.createGain();
-      const output = props.ctx.audio.createGain();
+      const convolver = props.context.audioContext.createConvolver();
+      const dry = props.context.audioContext.createGain();
+      const wet = props.context.audioContext.createGain();
+      const input = props.context.audioContext.createGain();
+      const output = props.context.audioContext.createGain();
 
       function generateImpulse(decay: number) {
-        const length = props.ctx.audio.sampleRate * decay;
-        const impulse = props.ctx.audio.createBuffer(2, length, props.ctx.audio.sampleRate);
+        const length = props.context.audioContext.sampleRate * decay;
+        const impulse = props.context.audioContext.createBuffer(
+          2,
+          length,
+          props.context.audioContext.sampleRate,
+        );
         for (let channel = 0; channel < 2; channel++) {
           const data = impulse.getChannelData(channel);
           for (let i = 0; i < length; i++) {
@@ -555,7 +560,7 @@ export const builtIns = {
       state: { amount: 50, oversample: "4x" as OverSampleType },
     },
     (props) => {
-      const shaper = props.ctx.audio.createWaveShaper();
+      const shaper = props.context.audioContext.createWaveShaper();
 
       function makeDistortionCurve(amount: number) {
         const k = amount;
@@ -615,7 +620,7 @@ export const builtIns = {
       },
     },
     (props) => {
-      const analyser = props.ctx.audio.createAnalyser();
+      const analyser = props.context.audioContext.createAnalyser();
       analyser.fftSize = 2048;
 
       return {
@@ -674,7 +679,7 @@ export const builtIns = {
       },
     },
     (props) => {
-      const analyser = props.ctx.audio.createAnalyser();
+      const analyser = props.context.audioContext.createAnalyser();
       analyser.fftSize = 256;
 
       const [level, setLevel] = createSignal(0);
@@ -739,7 +744,7 @@ export const builtIns = {
       },
     },
     (props) => {
-      const analyser = props.ctx.audio.createAnalyser();
+      const analyser = props.context.audioContext.createAnalyser();
       analyser.fftSize = 256;
 
       const [value, setValue] = createSignal(0);
@@ -782,17 +787,17 @@ export const builtIns = {
       },
     },
     (props) => {
-      const bufferSize = 2 * props.ctx.audio.sampleRate;
-      const noiseBuffer = props.ctx.audio.createBuffer(
+      const bufferSize = 2 * props.context.audioContext.sampleRate;
+      const noiseBuffer = props.context.audioContext.createBuffer(
         1,
         bufferSize,
-        props.ctx.audio.sampleRate,
+        props.context.audioContext.sampleRate,
       );
       const data = noiseBuffer.getChannelData(0);
       for (let i = 0; i < bufferSize; i++) {
         data[i] = Math.random() * 2 - 1;
       }
-      const noise = props.ctx.audio.createBufferSource();
+      const noise = props.context.audioContext.createBufferSource();
       noise.buffer = noiseBuffer;
       noise.loop = true;
       noise.start();
@@ -816,8 +821,8 @@ export const builtIns = {
       state: { rate: 2, depth: 0.5, type: "sine" as OscillatorType },
     },
     (props) => {
-      const osc = props.ctx.audio.createOscillator();
-      const depthGain = props.ctx.audio.createGain();
+      const osc = props.context.audioContext.createOscillator();
+      const depthGain = props.context.audioContext.createGain();
       osc.connect(depthGain);
       osc.start();
 
@@ -878,11 +883,15 @@ export const builtIns = {
       state: { attack: 0.1, decay: 0.2, sustain: 0.7, release: 0.5 },
     },
     (props) => {
-      const node = new AudioWorkletNode(props.ctx.audio, "envelope-processor", {
-        numberOfInputs: 1,
-        numberOfOutputs: 1,
-        outputChannelCount: [1],
-      });
+      const node = new AudioWorkletNode(
+        props.context.audioContext,
+        "envelope-processor",
+        {
+          numberOfInputs: 1,
+          numberOfOutputs: 1,
+          outputChannelCount: [1],
+        },
+      );
 
       const sendParams = () =>
         node.port.postMessage({
@@ -994,11 +1003,15 @@ export const builtIns = {
       },
     },
     (props) => {
-      const node = new AudioWorkletNode(props.ctx.audio, "sequencer-processor", {
-        numberOfInputs: 0,
-        numberOfOutputs: 1,
-        outputChannelCount: [1],
-      });
+      const node = new AudioWorkletNode(
+        props.context.audioContext,
+        "sequencer-processor",
+        {
+          numberOfInputs: 0,
+          numberOfOutputs: 1,
+          outputChannelCount: [1],
+        },
+      );
 
       node.port.postMessage({
         type: "bpm",
@@ -1129,7 +1142,7 @@ export const builtIns = {
     },
     (props) => {
       return {
-        in: { audio: props.ctx.audio.destination },
+        in: { audio: props.context.audioContext.destination },
       };
     },
   ),
@@ -1145,8 +1158,8 @@ export const builtIns = {
       state: { name: "", code: "" },
     },
     (props) => {
-      const inputGain = props.ctx.audio.createGain();
-      const outputGain = props.ctx.audio.createGain();
+      const inputGain = props.context.audioContext.createGain();
+      const outputGain = props.context.audioContext.createGain();
       const [workletNode, setWorkletNode] =
         createSignal<AudioWorkletNode | null>(null);
 
@@ -1157,8 +1170,8 @@ export const builtIns = {
         const name = props.state.name;
         if (!name) return;
 
-        const url = props.ctx.workletFS.fileUrls.get(`/${name}/worklet.js`);
-        const processorName = props.ctx.workletFS.getProcessorName(name);
+        const url = props.context.workletFS.fileUrls.get(`/${name}/worklet.js`);
+        const processorName = props.context.workletFS.getProcessorName(name);
         if (!url) return;
 
         const gen = ++loadGeneration;
@@ -1169,11 +1182,14 @@ export const builtIns = {
           currentWorkletNode = null;
         }
 
-        props.ctx.audio.audioWorklet
+        props.context.audioContext.audioWorklet
           .addModule(url)
           .then(() => {
             if (loadGeneration !== gen) return;
-            const node = new AudioWorkletNode(props.ctx.audio, processorName);
+            const node = new AudioWorkletNode(
+              props.context.audioContext,
+              processorName,
+            );
             currentWorkletNode = node;
             inputGain.connect(node);
             node.connect(outputGain);
@@ -1203,8 +1219,7 @@ export const builtIns = {
         in: { audio: inputGain },
         out: { audio: outputGain },
         ui: () => {
-          const { graph, saveType, saveAsNewType } = useGraph();
-          const nodeType = () => graph.store.nodes[props.id]?.type;
+          const nodeType = () => props.graph.nodes[props.id]?.type;
           const isSaved = () => nodeType() !== "audioworklet";
 
           return (
@@ -1252,7 +1267,7 @@ export const builtIns = {
                 onInput={(e) => {
                   const newCode = e.currentTarget.value;
                   props.setState("code", newCode);
-                  props.ctx.workletFS.writeFile(
+                  props.context.workletFS.writeFile(
                     `/${props.state.name}/source.js`,
                     newCode,
                   );
@@ -1273,7 +1288,7 @@ export const builtIns = {
                       cursor: "pointer",
                     }}
                     onPointerDown={(e) => e.stopPropagation()}
-                    onClick={() => saveType(props.id)}
+                    onClick={() => props.context.saveType(props.id)}
                   >
                     save
                   </Button>
@@ -1286,7 +1301,9 @@ export const builtIns = {
                     cursor: "pointer",
                   }}
                   onPointerDown={(e) => e.stopPropagation()}
-                  onClick={() => saveAsNewType(props.state.code, props.id)}
+                  onClick={() =>
+                    props.context.saveAsNewType(props.state.code, props.id)
+                  }
                 >
                   {isSaved() ? "save as" : "save as type"}
                 </Button>

@@ -6,7 +6,7 @@ import {
   TITLE_HEIGHT,
 } from "../constants";
 import { useGraph } from "../context";
-import type { EdgeHandle } from "../lib/create-graph";
+import type { EdgeHandle } from "../create-graph";
 
 function portY(index: number) {
   return index * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS;

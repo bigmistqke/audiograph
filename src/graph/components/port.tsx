@@ -8,8 +8,8 @@ import {
   TITLE_HEIGHT,
 } from "../constants";
 import { useGraph, useNode } from "../context";
-import type { EdgeHandle } from "../lib/create-graph";
-import styles from "./GraphPort.module.css";
+import type { EdgeHandle } from "../create-graph";
+import styles from "./port.module.css";
 
 export function GraphPort(props: {
   name: string;

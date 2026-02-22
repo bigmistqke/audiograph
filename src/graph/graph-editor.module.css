@@ -1,0 +1,31 @@
+.graphName {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.button {
+  font-family: "Times New Roman", Times, serif;
+  border: 1px solid
+    color-mix(in srgb, var(--color-node, var(--color-stroke)), white 60%);
+  padding: 4px 12px;
+  cursor: pointer;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-node, white), white 95%);
+
+  &.selected {
+    background: color-mix(in srgb, var(--color-node, #333), black 20%);
+    color: white;
+  }
+}
+
+.svg {
+  width: 100vw;
+  height: 100vh;
+  top: 0px;
+  user-select: none;
+}
+
+.svg[data-dragging] * {
+  user-select: none;
+}

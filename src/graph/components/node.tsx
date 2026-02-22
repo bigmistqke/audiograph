@@ -1,10 +1,10 @@
+import { minni } from "@bigmistqke/minni";
 import { createMemo, Show } from "solid-js";
 import { headerHeight, snapToGrid } from "../constants";
 import { NodeContext, useGraph } from "../context";
-import type { NodeInstance } from "../lib/create-graph";
-import { minni } from "../lib/minni";
-import styles from "./GraphNode.module.css";
-import { GraphPort } from "./GraphPort";
+import type { NodeInstance } from "../create-graph";
+import styles from "./node.module.css";
+import { GraphPort } from "./port";
 
 export function GraphNode(props: { node: NodeInstance }) {
   const { graph, setDragging } = useGraph();

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import styles from "./HorizontalSlider.module.css";
+import styles from "./horizontal-slider.module.css";
 
 export function HorizontalSlider(props: {
   value: number;

@@ -1,17 +1,8 @@
-import { useNavigate, useParams } from "@solidjs/router";
-import { createEffect, createResource, Show, type Component } from "solid-js";
-import { GraphEditor } from "./GraphEditor";
-import envelopeProcessorUrl from "./lib/envelope-processor?url";
-import sequencerProcessorUrl from "./lib/sequencer-processor?url";
-
-const audioCtx = new AudioContext();
-const promise = Promise.all([
-  audioCtx.audioWorklet.addModule(envelopeProcessorUrl),
-  audioCtx.audioWorklet.addModule(sequencerProcessorUrl),
-]);
+import { Route, Router, useNavigate, useParams } from "@solidjs/router";
+import { createEffect, type Component } from "solid-js";
+import { GraphRoute } from "./routes/graph-route";
 
 const App: Component = () => {
-  const [resource] = createResource(() => promise.then(() => true));
   const params = useParams<{ graphName?: string }>();
   const navigate = useNavigate();
 
@@ -22,9 +13,9 @@ const App: Component = () => {
   });
 
   return (
-    <Show when={resource() && params.graphName} keyed>
-      {(graphName) => <GraphEditor graphName={graphName} context={audioCtx} />}
-    </Show>
+    <Router>
+      <Route path="/:id" component={GraphRoute} />
+    </Router>
   );
 };
 
