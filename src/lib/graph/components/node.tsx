@@ -60,15 +60,43 @@ export function GraphNode(props: { node: NodeInstance }) {
                 if (event.target.closest("[data-pointerevents-block=true]")) {
                   return;
                 }
-                const startPos = { x: props.node.x, y: props.node.y };
-                graph.setDragging(true);
-                await minni(event, (delta) => {
-                  graph.updateNode(props.node.id, {
-                    x: snapToGrid(startPos.x + delta.x),
-                    y: snapToGrid(startPos.y - delta.y),
+
+                const isSelected = graph.selectedNodes.includes(props.node.id);
+
+                if (!isSelected) {
+                  // Clicking an unselected node: clear multi-selection, drag only this node
+                  graph.setSelectedNodes([]);
+                }
+
+                if (isSelected && graph.selectedNodes.length > 1) {
+                  // Drag all selected nodes together
+                  const startPositions = graph.selectedNodes.map((id) => ({
+                    id,
+                    x: graph.graphStore.nodes[id]!.x,
+                    y: graph.graphStore.nodes[id]!.y,
+                  }));
+                  graph.setDragging(true);
+                  await minni(event, (delta) => {
+                    for (const start of startPositions) {
+                      graph.updateNode(start.id, {
+                        x: snapToGrid(start.x + delta.x),
+                        y: snapToGrid(start.y - delta.y),
+                      });
+                    }
                   });
-                });
-                graph.setDragging(false);
+                  graph.setDragging(false);
+                } else {
+                  // Drag single node
+                  const startPos = { x: props.node.x, y: props.node.y };
+                  graph.setDragging(true);
+                  await minni(event, (delta) => {
+                    graph.updateNode(props.node.id, {
+                      x: snapToGrid(startPos.x + delta.x),
+                      y: snapToGrid(startPos.y - delta.y),
+                    });
+                  });
+                  graph.setDragging(false);
+                }
               }}
             >
               <div class={styles.nodeTitle}>{typeDef()?.title}</div>
