@@ -117,7 +117,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
             y: event.clientY - rect.top + UIState.origin.y,
           });
         }}
-        onPointerLeave={(event) => {
+        onPointerLeave={() => {
           setUIState("cursorPosition", undefined);
         }}
         onPointerDown={async (event) => {

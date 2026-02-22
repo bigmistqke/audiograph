@@ -243,7 +243,7 @@ export function GraphRoute() {
         selectedNodeType={selectedNodeType()}
         setSelectedNodeType={setSelectedNodeType}
       />
-      <TopRightHUD id={params.id} />
+      <TopRightHUD id={params.id ?? ""} />
       <Show when={resource()}>
         <GraphEditor
           context={context}
