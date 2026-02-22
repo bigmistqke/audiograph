@@ -1,7 +1,7 @@
 import { makePersisted } from "@solid-primitives/storage";
 import { useNavigate, useParams } from "@solidjs/router";
 import clsx from "clsx";
-import { createResource, createSignal, For, Show } from "solid-js";
+import { createResource, createSignal, For, Setter, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { AudioGraphContext, builtIns } from "../built-ins";
 import { GraphConfig, GraphStore } from "../graph/create-graph-api";
@@ -22,6 +22,111 @@ const promise = Promise.all([
   audioContext.audioWorklet.addModule(sequencerProcessorUrl),
 ]);
 
+function SideBar(props: {
+  config: GraphConfig<AudioGraphContext>;
+  selectedNodeType: string | undefined;
+  setSelectedNodeType: Setter<string | undefined>;
+}) {
+  return (
+    <div class={styles.sidebar}>
+      <For
+        each={[
+          {
+            label: "Sources",
+            types: ["oscillator", "constant", "noise"],
+          },
+          {
+            label: "Effects",
+            types: [
+              "gain",
+              "filter",
+              "delay",
+              "reverb",
+              "compressor",
+              "waveshaper",
+              "panner",
+            ],
+          },
+          {
+            label: "Modulation",
+            types: ["lfo", "envelope", "sequencer", "scale", "range"],
+          },
+          {
+            label: "Analysis",
+            types: ["analyser", "meter", "debug"],
+          },
+          { label: "Output", types: ["destination"] },
+          { label: "Code", types: ["audioworklet"] },
+          {
+            label: "User",
+            types: Object.keys(props.config).filter(
+              (k) =>
+                ![
+                  "oscillator",
+                  "constant",
+                  "noise",
+                  "gain",
+                  "filter",
+                  "delay",
+                  "reverb",
+                  "compressor",
+                  "waveshaper",
+                  "panner",
+                  "lfo",
+                  "envelope",
+                  "scale",
+                  "range",
+                  "sequencer",
+                  "analyser",
+                  "meter",
+                  "debug",
+                  "destination",
+                  "audioworklet",
+                ].includes(k),
+            ),
+          },
+        ]}
+      >
+        {(category) => (
+          <Show when={category.types.length > 0}>
+            <span class={styles.categoryLabel}>{category.label}</span>
+            <div class={styles.categoryGrid}>
+              <For each={category.types}>
+                {(type) => {
+                  const portColor = () => {
+                    const kind =
+                      (props.config[type]?.ports?.out?.[0] as any)?.kind ||
+                      "audio";
+                    return `var(--color-port-${kind})`;
+                  };
+                  return (
+                    <Button
+                      class={clsx(
+                        styles.button,
+                        props.selectedNodeType === type && styles.selected,
+                      )}
+                      style={{
+                        "--color-node": portColor(),
+                      }}
+                      onClick={() =>
+                        props.setSelectedNodeType((prev) =>
+                          prev === type ? undefined : type,
+                        )
+                      }
+                    >
+                      {type}
+                    </Button>
+                  );
+                }}
+              </For>
+            </div>
+          </Show>
+        )}
+      </For>
+    </div>
+  );
+}
+
 export function GraphRoute() {
   const navigate = useNavigate();
   const params = useParams();
@@ -30,7 +135,9 @@ export function GraphRoute() {
   const [config, setConfig] = createStore<GraphConfig<AudioGraphContext>>({
     ...builtIns,
   });
-  const [selectedType, setSelectedType] = createSignal<string | undefined>();
+  const [selectedNodeType, setSelectedNodeType] = createSignal<
+    string | undefined
+  >();
   const [graphStore, setGraphStore] = makePersisted(
     createStore<GraphStore>({ nodes: {}, edges: [] }),
     {
@@ -50,7 +157,7 @@ export function GraphRoute() {
     }
   }
 
-  function saveAsNewType(code: string, nodeId: string) {
+  function addUserAudioWorkletNode(code: string, nodeId: string) {
     const name = prompt("Name for this node type:");
     if (!name?.trim()) return;
     const typeName = name.trim().toLowerCase().replace(/\s+/g, "-");
@@ -62,7 +169,7 @@ export function GraphRoute() {
     setGraphStore("nodes", nodeId, { type: typeName });
   }
 
-  function saveType(nodeId: string) {
+  function updateUserAudioWorkletNode(nodeId: string) {
     const node = graphStore.nodes[nodeId];
     if (!node) return;
     const typeName = node.type;
@@ -100,107 +207,17 @@ export function GraphRoute() {
       return audioContext;
     },
     workletFS,
-    saveType,
-    saveAsNewType,
+    updateUserAudioWorkletNode,
+    addUserAudioWorkletNode,
   };
 
   return (
     <>
-      <div class={styles.sidebar}>
-        <For
-          each={[
-            {
-              label: "Sources",
-              types: ["oscillator", "constant", "noise"],
-            },
-            {
-              label: "Effects",
-              types: [
-                "gain",
-                "filter",
-                "delay",
-                "reverb",
-                "compressor",
-                "waveshaper",
-                "panner",
-              ],
-            },
-            {
-              label: "Modulation",
-              types: ["lfo", "envelope", "sequencer", "scale", "range"],
-            },
-            {
-              label: "Analysis",
-              types: ["analyser", "meter", "debug"],
-            },
-            { label: "Output", types: ["destination"] },
-            { label: "Code", types: ["audioworklet"] },
-            {
-              label: "User",
-              types: Object.keys(config).filter(
-                (k) =>
-                  ![
-                    "oscillator",
-                    "constant",
-                    "noise",
-                    "gain",
-                    "filter",
-                    "delay",
-                    "reverb",
-                    "compressor",
-                    "waveshaper",
-                    "panner",
-                    "lfo",
-                    "envelope",
-                    "scale",
-                    "range",
-                    "sequencer",
-                    "analyser",
-                    "meter",
-                    "debug",
-                    "destination",
-                    "audioworklet",
-                  ].includes(k),
-              ),
-            },
-          ]}
-        >
-          {(category) => (
-            <Show when={category.types.length > 0}>
-              <span class={styles.categoryLabel}>{category.label}</span>
-              <div class={styles.categoryGrid}>
-                <For each={category.types}>
-                  {(type) => {
-                    const portColor = () => {
-                      const kind =
-                        (config[type]?.ports?.out?.[0] as any)?.kind || "audio";
-                      return `var(--color-port-${kind})`;
-                    };
-                    return (
-                      <Button
-                        class={clsx(
-                          styles.button,
-                          selectedType() === type && styles.selected,
-                        )}
-                        style={{
-                          "--color-node": portColor(),
-                        }}
-                        onClick={() =>
-                          setSelectedType((prev) =>
-                            prev === type ? undefined : type,
-                          )
-                        }
-                      >
-                        {type}
-                      </Button>
-                    );
-                  }}
-                </For>
-              </div>
-            </Show>
-          )}
-        </For>
-      </div>
+      <SideBar
+        config={config}
+        selectedNodeType={selectedNodeType()}
+        setSelectedNodeType={setSelectedNodeType}
+      />
       <div class={styles.topRight}>
         <span class={styles.graphName}>{params.id}</span>
         <Button
@@ -221,40 +238,33 @@ export function GraphRoute() {
           resume audio
         </Button>
       </div>
-      <Show when={resource() && params.id}>
-        {(graphName) => (
-          <GraphEditor
-            graphName={graphName()}
-            context={context}
-            config={config}
-            setConfig={setConfig}
-            graphStore={graphStore}
-            setGraphStore={setGraphStore}
-            onClick={({ x, y, graph }) => {
-              const type = selectedType();
-              if (!type) return;
+      <Show when={resource()}>
+        <GraphEditor
+          context={context}
+          config={config}
+          graphStore={graphStore}
+          setGraphStore={setGraphStore}
+          onClick={({ x, y, graph }) => {
+            const type = selectedNodeType();
+            if (!type) return;
 
-              const typeDef = config[type];
+            const typeDef = config[type];
 
-              const id = graph.addNode(type, { x, y });
+            const id = graph.addNode(type, { x, y });
 
-              if (typeDef?.state && "code" in typeDef.state) {
-                const name = `custom-${id}`;
-                const code = typeDef.state.code || getSourceBoilerplate();
+            if (typeDef?.state && "code" in typeDef.state) {
+              const name = `custom-${id}`;
+              const code = typeDef.state.code || getSourceBoilerplate();
 
-                setGraphStore("nodes", id, "state", "name", name);
-                setGraphStore("nodes", id, "state", "code", code);
+              setGraphStore("nodes", id, "state", "name", name);
+              setGraphStore("nodes", id, "state", "code", code);
 
-                workletFS.writeFile(`/${name}/source.js`, code);
-                workletFS.writeFile(
-                  `/${name}/worklet.js`,
-                  getWorkletEntry(name),
-                );
-              }
-              setSelectedType(undefined);
-            }}
-          />
-        )}
+              workletFS.writeFile(`/${name}/source.js`, code);
+              workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
+            }
+            setSelectedNodeType(undefined);
+          }}
+        />
       </Show>
     </>
   );

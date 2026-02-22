@@ -15,8 +15,8 @@ import { Select } from "./ui/select";
 export interface AudioGraphContext {
   audioContext: AudioContext;
   workletFS: WorkletFileSystem;
-  saveType(nodeId: string): void;
-  saveAsNewType(nodeId: string, code: string): void;
+  updateUserAudioWorkletNode(nodeId: string): void;
+  addUserAudioWorkletNode(nodeId: string, code: string): void;
 }
 
 function createNodeDef<S extends Record<string, any> = Record<string, any>>(
@@ -1288,7 +1288,9 @@ export const builtIns = {
                       cursor: "pointer",
                     }}
                     onPointerDown={(e) => e.stopPropagation()}
-                    onClick={() => props.context.saveType(props.id)}
+                    onClick={() =>
+                      props.context.updateUserAudioWorkletNode(props.id)
+                    }
                   >
                     save
                   </Button>
@@ -1302,7 +1304,10 @@ export const builtIns = {
                   }}
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={() =>
-                    props.context.saveAsNewType(props.state.code, props.id)
+                    props.context.addUserAudioWorkletNode(
+                      props.state.code,
+                      props.id,
+                    )
                   }
                 >
                   {isSaved() ? "save as" : "save as type"}

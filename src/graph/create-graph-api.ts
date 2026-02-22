@@ -93,6 +93,7 @@ export type GraphAPI<
   TConfig extends GraphConfig<unknown> = GraphConfig<unknown>,
 > = {
   config: TConfig;
+  graphStore: GraphStore;
   nodes: Record<string, ConstructResult>;
   getPortDef: (nodeId: string, portName: string) => PortDef | undefined;
   addNode(
@@ -229,6 +230,7 @@ export function createGraphAPI<
 
   return {
     config,
+    graphStore,
     nodes,
     getPortDef,
     addNode(type: keyof TConfig & string, position: { x: number; y: number }) {

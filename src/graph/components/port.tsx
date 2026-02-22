@@ -19,13 +19,7 @@ export function GraphPort(props: {
   hideLabels?: boolean;
 }) {
   const { node } = useNode();
-  const {
-    graphAPI: graph,
-    setTemporaryEdge,
-    getTemporaryEdge,
-    updateTemporaryEdge,
-    setDragging,
-  } = useGraph();
+  const graph = useGraph();
 
   const cx = () =>
     props.kind === "in" ? PORT_INSET : node.dimensions.x - PORT_INSET;
@@ -56,7 +50,7 @@ export function GraphPort(props: {
         data-kind={props.dataKind}
         onPointerUp={(event) => {
           event.stopPropagation();
-          const edgeHandle = getTemporaryEdge();
+          const edgeHandle = graph.getTemporaryEdge();
           if (!edgeHandle) return;
           if (edgeHandle.kind === props.kind) return;
 
@@ -74,22 +68,22 @@ export function GraphPort(props: {
         }}
         onPointerDown={async (event) => {
           event.stopPropagation();
-          setDragging(true);
+          graph.setDragging(true);
 
           // If dragging from an in-port with an existing edge, detach it
           if (props.kind === "in") {
-            const existingEdge = graph.store.edges.find(
+            const existingEdge = graph.graphStore.edges.find(
               (e) => e.input.node === node.id && e.input.port === props.name,
             );
             if (existingEdge) {
               graph.unlink(existingEdge.output, existingEdge.input);
-              const fromNode = graph.store.nodes[existingEdge.output.node];
+              const fromNode = graph.graphStore.nodes[existingEdge.output.node];
               if (fromNode) {
                 const position = {
                   x: node.x + cx(),
                   y: node.y + cy(),
                 };
-                setTemporaryEdge({
+                graph.setTemporaryEdge({
                   node: fromNode.id,
                   kind: "out",
                   port: existingEdge.output.port,
@@ -97,19 +91,19 @@ export function GraphPort(props: {
                   y: position.y,
                 });
                 await minni(event, (delta) => {
-                  updateTemporaryEdge(
+                  graph.updateTemporaryEdge(
                     position.x + delta.x,
                     position.y - delta.y,
                   );
                 });
-                setTemporaryEdge(undefined);
-                setDragging(false);
+                graph.setTemporaryEdge(undefined);
+                graph.setDragging(false);
                 return;
               }
             }
           }
 
-          setTemporaryEdge({
+          graph.setTemporaryEdge({
             node: node.id,
             kind: props.kind,
             port: props.name,
@@ -119,10 +113,13 @@ export function GraphPort(props: {
             y: node.y + cy(),
           };
           await minni(event, (delta) => {
-            updateTemporaryEdge(position.x + delta.x, position.y - delta.y);
+            graph.updateTemporaryEdge(
+              position.x + delta.x,
+              position.y - delta.y,
+            );
           });
-          setTemporaryEdge(undefined);
-          setDragging(false);
+          graph.setTemporaryEdge(undefined);
+          graph.setDragging(false);
         }}
       />
       <circle

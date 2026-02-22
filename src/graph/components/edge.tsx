@@ -13,15 +13,15 @@ function portY(index: number) {
 }
 
 export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
-  const { graphAPI: graph } = useGraph();
+  const graph = useGraph();
 
-  const fromNode = createMemo(() => graph.store.nodes[props.output.node]);
-  const toNode = createMemo(() => graph.store.nodes[props.input.node]);
+  const fromNode = createMemo(() => graph.graphStore.nodes[props.output.node]);
+  const toNode = createMemo(() => graph.graphStore.nodes[props.input.node]);
 
   const fromPort = () => {
     const node = fromNode();
     if (!node) return undefined;
-    return graph.config[node.type].ports.out.find(
+    return graph.config[node.type].ports.out?.find(
       (p: any) => p.name === props.output.port,
     );
   };
@@ -29,14 +29,16 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
   const fromPortIndex = () => {
     const node = fromNode();
     if (!node) return -1;
-    return graph.config[node.type].ports.out.indexOf(fromPort()!);
+    return graph.config[node.type].ports.out?.indexOf(fromPort()!) ?? -1;
   };
 
   const toPortIndex = () => {
     const node = toNode();
     if (!node) return -1;
-    return graph.config[node.type].ports.in.findIndex(
-      (p: any) => p.name === props.input.port,
+    return (
+      graph.config[node.type].ports.in?.findIndex(
+        (p: any) => p.name === props.input.port,
+      ) ?? -1
     );
   };
 

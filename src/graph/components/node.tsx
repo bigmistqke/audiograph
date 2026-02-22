@@ -7,7 +7,7 @@ import styles from "./node.module.css";
 import { GraphPort } from "./port";
 
 export function GraphNode(props: { node: NodeInstance }) {
-  const { graphAPI: graph, setDragging } = useGraph();
+  const graph = useGraph();
   const typeDef = () => graph.config[props.node.type];
 
   const dimensions = () =>
@@ -56,14 +56,14 @@ export function GraphNode(props: { node: NodeInstance }) {
                   return;
                 }
                 const startPos = { x: props.node.x, y: props.node.y };
-                setDragging(true);
+                graph.setDragging(true);
                 await minni(event, (delta) => {
                   graph.updateNode(props.node.id, {
                     x: snapToGrid(startPos.x + delta.x),
                     y: snapToGrid(startPos.y - delta.y),
                   });
                 });
-                setDragging(false);
+                graph.setDragging(false);
               }}
             >
               <div class={styles.nodeTitle}>{typeDef()?.title}</div>
@@ -82,7 +82,7 @@ export function GraphNode(props: { node: NodeInstance }) {
                 onPointerDown={async (event) => {
                   event.stopPropagation();
                   const startDims = { ...props.node.dimensions };
-                  setDragging(true);
+                  graph.setDragging(true);
                   await minni(event, (delta) => {
                     graph.updateNode(props.node.id, {
                       dimensions: {
@@ -91,7 +91,7 @@ export function GraphNode(props: { node: NodeInstance }) {
                       },
                     });
                   });
-                  setDragging(false);
+                  graph.setDragging(false);
                 }}
               />
             </Show>
