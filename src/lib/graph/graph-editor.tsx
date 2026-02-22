@@ -177,23 +177,23 @@ export function GraphEditor<TContext extends Record<string, any>>(
                 endX: startX + delta.x,
                 endY: startY - delta.y,
               });
+              const box = UIState.selectionBox!;
+              const x = Math.min(box.startX, box.endX);
+              const y = Math.min(box.startY, box.endY);
+              const width = Math.abs(box.endX - box.startX);
+              const height = Math.abs(box.endY - box.startY);
+
+              setUIState(
+                "selectedNodes",
+                getNodesInRect(props.graphStore.nodes, {
+                  x,
+                  y,
+                  width,
+                  height,
+                }),
+              );
             });
 
-            const box = UIState.selectionBox!;
-            const x = Math.min(box.startX, box.endX);
-            const y = Math.min(box.startY, box.endY);
-            const width = Math.abs(box.endX - box.startX);
-            const height = Math.abs(box.endY - box.startY);
-
-            setUIState(
-              "selectedNodes",
-              getNodesInRect(props.graphStore.nodes, {
-                x,
-                y,
-                width,
-                height,
-              }),
-            );
             setUIState("selectionBox", undefined);
             setUIState("dragging", false);
             return;
