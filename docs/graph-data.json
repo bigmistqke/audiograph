@@ -1429,6 +1429,17 @@
       "created_at": "2026-02-22T23:29:08.092732+01:00",
       "updated_at": "2026-02-22T23:29:08.092732+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"8e9c83f\",\"confidence\":95}"
+    },
+    {
+      "id": 131,
+      "change_id": "ba09d7dc-eea1-4418-8888-127606c00e3b",
+      "node_type": "outcome",
+      "title": "Committed: refactor: derive worklet error from resource via port message instead of state sync",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T00:08:48.360383+01:00",
+      "updated_at": "2026-02-23T00:08:48.360383+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"002e62a\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -2773,6 +2784,17 @@
       "weight": 1.0,
       "rationale": "Committed",
       "created_at": "2026-02-22T23:29:08.116406+01:00"
+    },
+    {
+      "id": 123,
+      "from_node_id": 128,
+      "to_node_id": 131,
+      "from_change_id": "3867908e-8ac8-47f1-8687-157bd2d0fb9c",
+      "to_change_id": "ba09d7dc-eea1-4418-8888-127606c00e3b",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-02-23T00:08:48.384388+01:00"
     }
   ]
 }
