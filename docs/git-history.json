@@ -1,5 +1,21 @@
 [
   {
+    "hash": "b9f2b641405c3de42a1ae73bd262272ccc990394",
+    "short_hash": "b9f2b64",
+    "author": "bigmistqke",
+    "date": "2026-02-22T14:50:45+01:00",
+    "message": "refactor: complete GraphContext flattening in graph components",
+    "files_changed": 6
+  },
+  {
+    "hash": "4d164dad83c3b7cbf764adc0d9184f8b5939aeb3",
+    "short_hash": "4d164da",
+    "author": "bigmistqke",
+    "date": "2026-02-22T14:11:54+01:00",
+    "message": "Rename createGraph to createGraphAPI, flatten GraphContext, polish GraphEditor\n\n- Rename create-graph to create-graph-api, createGraph to createGraphAPI\n- Rename graph to graphAPI in useGraph() consumers\n- Flatten GraphContext: merge GraphAPI directly into context via mergeProps\n- Rename internal store to UIState to avoid naming collision with graph store\n- Add style/class props to GraphEditor, use splitProps\n- Move worklet file initialization from GraphEditor to GraphRoute\n- Rename store/setStore props to graphStore/setGraphStore",
+    "files_changed": 10
+  },
+  {
     "hash": "ce2cd469724a633d76f3c14d2448558e2aef6fdf",
     "short_hash": "ce2cd46",
     "author": "bigmistqke",
