@@ -1237,8 +1237,6 @@ export const builtIns = {
         in: { audio: inputGain },
         out: { audio: outputGain },
         render() {
-          const [workletError, setWorkletError] = createSignal<string>();
-
           const workletData = createMemo(() => {
             const name = props.state.name;
             if (!name) return;
@@ -1257,43 +1255,56 @@ export const builtIns = {
             },
           );
 
-          const workletNode = createMemo(
-            when(processorName, (name) => {
-              const node = new AudioWorkletNode(
-                props.context.audioContext,
-                name,
-              );
-              inputGain.connect(node);
-              node.connect(outputGain);
+          const [workletNode] = createResource(processorName, (name) => {
+            const node = new AudioWorkletNode(props.context.audioContext, name);
+            inputGain.connect(node);
+            node.connect(outputGain);
 
-              onCleanup(() => {
-                inputGain.disconnect(node);
-                node.disconnect(outputGain);
-              });
+            onCleanup(() => {
+              inputGain.disconnect(node);
+              node.disconnect(outputGain);
+            });
 
-              setWorkletError(undefined);
-              node.port.start();
-              node.port.addEventListener("message", (event) => {
-                if (event.data.type === "worklet-error") {
-                  setWorkletError(event.data.message);
+            const { promise, resolve } = Promise.withResolvers<
+              | { success: true; result: AudioWorkletNode }
+              | { success: false; error: string }
+            >();
+
+            node.port.start();
+            node.port.addEventListener("message", (event) => {
+              if (event.data.type === "worklet-result") {
+                if (event.data.success) {
+                  resolve({ success: true, result: node });
+                } else {
+                  resolve({ success: false, error: event.data.error });
                 }
-              });
+              }
+            });
 
-              return node;
-            }),
-          );
+            return promise;
+          });
 
-          const params = when(
-            workletNode,
-            (node) => Array.from(node.parameters.entries()),
-            () => [],
-          );
+          const workletParams = createMemo(() => {
+            const _workletNode = workletNode();
+            if (_workletNode?.success) {
+              const node = _workletNode.result;
+              return Array.from(node.parameters.entries());
+            }
+            return [];
+          });
+
+          const workletError = () => {
+            const _workletNode = workletNode();
+            if (!_workletNode?.success) {
+              return _workletNode?.error;
+            }
+          };
 
           const nodeType = () => props.graphStore.nodes[props.id]?.type;
           const isSaved = () => nodeType() !== "audioworklet";
 
           createEffect(
-            mapArray(params, ([name, param]) => {
+            mapArray(workletParams, ([name, param]) => {
               if (!(name in props.state.metadata)) {
                 props.setState(
                   produce((state) => {
@@ -1314,7 +1325,7 @@ export const builtIns = {
 
           return (
             <GraphNodeContent class={styles["audioworklet-node-content"]}>
-              <For each={params()}>
+              <For each={workletParams()}>
                 {([name, param]) => {
                   const min = () =>
                     param.minValue < -1e30 ? 0 : param.minValue;

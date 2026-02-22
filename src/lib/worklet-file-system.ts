@@ -107,15 +107,22 @@ export function getSourceBoilerplate(): string {
 export function getWorkletEntry(name: string): string {
   return `import Processor from './source.js';
 try {
-  registerProcessor("${name}", Processor);
-} catch(error) {
-  class ErrorReporter extends AudioWorkletProcessor {
+  class ProcessorResult extends Processor {
     constructor() {
       super();
-      this.port.postMessage({ type: 'worklet-error', message: error.message })
+      this.port.postMessage({ type: 'worklet-result', success: true })
+    }
+  }
+
+  registerProcessor("${name}", ProcessorResult);
+} catch(error) {
+  class ProcessorResult extends AudioWorkletProcessor {
+    constructor() {
+      super();
+      this.port.postMessage({ type: 'worklet-result', success: false, error: error.message })
     }
     process() { return false; }
   }
-  registerProcessor("${name}", ErrorReporter);
+  registerProcessor("${name}", ProcessorResult);
 }`;
 }
