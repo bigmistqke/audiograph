@@ -1,5 +1,21 @@
 [
   {
+    "hash": "6d7414f1963ea606256356762e713ce2ff866f0b",
+    "short_hash": "6d7414f",
+    "author": "bigmistqke",
+    "date": "2026-02-22T15:48:57+01:00",
+    "message": "feat: lazy AudioWorklet loading with per-node module resolution",
+    "files_changed": 7
+  },
+  {
+    "hash": "51154135ff420e02750c6b15043e274c811409ae",
+    "short_hash": "5115413",
+    "author": "bigmistqke",
+    "date": "2026-02-22T15:48:52+01:00",
+    "message": "refactor: clean up leftover context flattening and orphaned CSS",
+    "files_changed": 2
+  },
+  {
     "hash": "ea88492c52f3631b46275a34c3ec36dcff05196a",
     "short_hash": "ea88492",
     "author": "bigmistqke",
