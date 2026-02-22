@@ -1,5 +1,4 @@
 /* @refresh reload */
-import { Route, Router } from "@solidjs/router";
 import "solid-devtools";
 import { render } from "solid-js/web";
 
@@ -14,11 +13,4 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   );
 }
 
-render(
-  () => (
-    <Router>
-      <Route path="/:graphName?" component={App} />
-    </Router>
-  ),
-  root!,
-);
+render(() => <App />, root!);

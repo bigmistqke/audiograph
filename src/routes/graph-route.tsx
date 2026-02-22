@@ -127,8 +127,33 @@ function SideBar(props: {
   );
 }
 
-export function GraphRoute() {
+function TopRightHUD(props: { id: string }) {
   const navigate = useNavigate();
+  return (
+    <div class={styles.topRight}>
+      <span class={styles.graphName}>{props.id}</span>
+      <Button
+        onClick={() => {
+          const name = prompt("New graph name:");
+          if (name?.trim()) navigate(`/${name.trim()}`);
+        }}
+        class={styles.button}
+      >
+        new graph
+      </Button>
+      <Button
+        onClick={() => {
+          audioContext.resume();
+        }}
+        class={styles.button}
+      >
+        resume audio
+      </Button>
+    </div>
+  );
+}
+
+export function GraphRoute() {
   const params = useParams();
   const workletFS = createWorkletFileSystem();
   const [resource] = createResource(() => promise.then(() => true));
@@ -218,26 +243,7 @@ export function GraphRoute() {
         selectedNodeType={selectedNodeType()}
         setSelectedNodeType={setSelectedNodeType}
       />
-      <div class={styles.topRight}>
-        <span class={styles.graphName}>{params.id}</span>
-        <Button
-          onClick={() => {
-            const name = prompt("New graph name:");
-            if (name?.trim()) navigate(`/${name.trim()}`);
-          }}
-          class={styles.button}
-        >
-          new graph
-        </Button>
-        <Button
-          onClick={() => {
-            audioContext.resume();
-          }}
-          class={styles.button}
-        >
-          resume audio
-        </Button>
-      </div>
+      <TopRightHUD id={params.id} />
       <Show when={resource()}>
         <GraphEditor
           context={context}
