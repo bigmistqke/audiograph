@@ -12,26 +12,26 @@ function portY(index: number) {
 }
 
 export function GraphTemporaryEdge(props: TemporaryEdge) {
-  const { graphAPI: graph } = useGraph();
+  const graph = useGraph();
 
   const port = () => {
-    const node = graph.store.nodes[props.node];
+    const node = graph.graphStore.nodes[props.node];
     if (!node) return undefined;
     const ports =
       props.kind === "in"
         ? graph.config[node.type].ports.in
         : graph.config[node.type].ports.out;
-    return ports.find((p: any) => p.name === props.port);
+    return ports?.find((p: any) => p.name === props.port);
   };
 
   const portIndex = () => {
-    const node = graph.store.nodes[props.node];
+    const node = graph.graphStore.nodes[props.node];
     if (!node) return -1;
     const ports =
       props.kind === "in"
         ? graph.config[node.type].ports.in
         : graph.config[node.type].ports.out;
-    return ports.indexOf(port()!);
+    return ports?.indexOf(port()!) ?? -1;
   };
 
   const edgeColor = () => {
@@ -44,7 +44,7 @@ export function GraphTemporaryEdge(props: TemporaryEdge) {
       when={
         props.x !== undefined &&
         props.y !== undefined &&
-        graph.store.nodes[props.node]
+        graph.graphStore.nodes[props.node]
       }
     >
       {(node) => (
