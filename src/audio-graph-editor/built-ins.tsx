@@ -1,3 +1,4 @@
+import { when } from "@bigmistqke/solid-whenever";
 import { ReactiveMap } from "@solid-primitives/map";
 import {
   createComputed,
@@ -21,7 +22,6 @@ import { HorizontalSlider } from "~/ui/horizontal-slider";
 import { GraphNodeContent } from "~/ui/node-content";
 import { Select } from "~/ui/select";
 
-import { when } from "@bigmistqke/solid-whenever";
 import envelopeProcessorUrl from "~/lib/envelope-processor?url";
 import sequencerProcessorUrl from "~/lib/sequencer-processor?url";
 

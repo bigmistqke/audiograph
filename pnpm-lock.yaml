@@ -15,8 +15,8 @@ importers:
         specifier: ^0.2.7
         version: 0.2.7(@babel/standalone@7.29.1)(dom-serializer@2.0.0)(domutils@3.2.2)(htmlparser2@10.1.0)(monaco-editor@0.52.2)(solid-js@1.9.9)(typescript@5.9.2)
       '@bigmistqke/rpc':
-        specifier: link:../rpc/packages/rpc
-        version: link:../rpc/packages/rpc
+        specifier: ^0.1.5
+        version: 0.1.5(typescript@5.9.2)
       '@bigmistqke/solid-whenever':
         specifier: ^0.1.1
         version: 0.1.1(solid-js@1.9.9)
@@ -162,6 +162,9 @@ packages:
       monaco-editor: ^0.52.2
       solid-js: ^1.6.0
       typescript: ^5.1.6
+
+  '@bigmistqke/rpc@0.1.5':
+    resolution: {integrity: sha512-Yg/lTh/ZVXDXK9pIIBRfCz0yF0YWmQIV8Hxxv0pbXBlN6EXLoAkTzKw9PTczh2SCHTv7DeGtlba/ET2n96jKOw==}
 
   '@bigmistqke/solid-whenever@0.1.1':
     resolution: {integrity: sha512-BhAtrauFOsYsNVhoNV93CPNIcj++R3tPzCok4eWB6BVCYVPedHGDtvqlUcAvftt67bOq9yAkF8DSJMjx3zfYeQ==}
@@ -906,6 +909,14 @@ packages:
     peerDependencies:
       browserslist: '>= 4.21.0'
 
+  valibot@1.2.0:
+    resolution: {integrity: sha512-mm1rxUsmOxzrwnX5arGS+U4T25RdvpPjPN4yR0u9pUBov9+zGVtO84tif1eY4r6zWxVxu3KzIyknJy3rxfRZZg==}
+    peerDependencies:
+      typescript: '>=5'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   validate-html-nesting@1.2.3:
     resolution: {integrity: sha512-kdkWdCl6eCeLlRShJKbjVOU2kFKxMF8Ghu50n+crEoyx+VKm3FxAxF9z4DCy6+bbTOqNW0+jcIYRnjoIRzigRw==}
 
@@ -1118,6 +1129,15 @@ snapshots:
       monaco-editor: 0.52.2
       solid-js: 1.9.9
       typescript: 5.9.2
+
+  '@bigmistqke/rpc@0.1.5(typescript@5.9.2)':
+    dependencies:
+      '@types/node': 22.19.11
+      bumpp: 10.4.1
+      valibot: 1.2.0(typescript@5.9.2)
+    transitivePeerDependencies:
+      - magicast
+      - typescript
 
   '@bigmistqke/solid-whenever@0.1.1(solid-js@1.9.9)':
     dependencies:
@@ -1431,7 +1451,6 @@ snapshots:
   '@types/node@22.19.11':
     dependencies:
       undici-types: 6.21.0
-    optional: true
 
   ansis@4.2.0: {}
 
@@ -1768,14 +1787,17 @@ snapshots:
 
   typescript@5.9.2: {}
 
-  undici-types@6.21.0:
-    optional: true
+  undici-types@6.21.0: {}
 
   update-browserslist-db@1.1.3(browserslist@4.25.4):
     dependencies:
       browserslist: 4.25.4
       escalade: 3.2.0
       picocolors: 1.1.1
+
+  valibot@1.2.0(typescript@5.9.2):
+    optionalDependencies:
+      typescript: 5.9.2
 
   validate-html-nesting@1.2.3: {}
 
