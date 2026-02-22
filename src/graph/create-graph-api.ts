@@ -138,12 +138,6 @@ export function createGraphAPI<
 }: CreateGraphAPIConfig<TContext, TConfig>): GraphAPI<TConfig> {
   const [nodes, setNodes] = createStore<Record<string, ConstructResult>>({});
 
-  // Recover ID counter from persisted nodes
-  let nextId = Object.keys(graphStore.nodes).reduce(
-    (max, n) => Math.max(max, (parseInt(n) || 0) + 1),
-    0,
-  );
-
   function getPortDef(nodeId: string, portName: string) {
     const node = graphStore.nodes[nodeId];
     if (!node) return undefined;
@@ -234,7 +228,7 @@ export function createGraphAPI<
     nodes,
     getPortDef,
     addNode(type: keyof TConfig & string, position: { x: number; y: number }) {
-      const id = (nextId++).toString();
+      const id = crypto.randomUUID();
       const typeDef = config[type];
 
       setGraphStore(
