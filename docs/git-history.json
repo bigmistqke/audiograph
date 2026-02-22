@@ -1,5 +1,13 @@
 [
   {
+    "hash": "8e9c83ff6ac27958ee642495a7ef62ecbc1c21bf",
+    "short_hash": "8e9c83f",
+    "author": "bigmistqke",
+    "date": "2026-02-22T23:29:00+01:00",
+    "message": "refactor: rename ui to render, restructure audioworklet node with onCleanup",
+    "files_changed": 6
+  },
+  {
     "hash": "d4829b4b8debbbabe2d040031ba8c4c8f1f1c9a7",
     "short_hash": "d4829b4",
     "author": "bigmistqke",
