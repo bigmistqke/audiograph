@@ -1,5 +1,13 @@
 [
   {
+    "hash": "9491d3e593bb5c00725f5382a5a1154942352841",
+    "short_hash": "9491d3e",
+    "author": "bigmistqke",
+    "date": "2026-02-22T22:21:09+01:00",
+    "message": "fix: AudioWorklet recovery after registration failure, show error outline on textarea",
+    "files_changed": 3
+  },
+  {
     "hash": "baa300eeaa20c59a4705aaf7984917bc50ba88ba",
     "short_hash": "baa300e",
     "author": "bigmistqke",

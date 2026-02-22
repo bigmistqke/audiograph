@@ -1363,6 +1363,39 @@
       "created_at": "2026-02-22T19:01:52.571874+01:00",
       "updated_at": "2026-02-22T19:01:52.571874+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"baa300e\",\"confidence\":95}"
+    },
+    {
+      "id": 125,
+      "change_id": "1bf71d02-3f29-45b7-b510-93ad92dc5e29",
+      "node_type": "goal",
+      "title": "Fix AudioWorklet not recovering after registration failure",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T22:10:05.666765+01:00",
+      "updated_at": "2026-02-22T22:10:05.666765+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"bug: when writing incorrect code in audioworklet code (e.g. export default class extends AudioWorkletProcessor {\\n  static get parameterDescriptors() {\\n    return [\\n{ name: \\\"gain\\\", defaultValue: 1, minValue: 0, maxValue: 1 },\\n{ name: \\\"gain\\\", defaultValue: 1, minValue: 0, maxValue: 1 }\\n\\n];\\n  }\\n  process(inputs, outputs, parameters) {\\n    const input = inputs[0];\\n    const output = outputs[0];\\n    const gain = parameters.gain;\\n    for (let channel = 0; channel < output.length; ++channel) {\\n      if (input?.[channel]) {\\n        for (let i = 0; i < output[channel].length; i++) {\\n          output[channel][i] = input[channel][i] * (gain.length > 1 ? gain[i] : gain[0]);\\n        }\\n      }\\n    }\\n    return true;\\n  }\\n}\\n -> Failed to execute 'registerProcessor' on 'AudioWorkletGlobalScope': Found a duplicate name \\\"gain\\\" in parameterDescriptors()) -> built-ins.tsx:1266 Uncaught (in promise) InvalidStateError: Failed to construct 'AudioWorkletNode': AudioWorkletNode cannot be created: The node name 'custom-2860d62f-7437-4650-a5ea-9121db494d49_v1' is not defined in AudioWorkletGlobalScope. -> then afterwards if i change code to export default class extends AudioWorkletProcessor {\\n  static get parameterDescriptors() {\\n    return [\\n{ name: \\\"gain\\\", defaultValue: 1, minValue: 0, maxValue: 1 },\\n{ name: \\\"gain2\\\", defaultValue: 1, minValue: 0, maxValue: 1 }\\n\\n];\\n  }\\n  process(inputs, outputs, parameters) {\\n    const input = inputs[0];\\n    const output = outputs[0];\\n    const gain = parameters.gain;\\n    for (let channel = 0; channel < output.length; ++channel) {\\n      if (input?.[channel]) {\\n        for (let i = 0; i < output[channel].length; i++) {\\n          output[channel][i] = input[channel][i] * (gain.length > 1 ? gain[i] : gain[0]);\\n        }\\n      }\\n    }\\n    return true;\\n  }\\n}\\n -> it does not update the worklet or the ui\"}"
+    },
+    {
+      "id": 126,
+      "change_id": "b22db447-ef71-4cf1-a1cf-c7bc261c8ac0",
+      "node_type": "action",
+      "title": "Wrap AudioWorkletNode constructor in try/catch to preserve reactive tracking after registration failure",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T22:13:03.301497+01:00",
+      "updated_at": "2026-02-22T22:13:03.301497+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"files\":[\"src/audio-graph-editor/built-ins.tsx\"]}"
+    },
+    {
+      "id": 127,
+      "change_id": "acc31552-0e6d-416a-9168-ac09ed7ec396",
+      "node_type": "outcome",
+      "title": "Committed: fix: AudioWorklet recovery after registration failure, show error outline on textarea",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-22T22:21:43.293978+01:00",
+      "updated_at": "2026-02-22T22:21:43.293978+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"9491d3e\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -2652,6 +2685,28 @@
       "weight": 1.0,
       "rationale": "Committed",
       "created_at": "2026-02-22T19:01:52.594062+01:00"
+    },
+    {
+      "id": 118,
+      "from_node_id": 125,
+      "to_node_id": 126,
+      "from_change_id": "1bf71d02-3f29-45b7-b510-93ad92dc5e29",
+      "to_change_id": "b22db447-ef71-4cf1-a1cf-c7bc261c8ac0",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation",
+      "created_at": "2026-02-22T22:13:03.333246+01:00"
+    },
+    {
+      "id": 119,
+      "from_node_id": 126,
+      "to_node_id": 127,
+      "from_change_id": "b22db447-ef71-4cf1-a1cf-c7bc261c8ac0",
+      "to_change_id": "acc31552-0e6d-416a-9168-ac09ed7ec396",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-02-22T22:21:43.329288+01:00"
     }
   ]
 }
