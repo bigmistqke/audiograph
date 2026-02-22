@@ -7,6 +7,11 @@
   display: grid;
   grid-template-rows: auto 1fr;
   overflow: hidden;
+
+  &[data-selected] {
+    outline: 2px solid rgba(59, 130, 246, 0.8);
+    outline-offset: -1px;
+  }
 }
 
 .nodeHeader {

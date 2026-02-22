@@ -47,7 +47,12 @@ export function GraphNode(props: { node: NodeInstance }) {
       >
         {/* HTML node body */}
         <foreignObject width={dimensions().x} height={dimensions().y}>
-          <div class={styles.node}>
+          <div
+            class={styles.node}
+            data-selected={
+              graph.selectedNodes.includes(props.node.id) || undefined
+            }
+          >
             <div
               class={styles.nodeHeader}
               style={{ height: `${contentY()}px` }}

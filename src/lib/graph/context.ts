@@ -15,6 +15,8 @@ export type GraphContextType = GraphAPI & {
   updateTemporaryEdge(x: number, y: number): void;
   setDragging(dragging: boolean): void;
   getCursorPosition(): { x: number; y: number } | undefined;
+  selectedNodes: string[];
+  setSelectedNodes(ids: string[]): void;
 };
 
 export const GraphContext = createContext<GraphContextType>();

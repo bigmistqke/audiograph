@@ -29,3 +29,10 @@
 .svg[data-dragging] * {
   user-select: none;
 }
+
+.selectionBox {
+  fill: rgba(59, 130, 246, 0.1);
+  stroke: rgba(59, 130, 246, 0.5);
+  stroke-width: 1;
+  pointer-events: none;
+}

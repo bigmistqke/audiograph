@@ -25,9 +25,25 @@ import type {
   CreateGraphAPIConfig,
   GraphAPI,
   GraphConfig,
+  NodeInstance,
 } from "./create-graph-api";
 import { createGraphAPI } from "./create-graph-api";
 import styles from "./graph-editor.module.css";
+
+function getNodesInRect(
+  nodes: Record<string, NodeInstance>,
+  rect: { x: number; y: number; width: number; height: number },
+): string[] {
+  return Object.values(nodes)
+    .filter(
+      (node) =>
+        node.x < rect.x + rect.width &&
+        node.x + node.dimensions.x > rect.x &&
+        node.y < rect.y + rect.height &&
+        node.y + node.dimensions.y > rect.y,
+    )
+    .map((n) => n.id);
+}
 
 export interface GraphEditorProps<
   TContext extends Record<string, any>,
@@ -50,12 +66,23 @@ export function GraphEditor<TContext extends Record<string, any>>(
     temporaryEdge: TemporaryEdge | undefined;
     dragging: boolean;
     cursorPosition: { x: number; y: number } | undefined;
+    selectionBox:
+      | {
+          startX: number;
+          startY: number;
+          endX: number;
+          endY: number;
+        }
+      | undefined;
+    selectedNodes: string[];
   }>({
     origin: { x: 0, y: 0 },
     dimensions: { width: 0, height: 0 },
     temporaryEdge: undefined,
     dragging: false,
     cursorPosition: undefined,
+    selectionBox: undefined,
+    selectedNodes: [],
   });
   const [graphProps, rest] = splitProps(props, [
     "config",
@@ -82,6 +109,12 @@ export function GraphEditor<TContext extends Record<string, any>>(
     },
     getCursorPosition() {
       return UIState.cursorPosition;
+    },
+    get selectedNodes() {
+      return UIState.selectedNodes;
+    },
+    setSelectedNodes(ids: string[]) {
+      setUIState("selectedNodes", ids);
     },
   }) satisfies GraphContextType;
 
@@ -122,6 +155,50 @@ export function GraphEditor<TContext extends Record<string, any>>(
         }}
         onPointerDown={async (event) => {
           if (event.target !== event.currentTarget) return;
+
+          if (event.shiftKey) {
+            // Selection box mode
+            const svgRect = event.currentTarget.getBoundingClientRect();
+            const startX = event.clientX - svgRect.left - UIState.origin.x;
+            const startY = event.clientY - svgRect.top + UIState.origin.y;
+
+            setUIState("selectionBox", {
+              startX,
+              startY,
+              endX: startX,
+              endY: startY,
+            });
+            setUIState("dragging", true);
+
+            await minni(event, (delta) => {
+              setUIState("selectionBox", {
+                startX,
+                startY,
+                endX: startX + delta.x,
+                endY: startY - delta.y,
+              });
+            });
+
+            const box = UIState.selectionBox!;
+            const x = Math.min(box.startX, box.endX);
+            const y = Math.min(box.startY, box.endY);
+            const width = Math.abs(box.endX - box.startX);
+            const height = Math.abs(box.endY - box.startY);
+
+            setUIState(
+              "selectedNodes",
+              getNodesInRect(props.graphStore.nodes, {
+                x,
+                y,
+                width,
+                height,
+              }),
+            );
+            setUIState("selectionBox", undefined);
+            setUIState("dragging", false);
+            return;
+          }
+
           const _origin = { ...UIState.origin };
           const start = performance.now();
 
@@ -135,6 +212,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
           setUIState("dragging", false);
 
           if (performance.now() - start < 250) {
+            setUIState("selectedNodes", []);
             const x = snapToGrid(event.offsetX - UIState.origin.x);
             const y = snapToGrid(event.offsetY + UIState.origin.y);
             rest.onClick({ x, y, graph: graphAPI });
@@ -167,6 +245,23 @@ export function GraphEditor<TContext extends Record<string, any>>(
         </For>
         <Show when={UIState.temporaryEdge}>
           {(edge) => <GraphTemporaryEdge {...edge()} />}
+        </Show>
+        <Show when={UIState.selectionBox}>
+          {(box) => {
+            const x = () => Math.min(box().startX, box().endX);
+            const y = () => Math.min(box().startY, box().endY);
+            const width = () => Math.abs(box().endX - box().startX);
+            const height = () => Math.abs(box().endY - box().startY);
+            return (
+              <rect
+                x={x()}
+                y={y()}
+                width={width()}
+                height={height()}
+                class={styles.selectionBox}
+              />
+            );
+          }}
         </Show>
       </svg>
     </GraphContext.Provider>
