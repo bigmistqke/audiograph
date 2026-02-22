@@ -1,4 +1,13 @@
-import { createEffect, createSignal, For, onCleanup } from "solid-js";
+import { ReactiveMap } from "@solid-primitives/map";
+import {
+  createComputed,
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  onCleanup,
+} from "solid-js";
 import { calcNodeHeight } from "~/lib/graph/constants";
 import type {
   ConstructProps,
@@ -12,6 +21,10 @@ import { HorizontalSlider } from "~/ui/horizontal-slider";
 import { GraphNodeContent } from "~/ui/node-content";
 import { Select } from "~/ui/select";
 
+import { when } from "@bigmistqke/solid-whenever";
+import envelopeProcessorUrl from "~/lib/envelope-processor?url";
+import sequencerProcessorUrl from "~/lib/sequencer-processor?url";
+
 export interface AudioGraphContext {
   audioContext: AudioContext;
   workletFS: WorkletFileSystem;
@@ -24,6 +37,24 @@ function createNodeDef<S extends Record<string, any> = Record<string, any>>(
   construct: (props: ConstructProps<S, AudioGraphContext>) => ConstructResult,
 ): NodeTypeDef<S, AudioGraphContext> {
   return { ...config, construct };
+}
+
+const audioContextModuleMap = new ReactiveMap<
+  AudioContext,
+  ReactiveMap<string, Promise<void>>
+>();
+function addModule(context: AudioContext, url: string): Promise<true> {
+  let moduleMap = audioContextModuleMap.get(context);
+  if (!moduleMap) {
+    moduleMap = new ReactiveMap();
+    audioContextModuleMap.set(context, moduleMap);
+  }
+  let promise = moduleMap.get(url);
+  if (!promise) {
+    promise = context.audioWorklet.addModule(url);
+    moduleMap.set(url, promise);
+  }
+  return promise.then(() => true);
 }
 
 export const builtIns = {
@@ -883,35 +914,53 @@ export const builtIns = {
       state: { attack: 0.1, decay: 0.2, sustain: 0.7, release: 0.5 },
     },
     (props) => {
-      const node = new AudioWorkletNode(
-        props.context.audioContext,
-        "envelope-processor",
-        {
-          numberOfInputs: 1,
-          numberOfOutputs: 1,
-          outputChannelCount: [1],
-        },
+      const [resource] = createResource(() =>
+        addModule(props.context.audioContext, envelopeProcessorUrl),
       );
 
-      const sendParams = () =>
-        node.port.postMessage({
-          type: "params",
-          attack: props.state.attack,
-          decay: props.state.decay,
-          sustain: props.state.sustain,
-          release: props.state.release,
-        });
+      const node = createMemo(
+        when(
+          resource,
+          () =>
+            new AudioWorkletNode(
+              props.context.audioContext,
+              "envelope-processor",
+              {
+                numberOfInputs: 1,
+                numberOfOutputs: 1,
+                outputChannelCount: [1],
+              },
+            ),
+        ),
+      );
 
-      sendParams();
-      createEffect(sendParams);
+      createComputed(
+        when(node, (node) => {
+          createComputed(() =>
+            node.port.postMessage({
+              type: "params",
+              attack: props.state.attack,
+              decay: props.state.decay,
+              sustain: props.state.sustain,
+              release: props.state.release,
+            }),
+          );
+        }),
+      );
 
-      const trigger = () => node.port.postMessage({ type: "trigger" });
-
-      onCleanup(() => node.disconnect());
+      const trigger = () => node()?.port.postMessage({ type: "trigger" });
 
       return {
-        in: { gate: node },
-        out: { envelope: node },
+        in: {
+          get gate() {
+            return node();
+          },
+        },
+        out: {
+          get envelope() {
+            return node();
+          },
+        },
         ui: () => (
           <GraphNodeContent
             style={{
@@ -1003,54 +1052,74 @@ export const builtIns = {
       },
     },
     (props) => {
-      const node = new AudioWorkletNode(
-        props.context.audioContext,
-        "sequencer-processor",
-        {
-          numberOfInputs: 0,
-          numberOfOutputs: 1,
-          outputChannelCount: [1],
-        },
+      const [resource] = createResource(() =>
+        addModule(props.context.audioContext, sequencerProcessorUrl),
       );
 
-      node.port.postMessage({
-        type: "bpm",
-        value: props.state.bpm,
-      });
-      node.port.postMessage({
-        type: "steps",
-        value: props.state.steps.map((s: boolean) => (s ? 1 : 0)),
-      });
+      const node = createMemo(
+        when(
+          resource,
+          () =>
+            new AudioWorkletNode(
+              props.context.audioContext,
+              "sequencer-processor",
+              {
+                numberOfInputs: 0,
+                numberOfOutputs: 1,
+                outputChannelCount: [1],
+              },
+            ),
+        ),
+      );
+
+      createComputed(
+        when(node, (node) => {
+          node.port.postMessage({
+            type: "bpm",
+            value: props.state.bpm,
+          });
+          node.port.postMessage({
+            type: "steps",
+            value: props.state.steps.map((s: boolean) => (s ? 1 : 0)),
+          });
+          node.port.onmessage = (e: MessageEvent) => {
+            if (e.data.type === "step") setCurrentStep(e.data.value);
+          };
+
+          createEffect(() => {
+            node.port.postMessage({ type: "bpm", value: props.state.bpm });
+          });
+
+          createEffect(() => {
+            node.port.postMessage({
+              type: "steps",
+              value: props.state.steps.map((s: boolean) => (s ? 1 : 0)),
+            });
+          });
+        }),
+      );
 
       const [currentStep, setCurrentStep] = createSignal(-1);
 
-      node.port.onmessage = (e: MessageEvent) => {
-        if (e.data.type === "step") setCurrentStep(e.data.value);
-      };
-
-      createEffect(() => {
-        node.port.postMessage({ type: "bpm", value: props.state.bpm });
+      const start = when(node, (node) => {
+        node.port.postMessage({ type: "start" });
       });
-
-      createEffect(() => {
-        node.port.postMessage({
-          type: "steps",
-          value: props.state.steps.map((s: boolean) => (s ? 1 : 0)),
-        });
-      });
-
-      const start = () => node.port.postMessage({ type: "start" });
-      const stop = () => node.port.postMessage({ type: "stop" });
-
-      onCleanup(() => node.disconnect());
+      const stop = when(node, (node) =>
+        node.port.postMessage({ type: "stop" }),
+      );
 
       return {
         in: {},
-        out: { gate: node },
+        out: {
+          get gate() {
+            return node();
+          },
+        },
         ui: () => {
           const stepCount = () => props.state.steps.length;
           return (
             <GraphNodeContent
+              disabled={!resource()}
               style={{
                 display: "grid",
                 "grid-template-rows": "auto 1fr auto",
@@ -1219,7 +1288,7 @@ export const builtIns = {
         in: { audio: inputGain },
         out: { audio: outputGain },
         ui: () => {
-          const nodeType = () => props.graph.nodes[props.id]?.type;
+          const nodeType = () => props.graphStore.nodes[props.id]?.type;
           const isSaved = () => nodeType() !== "audioworklet";
 
           return (

@@ -17,6 +17,9 @@ importers:
       '@bigmistqke/rpc':
         specifier: link:../rpc/packages/rpc
         version: link:../rpc/packages/rpc
+      '@bigmistqke/solid-whenever':
+        specifier: ^0.1.1
+        version: 0.1.1(solid-js@1.9.9)
       '@solid-primitives/map':
         specifier: ^0.7.2
         version: 0.7.2(solid-js@1.9.9)

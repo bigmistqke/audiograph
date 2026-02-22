@@ -32,13 +32,13 @@ export interface ConstructProps<
   state: S;
   setState: SetStoreFunction<NoInfer<S>>;
   isInputConnected(portName: string): boolean;
-  graph: GraphStore;
-  setGraph: SetStoreFunction<GraphStore>;
+  graphStore: GraphStore;
+  setGraphStore: SetStoreFunction<GraphStore>;
 }
 
 export interface ConstructResult {
-  in?: Record<string, AudioNode | AudioParam>;
-  out?: Record<string, Connectable>;
+  in?: Record<string, AudioNode | AudioParam | undefined>;
+  out?: Record<string, Connectable | undefined>;
   ui?: () => JSX.Element;
 }
 
@@ -162,25 +162,31 @@ export function createGraphAPI<
             );
           }
 
-          setNodes(
-            id,
-            typeDef.construct({
+          createComputed(() => {
+            const result = typeDef.construct({
               id: node.id,
               context,
-              graph: graphStore,
-              setGraph: setGraphStore,
+              graphStore,
+              setGraphStore,
               get state() {
                 return node.state;
               },
               setState(...args: any[]) {
-                return (setGraphStore as any)("nodes", id, "state", ...args);
+                return setGraphStore(
+                  "nodes",
+                  id,
+                  "state",
+                  // @ts-expect-error
+                  ...args,
+                );
               },
               isInputConnected: (portName: string) =>
                 graphStore.edges.some(
                   (e) => e.input.node === node.id && e.input.port === portName,
                 ),
-            }),
-          );
+            });
+            setNodes(id, result);
+          });
         });
       },
     ),

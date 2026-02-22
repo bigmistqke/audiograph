@@ -1,11 +1,10 @@
 import { makePersisted } from "@solid-primitives/storage";
 import clsx from "clsx";
-import { createResource, createSignal, For, Setter, Show } from "solid-js";
+import { createSignal, For, Setter, Show } from "solid-js";
 import { createStore } from "solid-js/store";
-import envelopeProcessorUrl from "~/lib/envelope-processor?url";
 import type { GraphConfig, GraphStore } from "~/lib/graph/create-graph-api";
 import { GraphEditor } from "~/lib/graph/graph-editor";
-import sequencerProcessorUrl from "~/lib/sequencer-processor?url";
+
 import {
   createWorkletFileSystem,
   getSourceBoilerplate,
@@ -16,10 +15,6 @@ import styles from "./audio-graph-editor.module.css";
 import { AudioGraphContext, builtIns } from "./built-ins";
 
 const audioContext = new AudioContext();
-const promise = Promise.all([
-  audioContext.audioWorklet.addModule(envelopeProcessorUrl),
-  audioContext.audioWorklet.addModule(sequencerProcessorUrl),
-]);
 
 function SideBar(props: {
   config: GraphConfig<AudioGraphContext>;
@@ -158,7 +153,6 @@ export function AudioGraphEditor(props: {
 }) {
   // const params = useParams();
   const workletFS = createWorkletFileSystem();
-  const [resource] = createResource(() => promise.then(() => true));
   const [config, setConfig] = createStore<GraphConfig<AudioGraphContext>>({
     ...builtIns,
   });
@@ -246,34 +240,32 @@ export function AudioGraphEditor(props: {
         setSelectedNodeType={setSelectedNodeType}
       />
       <TopRightHUD id={props.id ?? ""} onOpenProject={props.onOpenProject} />
-      <Show when={resource()}>
-        <GraphEditor
-          context={context}
-          config={config}
-          graphStore={graphStore}
-          setGraphStore={setGraphStore}
-          onClick={({ x, y, graph }) => {
-            const type = selectedNodeType();
-            if (!type) return;
+      <GraphEditor
+        context={context}
+        config={config}
+        graphStore={graphStore}
+        setGraphStore={setGraphStore}
+        onClick={({ x, y, graph }) => {
+          const type = selectedNodeType();
+          if (!type) return;
 
-            const typeDef = config[type];
+          const typeDef = config[type];
 
-            const id = graph.addNode(type, { x, y });
+          const id = graph.addNode(type, { x, y });
 
-            if (typeDef?.state && "code" in typeDef.state) {
-              const name = `custom-${id}`;
-              const code = typeDef.state.code || getSourceBoilerplate();
+          if (typeDef?.state && "code" in typeDef.state) {
+            const name = `custom-${id}`;
+            const code = typeDef.state.code || getSourceBoilerplate();
 
-              setGraphStore("nodes", id, "state", "name", name);
-              setGraphStore("nodes", id, "state", "code", code);
+            setGraphStore("nodes", id, "state", "name", name);
+            setGraphStore("nodes", id, "state", "code", code);
 
-              workletFS.writeFile(`/${name}/source.js`, code);
-              workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
-            }
-            setSelectedNodeType(undefined);
-          }}
-        />
-      </Show>
+            workletFS.writeFile(`/${name}/source.js`, code);
+            workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
+          }
+          setSelectedNodeType(undefined);
+        }}
+      />
     </>
   );
 }

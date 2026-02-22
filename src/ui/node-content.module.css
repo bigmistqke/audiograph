@@ -4,4 +4,8 @@
   padding-inline: var(--content-padding-inline);
   display: grid;
   gap: var(--gap);
+
+  &.disabled {
+    opacity: 0.5;
+  }
 }
