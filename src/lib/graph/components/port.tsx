@@ -51,6 +51,7 @@ export function GraphPort(props: {
         onPointerUp={(event) => {
           event.stopPropagation();
           const edgeHandle = graph.getTemporaryEdge();
+
           if (!edgeHandle) return;
           if (edgeHandle.kind === props.kind) return;
 
@@ -75,6 +76,7 @@ export function GraphPort(props: {
             const existingEdge = graph.graphStore.edges.find(
               (e) => e.input.node === node.id && e.input.port === props.name,
             );
+
             if (existingEdge) {
               graph.unlink(existingEdge.output, existingEdge.input);
               const fromNode = graph.graphStore.nodes[existingEdge.output.node];
@@ -83,6 +85,7 @@ export function GraphPort(props: {
                   x: node.x + cx(),
                   y: node.y + cy(),
                 };
+
                 graph.setTemporaryEdge({
                   node: fromNode.id,
                   kind: "out",
@@ -90,14 +93,17 @@ export function GraphPort(props: {
                   x: position.x,
                   y: position.y,
                 });
+
                 await minni(event, (delta) => {
                   graph.updateTemporaryEdge(
                     position.x + delta.x,
                     position.y - delta.y,
                   );
                 });
+
                 graph.setTemporaryEdge(undefined);
                 graph.setDragging(false);
+
                 return;
               }
             }
@@ -112,14 +118,20 @@ export function GraphPort(props: {
             x: node.x + cx(),
             y: node.y + cy(),
           };
+
           await minni(event, (delta) => {
             graph.updateTemporaryEdge(
               position.x + delta.x,
               position.y - delta.y,
             );
           });
-          graph.setTemporaryEdge(undefined);
-          graph.setDragging(false);
+
+          // NOTE:  wait a frame so that port's onPointerUp
+          //        can receive the current temporary edge.
+          requestAnimationFrame(() => {
+            graph.setTemporaryEdge(undefined);
+            graph.setDragging(false);
+          });
         }}
       />
       <circle

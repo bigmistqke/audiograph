@@ -9,15 +9,15 @@ export interface TemporaryEdge {
   y?: number;
 }
 
-export const GraphContext = createContext<
-  GraphAPI & {
-    setTemporaryEdge(edge: TemporaryEdge | undefined): void;
-    getTemporaryEdge(): TemporaryEdge | undefined;
-    updateTemporaryEdge(x: number, y: number): void;
-    setDragging(dragging: boolean): void;
-    getCursorPosition(): { x: number; y: number } | undefined;
-  }
->();
+export type GraphContextType = GraphAPI & {
+  setTemporaryEdge(edge: TemporaryEdge | undefined): void;
+  getTemporaryEdge(): TemporaryEdge | undefined;
+  updateTemporaryEdge(x: number, y: number): void;
+  setDragging(dragging: boolean): void;
+  getCursorPosition(): { x: number; y: number } | undefined;
+};
+
+export const GraphContext = createContext<GraphContextType>();
 
 export function useGraph() {
   const context = useContext(GraphContext);

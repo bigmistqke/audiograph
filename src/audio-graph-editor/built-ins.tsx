@@ -1072,7 +1072,7 @@ export const builtIns = {
         ),
       );
 
-      createComputed(
+      createEffect(
         when(node, (node) => {
           node.port.postMessage({
             type: "bpm",

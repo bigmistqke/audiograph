@@ -20,7 +20,7 @@ import {
   snapToGrid,
   TITLE_HEIGHT,
 } from "./constants";
-import { GraphContext, type TemporaryEdge } from "./context";
+import { GraphContext, GraphContextType, type TemporaryEdge } from "./context";
 import type {
   CreateGraphAPIConfig,
   GraphAPI,
@@ -83,7 +83,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
     getCursorPosition() {
       return UIState.cursorPosition;
     },
-  });
+  }) satisfies GraphContextType;
 
   return (
     <GraphContext.Provider value={context}>
