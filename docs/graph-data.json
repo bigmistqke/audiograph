@@ -1880,6 +1880,17 @@
       "created_at": "2026-02-23T12:50:34.151516+01:00",
       "updated_at": "2026-02-23T12:50:34.151516+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"35d2a0c\",\"confidence\":95}"
+    },
+    {
+      "id": 172,
+      "change_id": "96f3ecc3-435d-43ac-a1ae-1b9fe1ded5bf",
+      "node_type": "outcome",
+      "title": "Committed: fix canvas click placement to match ghost port-anchor",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T12:53:15.347975+01:00",
+      "updated_at": "2026-02-23T12:53:15.347975+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"e6d73c3\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -3664,6 +3675,17 @@
       "weight": 1.0,
       "rationale": "Committed",
       "created_at": "2026-02-23T12:50:34.162829+01:00"
+    },
+    {
+      "id": 163,
+      "from_node_id": 170,
+      "to_node_id": 172,
+      "from_change_id": "71ce2691-4204-423c-b68a-391d544133e0",
+      "to_change_id": "96f3ecc3-435d-43ac-a1ae-1b9fe1ded5bf",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-02-23T12:53:15.360522+01:00"
     }
   ]
 }

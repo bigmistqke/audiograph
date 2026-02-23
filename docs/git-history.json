@@ -1,5 +1,13 @@
 [
   {
+    "hash": "e6d73c35ca9e70ef3f2e5b7312072396e393639b",
+    "short_hash": "e6d73c3",
+    "author": "bigmistqke",
+    "date": "2026-02-23T12:52:37+01:00",
+    "message": "fix: canvas click placement matches ghost node port-anchor offset",
+    "files_changed": 1
+  },
+  {
     "hash": "35d2a0c8950059884f291da21d5839eaef381bd8",
     "short_hash": "35d2a0c",
     "author": "bigmistqke",
