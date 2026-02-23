@@ -183,7 +183,10 @@ export function AudioGraphEditor(props: {
     | undefined
   >();
 
-  function isPortCompatible(handle: { node: string; port: string }, kind: "in" | "out") {
+  function isPortCompatible(
+    handle: { node: string; port: string },
+    kind: "in" | "out",
+  ) {
     const type = selectedNodeType();
     if (!type) return false;
     const typeDef = config[type];
@@ -463,7 +466,7 @@ export function AudioGraphEditor(props: {
           setSelectedNodeType(undefined);
           setHoveredEdge(undefined);
         }}
-        onPortHover={({ handle, kind, preventInteraction }) => {
+        onPortHover={({ handle, kind, preventDefault: preventInteraction }) => {
           const type = selectedNodeType();
           if (!type) return;
           if (!isPortCompatible(handle, kind)) {
@@ -475,13 +478,12 @@ export function AudioGraphEditor(props: {
         onPortHoverEnd={() => {
           setHoveredPortKind(undefined);
         }}
-        onPortDragStart={({ handle, kind, preventDetach, preventLinking }) => {
+        onPortDragStart={({ handle, kind, preventDefault: preventDefault }) => {
           const type = selectedNodeType();
           if (!type) return;
 
           // Skip default edge behaviors when placing a new node
-          preventDetach();
-          preventLinking();
+          preventDefault();
 
           if (!isPortCompatible(handle, kind)) return;
 

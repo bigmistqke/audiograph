@@ -70,7 +70,7 @@ export interface GraphEditorProps<
     handle: EdgeHandle;
     kind: "in" | "out";
     graph: GraphAPI<GraphConfig<TContext>>;
-    preventInteraction(): void;
+    preventDefault(): void;
   }): void;
   /** Called when pointer leaves a port. */
   onPortHoverEnd?(event: {
@@ -83,8 +83,7 @@ export interface GraphEditorProps<
     handle: EdgeHandle;
     kind: "in" | "out";
     graph: GraphAPI<GraphConfig<TContext>>;
-    preventDetach(): void;
-    preventLinking(): void;
+    preventDefault(): void;
   }): void;
   /** Called when port drag ends (pointer released). */
   onPortDragEnd?(event: {
@@ -177,13 +176,21 @@ export function GraphEditor<TContext extends Record<string, any>>(
     onEdgeSpliceValidate(event: { edge: Edge }) {
       return rest.onEdgeSpliceValidate?.(event) ?? true;
     },
-    onPortHover(event: { handle: EdgeHandle; kind: "in" | "out"; preventInteraction(): void }) {
+    onPortHover(event: {
+      handle: EdgeHandle;
+      kind: "in" | "out";
+      preventDefault(): void;
+    }) {
       rest.onPortHover?.({ ...event, graph: graphAPI });
     },
     onPortHoverEnd(event: { handle: EdgeHandle; kind: "in" | "out" }) {
       rest.onPortHoverEnd?.({ ...event, graph: graphAPI });
     },
-    onPortDragStart(event: { handle: EdgeHandle; kind: "in" | "out"; preventDetach(): void; preventLinking(): void }) {
+    onPortDragStart(event: {
+      handle: EdgeHandle;
+      kind: "in" | "out";
+      preventDefault(): void;
+    }) {
       rest.onPortDragStart?.({ ...event, graph: graphAPI });
     },
     onEdgeHover(event: { edge: Edge } | undefined) {
@@ -207,6 +214,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
             setUIState("dimensions", element.getBoundingClientRect());
           }).observe(element);
         }}
+        tabindex="0"
         viewBox={`${-UIState.origin.x} ${UIState.origin.y} ${UIState.dimensions.width} ${UIState.dimensions.height}`}
         class={clsx(styles.svg, rest.class)}
         style={{
@@ -236,6 +244,17 @@ export function GraphEditor<TContext extends Record<string, any>>(
         onPointerLeave={() => {
           setUIState("cursorPosition", undefined);
           rest.onCursorMove?.(undefined);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Backspace" || event.key === "Delete") {
+            const selected = UIState.selectedNodes;
+            if (selected.length === 0) return;
+            event.preventDefault();
+            for (const id of selected) {
+              graphAPI.deleteNode(id);
+            }
+            setUIState("selectedNodes", []);
+          }
         }}
         onPointerDown={async (event) => {
           if (event.target !== event.currentTarget) return;

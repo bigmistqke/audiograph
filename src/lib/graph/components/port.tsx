@@ -58,7 +58,9 @@ export function GraphPort(props: {
           graph.onPortHover?.({
             handle: { node: node.id, port: props.name },
             kind: props.kind,
-            preventInteraction: () => { interactionPrevented = true; },
+            preventDefault: () => {
+              interactionPrevented = true;
+            },
           });
           setDisabled(interactionPrevented);
           setHovered(true);
@@ -96,19 +98,19 @@ export function GraphPort(props: {
           event.stopPropagation();
           if (disabled()) return;
 
-          let detachPrevented = false;
-          let linkingPrevented = false;
+          let defaultPrevented = false;
           graph.onPortDragStart?.({
             handle: { node: node.id, port: props.name },
             kind: props.kind,
-            preventDetach: () => { detachPrevented = true; },
-            preventLinking: () => { linkingPrevented = true; },
+            preventDefault: () => {
+              defaultPrevented = true;
+            },
           });
 
           graph.setDragging(true);
 
           // Detach existing edge from in-port and re-drag from upstream node
-          if (!detachPrevented && props.kind === "in") {
+          if (!defaultPrevented && props.kind === "in") {
             const existingEdge = graph.graphStore.edges.find(
               (e) => e.input.node === node.id && e.input.port === props.name,
             );
@@ -172,7 +174,7 @@ export function GraphPort(props: {
             });
           }
 
-          if (linkingPrevented) {
+          if (defaultPrevented) {
             graph.setTemporaryEdge(undefined);
             graph.setDragging(false);
           } else {
