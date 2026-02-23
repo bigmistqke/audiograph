@@ -346,7 +346,38 @@ export function AudioGraphEditor(props: {
         onNodePointerDown={({ node, nativeEvent, preventDefault, graph }) => {
           if (!nativeEvent.altKey) return;
           preventDefault();
+
+          const typeDef = config[node.type];
+          const inPorts = typeDef?.ports.in ?? [];
+          const outPorts = typeDef?.ports.out ?? [];
+
+          // Find edges connected to this node before deleting
+          const incomingEdges = graphStore.edges.filter(
+            (e) => e.input.node === node.id,
+          );
+          const outgoingEdges = graphStore.edges.filter(
+            (e) => e.output.node === node.id,
+          );
+
           graph.deleteNode(node.id);
+
+          // Bridge A→B(deleted)→C into A→C when port kinds match
+          for (const incoming of incomingEdges) {
+            const inPortDef = inPorts.find(
+              (p: any) => p.name === incoming.input.port,
+            ) as any;
+            if (!inPortDef) continue;
+            for (const outgoing of outgoingEdges) {
+              const outPortDef = outPorts.find(
+                (p: any) => p.name === outgoing.output.port,
+              ) as any;
+              if (!outPortDef) continue;
+              if (inPortDef.kind === outPortDef.kind) {
+                graph.link(incoming.output, outgoing.input);
+              }
+            }
+          }
+
           setSelectedNodeType(node.type);
         }}
         onClick={({ x, y, graph }) => {
