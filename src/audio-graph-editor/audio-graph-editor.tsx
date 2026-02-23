@@ -293,7 +293,17 @@ export function AudioGraphEditor(props: {
 
           const typeDef = config[type];
 
-          const id = graph.addNode(type, { x, y });
+          const hasInputPorts = (typeDef.ports.in?.length ?? 0) > 0;
+          const anchorAtOutput = !hasInputPorts;
+          const anchorX = anchorAtOutput
+            ? typeDef.dimensions.x - PORT_INSET
+            : PORT_INSET;
+          const anchorY = TITLE_HEIGHT + PORT_RADIUS;
+
+          const id = graph.addNode(type, {
+            x: snapToGrid(x - anchorX),
+            y: snapToGrid(y - anchorY),
+          });
 
           if (typeDef?.state && "code" in typeDef.state) {
             const name = `custom-${id}`;
