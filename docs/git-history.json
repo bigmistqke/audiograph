@@ -1,5 +1,13 @@
 [
   {
+    "hash": "35d2a0c8950059884f291da21d5839eaef381bd8",
+    "short_hash": "35d2a0c",
+    "author": "bigmistqke",
+    "date": "2026-02-23T12:50:19+01:00",
+    "message": "fix: output-only ghost nodes anchor cursor at first output port",
+    "files_changed": 1
+  },
+  {
     "hash": "fa36d465547132af8742721484cc17d7d16b9144",
     "short_hash": "fa36d46",
     "author": "bigmistqke",
