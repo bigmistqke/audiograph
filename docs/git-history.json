@@ -1,5 +1,13 @@
 [
   {
+    "hash": "b41354a50b832958a795599088358f6b80bf6638",
+    "short_hash": "b41354a",
+    "author": "bigmistqke",
+    "date": "2026-02-23T12:32:19+01:00",
+    "message": "refactor: unify callback signatures to event object pattern, rename onPortDrag to onPortDragStart",
+    "files_changed": 5
+  },
+  {
     "hash": "6ba6408f144cc4f7beb4a7c1eaa1bd3eb4538fff",
     "short_hash": "6ba6408",
     "author": "bigmistqke",

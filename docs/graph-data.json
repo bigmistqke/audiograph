@@ -1825,6 +1825,17 @@
       "created_at": "2026-02-23T12:20:22.115260+01:00",
       "updated_at": "2026-02-23T12:20:22.115260+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"6ba6408\",\"confidence\":95}"
+    },
+    {
+      "id": 167,
+      "change_id": "19978704-fd72-4b3d-a607-654dc01ed09b",
+      "node_type": "outcome",
+      "title": "Committed: refactor callback signatures to event object pattern",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T12:32:26.500992+01:00",
+      "updated_at": "2026-02-23T12:32:26.500992+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"b41354a\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -3554,6 +3565,17 @@
       "weight": 1.0,
       "rationale": "Committed",
       "created_at": "2026-02-23T12:20:22.130420+01:00"
+    },
+    {
+      "id": 158,
+      "from_node_id": 165,
+      "to_node_id": 167,
+      "from_change_id": "a4ec2c8f-567e-49b0-994c-28c88317048d",
+      "to_change_id": "19978704-fd72-4b3d-a607-654dc01ed09b",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Follow-up cleanup",
+      "created_at": "2026-02-23T12:32:26.513971+01:00"
     }
   ]
 }
