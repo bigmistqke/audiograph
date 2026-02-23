@@ -172,6 +172,9 @@ export function AudioGraphEditor(props: {
   const [portDragKind, setPortDragKind] = createSignal<
     "in" | "out" | undefined
   >();
+  const [hoveredPortKind, setHoveredPortKind] = createSignal<
+    "in" | "out" | undefined
+  >();
   const [hoveredEdge, setHoveredEdge] = createSignal<
     | {
         output: { node: string; port: string };
@@ -207,9 +210,10 @@ export function AudioGraphEditor(props: {
     if (!typeDef) return undefined;
     const borderColor = `var(--color-port-${(typeDef.ports?.out?.[0] as any)?.kind || "audio"})`;
 
-    // Anchor cursor at first output port when dragging from input or when node has no inputs
+    // Anchor cursor at first output port when hovering/dragging from input or when node has no inputs
     const hasInputPorts = (typeDef.ports.in?.length ?? 0) > 0;
-    const anchorAtOutput = portDragKind() === "in" || !hasInputPorts;
+    const targetKind = portDragKind() ?? hoveredPortKind();
+    const anchorAtOutput = targetKind === "in" || !hasInputPorts;
     const anchorX = anchorAtOutput
       ? typeDef.dimensions.x - PORT_INSET
       : PORT_INSET;
@@ -462,7 +466,14 @@ export function AudioGraphEditor(props: {
         onPortHover={({ handle, kind, preventInteraction }) => {
           const type = selectedNodeType();
           if (!type) return;
-          if (!isPortCompatible(handle, kind)) preventInteraction();
+          if (!isPortCompatible(handle, kind)) {
+            preventInteraction();
+          } else {
+            setHoveredPortKind(kind);
+          }
+        }}
+        onPortHoverEnd={() => {
+          setHoveredPortKind(undefined);
         }}
         onPortDragStart={({ handle, kind, preventDetach, preventLinking }) => {
           const type = selectedNodeType();
