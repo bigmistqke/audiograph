@@ -64,13 +64,13 @@ export interface GraphEditorProps<
     graph: GraphAPI<GraphConfig<TContext>>;
   }): void;
   /** Return true if a splice onto this edge should be allowed. */
-  onEdgeSpliceValidate?(edge: Edge): boolean;
+  onEdgeSpliceValidate?(event: { edge: Edge }): boolean;
   /** Called when dragging from a port. Return true to prevent normal edge drag. */
-  onPortDrag?(event: {
+  onPortDragStart?(event: {
     handle: EdgeHandle;
     kind: "in" | "out";
     graph: GraphAPI<GraphConfig<TContext>>;
-  }): boolean;
+  }): false | void;
   /** Called when port drag ends. Creates node and connects it. */
   onPortDragEnd?(event: {
     handle: EdgeHandle;
@@ -150,17 +150,22 @@ export function GraphEditor<TContext extends Record<string, any>>(
     setSelectedNodes(ids: string[]) {
       setUIState("selectedNodes", ids);
     },
-    onEdgeClick(edge: Edge, x: number, y: number) {
-      rest.onEdgeClick?.({ edge, x, y, graph: graphAPI });
+    onEdgeClick(event: { edge: Edge; x: number; y: number }) {
+      rest.onEdgeClick?.({ ...event, graph: graphAPI });
     },
-    onEdgeSpliceValidate(edge: Edge) {
-      return rest.onEdgeSpliceValidate?.(edge) ?? true;
+    onEdgeSpliceValidate(event: { edge: Edge }) {
+      return rest.onEdgeSpliceValidate?.(event) ?? true;
     },
-    onPortDrag(handle: EdgeHandle, kind: "in" | "out") {
-      return rest.onPortDrag?.({ handle, kind, graph: graphAPI }) ?? false;
+    onPortDragStart(event: { handle: EdgeHandle; kind: "in" | "out" }) {
+      return rest.onPortDragStart?.({ ...event, graph: graphAPI }) ?? false;
     },
-    onPortDragEnd(handle: EdgeHandle, kind: "in" | "out", x: number, y: number) {
-      rest.onPortDragEnd?.({ handle, kind, x, y, graph: graphAPI });
+    onPortDragEnd(event: {
+      handle: EdgeHandle;
+      kind: "in" | "out";
+      x: number;
+      y: number;
+    }) {
+      rest.onPortDragEnd?.({ ...event, graph: graphAPI });
     },
   }) satisfies GraphContextType;
 

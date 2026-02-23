@@ -71,7 +71,12 @@ export function GraphPort(props: {
           event.stopPropagation();
 
           // Check if port drag should be intercepted (e.g. for ghost node placement)
-          if (graph.onPortDrag?.({ node: node.id, port: props.name }, props.kind)) {
+          if (
+            graph.onPortDragStart?.({
+              handle: { node: node.id, port: props.name },
+              kind: props.kind,
+            }) === false
+          ) {
             graph.setDragging(true);
 
             // Show temporary edge from this port
@@ -96,12 +101,12 @@ export function GraphPort(props: {
             // On release: get final cursor position for node placement
             const cursor = graph.getCursorPosition();
             if (cursor) {
-              graph.onPortDragEnd?.(
-                { node: node.id, port: props.name },
-                props.kind,
-                cursor.x,
-                cursor.y,
-              );
+              graph.onPortDragEnd?.({
+                handle: { node: node.id, port: props.name },
+                kind: props.kind,
+                x: cursor.x,
+                y: cursor.y,
+              });
             }
 
             graph.setTemporaryEdge(undefined);

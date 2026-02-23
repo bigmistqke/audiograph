@@ -14,9 +14,12 @@ function portY(index: number) {
 
 /** Distance from point (px, py) to line segment (ax, ay)→(bx, by). */
 function distToSegment(
-  px: number, py: number,
-  ax: number, ay: number,
-  bx: number, by: number,
+  px: number,
+  py: number,
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
 ): number {
   const dx = bx - ax;
   const dy = by - ay;
@@ -68,8 +71,10 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
 
   const spliceValid = () =>
     graph.onEdgeSpliceValidate?.({
-      output: props.output,
-      input: props.input,
+      edge: {
+        output: props.output,
+        input: props.input,
+      },
     }) ?? false;
 
   const cursorHovering = () => {
@@ -98,11 +103,11 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
             const viewBox = svg.viewBox.baseVal;
             const x = event.clientX - rect.left + viewBox.x;
             const y = event.clientY - rect.top + viewBox.y;
-            graph.onEdgeClick?.(
-              { output: props.output, input: props.input },
+            graph.onEdgeClick?.({
+              edge: { output: props.output, input: props.input },
               x,
               y,
-            );
+            });
           }}
         />
       </Show>

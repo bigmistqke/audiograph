@@ -2,11 +2,8 @@ import { makePersisted } from "@solid-primitives/storage";
 import clsx from "clsx";
 import { createSignal, For, Setter, Show } from "solid-js";
 import { createStore } from "solid-js/store";
-import type {
-  GraphConfig,
-  GraphStore,
-} from "~/lib/graph/create-graph-api";
-import { GAP, GRID, snapToGrid } from "~/lib/graph/constants";
+import { GRID, snapToGrid } from "~/lib/graph/constants";
+import type { GraphConfig, GraphStore } from "~/lib/graph/create-graph-api";
 import { GraphEditor } from "~/lib/graph/graph-editor";
 
 import {
@@ -166,7 +163,9 @@ export function AudioGraphEditor(props: {
   const [cursorPos, setCursorPos] = createSignal<
     { x: number; y: number } | undefined
   >();
-  const [portDragKind, setPortDragKind] = createSignal<"in" | "out" | undefined>();
+  const [portDragKind, setPortDragKind] = createSignal<
+    "in" | "out" | undefined
+  >();
 
   const ghostNode = () => {
     const type = selectedNodeType();
@@ -293,7 +292,7 @@ export function AudioGraphEditor(props: {
           }
           setSelectedNodeType(undefined);
         }}
-        onEdgeSpliceValidate={(edge) => {
+        onEdgeSpliceValidate={({ edge }) => {
           const type = selectedNodeType();
           if (!type) return false;
 
@@ -329,7 +328,7 @@ export function AudioGraphEditor(props: {
             firstOut.kind === inputPortDef.kind
           );
         }}
-        onEdgeClick={({ edge, x, y, graph }) => {
+        onEdgeClick={({ edge, graph }) => {
           const type = selectedNodeType();
           if (!type) return;
 
@@ -372,8 +371,12 @@ export function AudioGraphEditor(props: {
           }
 
           // Center new node horizontally between upstream right edge and downstream left edge
-          const actualDownstreamX = graphStore.nodes[edge.input.node]?.x ?? downstreamNode.x + surplus;
-          const centerX = snapToGrid(upstreamRight + (actualDownstreamX - upstreamRight - newNodeWidth) / 2);
+          const actualDownstreamX =
+            graphStore.nodes[edge.input.node]?.x ?? downstreamNode.x + surplus;
+          const centerX = snapToGrid(
+            upstreamRight +
+              (actualDownstreamX - upstreamRight - newNodeWidth) / 2,
+          );
           const centerY = snapToGrid((upstreamNode.y + downstreamNode.y) / 2);
 
           setGraphStore("nodes", id, "x", centerX);
@@ -381,7 +384,7 @@ export function AudioGraphEditor(props: {
 
           setSelectedNodeType(undefined);
         }}
-        onPortDrag={({ handle, kind }) => {
+        onPortDragStart={({ handle, kind }) => {
           const type = selectedNodeType();
           if (!type) return false;
 
@@ -398,14 +401,14 @@ export function AudioGraphEditor(props: {
 
           if (kind === "in") {
             const firstOut = typeDef.ports.out?.[0] as any;
-            if (!firstOut || firstOut.kind !== clickedPortDef.kind) return false;
+            if (!firstOut || firstOut.kind !== clickedPortDef.kind)
+              return false;
           } else {
             const firstIn = typeDef.ports.in?.[0] as any;
             if (!firstIn || firstIn.kind !== clickedPortDef.kind) return false;
           }
 
           setPortDragKind(kind);
-          return true;
         }}
         onPortDragEnd={({ handle, kind, x, y, graph }) => {
           const type = selectedNodeType();

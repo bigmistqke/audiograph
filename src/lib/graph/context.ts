@@ -1,5 +1,10 @@
 import { createContext, useContext } from "solid-js";
-import type { Edge, EdgeHandle, GraphAPI, NodeInstance } from "./create-graph-api";
+import type {
+  Edge,
+  EdgeHandle,
+  GraphAPI,
+  NodeInstance,
+} from "./create-graph-api";
 
 export interface TemporaryEdge {
   kind: "in" | "out";
@@ -17,12 +22,20 @@ export type GraphContextType = GraphAPI & {
   getCursorPosition(): { x: number; y: number } | undefined;
   selectedNodes: string[];
   setSelectedNodes(ids: string[]): void;
-  onEdgeClick?(edge: Edge, x: number, y: number): void;
-  onEdgeSpliceValidate?(edge: Edge): boolean;
-  /** Called when dragging from a port. Return true to prevent normal edge drag. */
-  onPortDrag?(handle: EdgeHandle, kind: "in" | "out"): boolean;
+  onEdgeClick?(event: { edge: Edge; x: number; y: number }): void;
+  onEdgeSpliceValidate?(event: { edge: Edge }): boolean;
+  /** Called when dragging from a port. Return false to prevent normal edge drag. */
+  onPortDragStart?(event: {
+    handle: EdgeHandle;
+    kind: "in" | "out";
+  }): false | void;
   /** Called when port drag ends (pointer released). */
-  onPortDragEnd?(handle: EdgeHandle, kind: "in" | "out", x: number, y: number): void;
+  onPortDragEnd?(event: {
+    handle: EdgeHandle;
+    kind: "in" | "out";
+    x: number;
+    y: number;
+  }): void;
 };
 
 export const GraphContext = createContext<GraphContextType>();
