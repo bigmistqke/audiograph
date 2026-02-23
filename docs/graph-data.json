@@ -1924,6 +1924,17 @@
       "created_at": "2026-02-23T13:21:00.650632+01:00",
       "updated_at": "2026-02-23T13:21:00.650632+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"edfaa45\",\"confidence\":95}"
+    },
+    {
+      "id": 176,
+      "change_id": "f14a6d41-588a-4da0-9f80-5f68b242dddf",
+      "node_type": "outcome",
+      "title": "Committed: onPortDragStart uses preventDefault() to skip default edge behaviors",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T13:50:22.557503+01:00",
+      "updated_at": "2026-02-23T13:50:22.557503+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"bc3d5f1\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -3752,6 +3763,17 @@
       "weight": 1.0,
       "rationale": "Follow-up refactor",
       "created_at": "2026-02-23T13:21:00.663222+01:00"
+    },
+    {
+      "id": 167,
+      "from_node_id": 175,
+      "to_node_id": 176,
+      "from_change_id": "129b41d8-a21c-4088-bb66-184a1fb5b17c",
+      "to_change_id": "f14a6d41-588a-4da0-9f80-5f68b242dddf",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Follow-up refactor",
+      "created_at": "2026-02-23T13:50:22.570018+01:00"
     }
   ]
 }

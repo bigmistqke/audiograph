@@ -1,5 +1,13 @@
 [
   {
+    "hash": "bc3d5f13114e20b54758ee2dc37070c1b5694412",
+    "short_hash": "bc3d5f1",
+    "author": "bigmistqke",
+    "date": "2026-02-23T13:28:21+01:00",
+    "message": "refactor: onPortDragStart uses preventDefault() to skip default edge behaviors",
+    "files_changed": 4
+  },
+  {
     "hash": "edfaa45045cb614a46324bd6dcc8e440b7b27294",
     "short_hash": "edfaa45",
     "author": "bigmistqke",
