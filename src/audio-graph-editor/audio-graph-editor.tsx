@@ -180,6 +180,25 @@ export function AudioGraphEditor(props: {
     | undefined
   >();
 
+  function isPortCompatible(handle: { node: string; port: string }, kind: "in" | "out") {
+    const type = selectedNodeType();
+    if (!type) return false;
+    const typeDef = config[type];
+    const clickedNode = graphStore.nodes[handle.node];
+    if (!clickedNode) return false;
+    const clickedPortDef = config[clickedNode.type]?.ports[kind]?.find(
+      (p: any) => p.name === handle.port,
+    ) as any;
+    if (!clickedPortDef) return false;
+    if (kind === "in") {
+      const firstOut = typeDef.ports.out?.[0] as any;
+      return firstOut && firstOut.kind === clickedPortDef.kind;
+    } else {
+      const firstIn = typeDef.ports.in?.[0] as any;
+      return firstIn && firstIn.kind === clickedPortDef.kind;
+    }
+  }
+
   const ghostNode = () => {
     const type = selectedNodeType();
     const pos = cursorPos();
@@ -440,28 +459,20 @@ export function AudioGraphEditor(props: {
           setSelectedNodeType(undefined);
           setHoveredEdge(undefined);
         }}
-        onPortDragStart={({ handle, kind, preventDefault }) => {
+        onPortHover={({ handle, kind, preventInteraction }) => {
+          const type = selectedNodeType();
+          if (!type) return;
+          if (!isPortCompatible(handle, kind)) preventInteraction();
+        }}
+        onPortDragStart={({ handle, kind, preventDetach, preventLinking }) => {
           const type = selectedNodeType();
           if (!type) return;
 
-          // Manage edges ourselves when a node type is selected
-          preventDefault();
+          // Skip default edge behaviors when placing a new node
+          preventDetach();
+          preventLinking();
 
-          const typeDef = config[type];
-          const clickedNode = graphStore.nodes[handle.node];
-          if (!clickedNode) return;
-          const clickedPortDef = config[clickedNode.type]?.ports[kind]?.find(
-            (p: any) => p.name === handle.port,
-          ) as any;
-          if (!clickedPortDef) return;
-
-          if (kind === "in") {
-            const firstOut = typeDef.ports.out?.[0] as any;
-            if (!firstOut || firstOut.kind !== clickedPortDef.kind) return;
-          } else {
-            const firstIn = typeDef.ports.in?.[0] as any;
-            if (!firstIn || firstIn.kind !== clickedPortDef.kind) return;
-          }
+          if (!isPortCompatible(handle, kind)) return;
 
           // Port is compatible — track kind for ghost node
           setPortDragKind(kind);

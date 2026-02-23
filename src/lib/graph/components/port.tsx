@@ -1,5 +1,5 @@
 import { minni } from "@bigmistqke/minni";
-import { Show } from "solid-js";
+import { createSignal, Show } from "solid-js";
 import {
   GRID,
   PORT_INSET,
@@ -26,7 +26,10 @@ export function GraphPort(props: {
   const cy = () => props.index * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS;
 
   const labelX = () =>
-    props.kind === "in" ? `${GRID + 1}px` : `${node.dimensions.x - GRID - 1}px`; //node.dimensions.x - PORT_RADIUS - CONTENT_PADDING_INLINE;
+    props.kind === "in" ? `${GRID + 1}px` : `${node.dimensions.x - GRID - 1}px`;
+
+  const [hovered, setHovered] = createSignal(false);
+  const [disabled, setDisabled] = createSignal(false);
 
   return (
     <g>
@@ -47,9 +50,31 @@ export function GraphPort(props: {
         cy={cy()}
         r={PORT_RADIUS * 2}
         class={styles.portExtended}
+        classList={{ [styles.hovered]: hovered() && !disabled() }}
         data-kind={props.dataKind}
+        style={{ cursor: disabled() ? "default" : undefined }}
+        onPointerEnter={() => {
+          let interactionPrevented = false;
+          graph.onPortHover?.({
+            handle: { node: node.id, port: props.name },
+            kind: props.kind,
+            preventInteraction: () => { interactionPrevented = true; },
+          });
+          setDisabled(interactionPrevented);
+          setHovered(true);
+        }}
+        onPointerLeave={() => {
+          graph.onPortHoverEnd?.({
+            handle: { node: node.id, port: props.name },
+            kind: props.kind,
+          });
+          setHovered(false);
+          setDisabled(false);
+        }}
         onPointerUp={(event) => {
           event.stopPropagation();
+          if (disabled()) return;
+
           const edgeHandle = graph.getTemporaryEdge();
 
           if (!edgeHandle) return;
@@ -69,20 +94,21 @@ export function GraphPort(props: {
         }}
         onPointerDown={async (event) => {
           event.stopPropagation();
+          if (disabled()) return;
 
-          let defaultPrevented = false;
+          let detachPrevented = false;
+          let linkingPrevented = false;
           graph.onPortDragStart?.({
             handle: { node: node.id, port: props.name },
             kind: props.kind,
-            preventDefault: () => { defaultPrevented = true; },
+            preventDetach: () => { detachPrevented = true; },
+            preventLinking: () => { linkingPrevented = true; },
           });
 
           graph.setDragging(true);
 
-          // Default edge behaviors: detach existing in-port edge, and
-          // delay cleanup so onPointerUp on target port can link.
-          // Skipped when preventDefault() was called.
-          if (!defaultPrevented && props.kind === "in") {
+          // Detach existing edge from in-port and re-drag from upstream node
+          if (!detachPrevented && props.kind === "in") {
             const existingEdge = graph.graphStore.edges.find(
               (e) => e.input.node === node.id && e.input.port === props.name,
             );
@@ -146,7 +172,7 @@ export function GraphPort(props: {
             });
           }
 
-          if (defaultPrevented) {
+          if (linkingPrevented) {
             graph.setTemporaryEdge(undefined);
             graph.setDragging(false);
           } else {

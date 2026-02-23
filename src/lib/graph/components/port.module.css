@@ -3,9 +3,10 @@
   stroke: var(--color);
   fill: transparent;
   opacity: 0;
-  &:hover {
-    opacity: 1;
-  }
+}
+
+.hovered {
+  opacity: 1;
 }
 
 .port {
