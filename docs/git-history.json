@@ -1,5 +1,13 @@
 [
   {
+    "hash": "f154b79b28956bacc6900b4abb066a03369b5524",
+    "short_hash": "f154b79",
+    "author": "bigmistqke",
+    "date": "2026-02-23T13:15:51+01:00",
+    "message": "fix: block port drag on incompatible ports when node type is selected",
+    "files_changed": 4
+  },
+  {
     "hash": "5823c96ae75fd197f2df1d4165a810b17a8ff59d",
     "short_hash": "5823c96",
     "author": "bigmistqke",
