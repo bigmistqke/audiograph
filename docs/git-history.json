@@ -1,5 +1,13 @@
 [
   {
+    "hash": "fa36d465547132af8742721484cc17d7d16b9144",
+    "short_hash": "fa36d46",
+    "author": "bigmistqke",
+    "date": "2026-02-23T12:44:43+01:00",
+    "message": "refactor: replace JS distance hover with CSS :hover on hit-test line",
+    "files_changed": 2
+  },
+  {
     "hash": "b41354a50b832958a795599088358f6b80bf6638",
     "short_hash": "b41354a",
     "author": "bigmistqke",
