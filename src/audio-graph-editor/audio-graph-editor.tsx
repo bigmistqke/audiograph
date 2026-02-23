@@ -6,7 +6,7 @@ import type {
   GraphConfig,
   GraphStore,
 } from "~/lib/graph/create-graph-api";
-import { GAP } from "~/lib/graph/constants";
+import { GAP, GRID, snapToGrid } from "~/lib/graph/constants";
 import { GraphEditor } from "~/lib/graph/graph-editor";
 
 import {
@@ -311,10 +311,11 @@ export function AudioGraphEditor(props: {
 
           const typeDef = config[type];
 
-          // Place new node at the downstream node's position (same Y, just before it)
+          const upstreamNode = graphStore.nodes[edge.output.node];
           const downstreamNode = graphStore.nodes[edge.input.node];
-          if (!downstreamNode) return;
+          if (!upstreamNode || !downstreamNode) return;
 
+          // Create node at temporary position
           const id = graph.addNode(type, {
             x: downstreamNode.x,
             y: downstreamNode.y,
@@ -331,12 +332,28 @@ export function AudioGraphEditor(props: {
             workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
           }
 
-          // Splice into the edge and push downstream nodes right
-          graph.spliceNodeIntoEdge(edge, id);
           const newNode = graphStore.nodes[id];
-          if (newNode) {
-            graph.pushDownstream(edge.input.node, newNode.dimensions.x + GAP);
+          if (!newNode) return;
+
+          const newNodeWidth = newNode.dimensions.x;
+          const upstreamRight = upstreamNode.x + upstreamNode.dimensions.x;
+          const availableGap = downstreamNode.x - upstreamRight;
+          const requiredSpace = newNodeWidth + 2 * GRID;
+          const surplus = Math.max(0, requiredSpace - availableGap);
+
+          // Splice into the edge and only push by the surplus
+          graph.spliceNodeIntoEdge(edge, id);
+          if (surplus > 0) {
+            graph.pushDownstream(edge.input.node, surplus);
           }
+
+          // Center new node horizontally between upstream right edge and downstream left edge
+          const actualDownstreamX = graphStore.nodes[edge.input.node]?.x ?? downstreamNode.x + surplus;
+          const centerX = snapToGrid(upstreamRight + (actualDownstreamX - upstreamRight - newNodeWidth) / 2);
+          const centerY = snapToGrid((upstreamNode.y + downstreamNode.y) / 2);
+
+          setGraphStore("nodes", id, "x", centerX);
+          setGraphStore("nodes", id, "y", centerY);
 
           setSelectedNodeType(undefined);
         }}
