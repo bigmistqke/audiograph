@@ -1,5 +1,13 @@
 [
   {
+    "hash": "8976a494268885f26aa2ea952500aa8bdeee78a0",
+    "short_hash": "8976a49",
+    "author": "bigmistqke",
+    "date": "2026-02-23T14:24:46+01:00",
+    "message": "refactor: move ghost node from GraphEditor prop to app-level child component",
+    "files_changed": 2
+  },
+  {
     "hash": "53f1b2700122ff04c2268d84788268f091c71f09",
     "short_hash": "53f1b27",
     "author": "bigmistqke",
