@@ -93,6 +93,8 @@ export interface GraphEditorProps<
   };
   /** Fires when cursor position changes in SVG coordinates. */
   onCursorMove?(position: { x: number; y: number } | undefined): void;
+  /** Called when cursor enters/leaves a spliceable edge. */
+  onEdgeHover?(event: { edge: Edge } | undefined): void;
 }
 
 export function GraphEditor<TContext extends Record<string, any>>(
@@ -162,6 +164,9 @@ export function GraphEditor<TContext extends Record<string, any>>(
     },
     onPortDragStart(event: { handle: EdgeHandle; kind: "in" | "out" }) {
       return rest.onPortDragStart?.({ ...event, graph: graphAPI }) ?? false;
+    },
+    onEdgeHover(event: { edge: Edge } | undefined) {
+      rest.onEdgeHover?.(event);
     },
     onPortDragEnd(event: {
       handle: EdgeHandle;
@@ -295,11 +300,11 @@ export function GraphEditor<TContext extends Record<string, any>>(
           fill="url(#grid)"
           pointer-events="none"
         />
-        <For each={Object.values(props.graphStore.nodes)}>
-          {(node) => <GraphNode node={node} />}
-        </For>
         <For each={props.graphStore.edges}>
           {(edge) => <GraphEdge {...edge} />}
+        </For>
+        <For each={Object.values(props.graphStore.nodes)}>
+          {(node) => <GraphNode node={node} />}
         </For>
         <Show when={UIState.temporaryEdge}>
           {(edge) => <GraphTemporaryEdge {...edge()} />}

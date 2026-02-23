@@ -87,6 +87,14 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
             stroke="transparent"
             stroke-width={10}
             class={styles.hitTarget}
+            onPointerEnter={() => {
+              graph.onEdgeHover?.({
+                edge: { output: props.output, input: props.input },
+              });
+            }}
+            onPointerLeave={() => {
+              graph.onEdgeHover?.(undefined);
+            }}
             onPointerDown={(event) => {
               event.stopPropagation();
               const svg = event.currentTarget.closest("svg")!;

@@ -29,6 +29,8 @@ export type GraphContextType = GraphAPI & {
     handle: EdgeHandle;
     kind: "in" | "out";
   }): false | void;
+  /** Called when cursor enters/leaves a spliceable edge. */
+  onEdgeHover?(event: { edge: Edge } | undefined): void;
   /** Called when port drag ends (pointer released). */
   onPortDragEnd?(event: {
     handle: EdgeHandle;

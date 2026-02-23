@@ -6,7 +6,6 @@ import {
   GRID,
   PORT_INSET,
   PORT_RADIUS,
-  PORT_SPACING,
   snapToGrid,
   TITLE_HEIGHT,
 } from "~/lib/graph/constants";
@@ -173,6 +172,13 @@ export function AudioGraphEditor(props: {
   const [portDragKind, setPortDragKind] = createSignal<
     "in" | "out" | undefined
   >();
+  const [hoveredEdge, setHoveredEdge] = createSignal<
+    | {
+        output: { node: string; port: string };
+        input: { node: string; port: string };
+      }
+    | undefined
+  >();
 
   const ghostNode = () => {
     const type = selectedNodeType();
@@ -189,6 +195,29 @@ export function AudioGraphEditor(props: {
       ? typeDef.dimensions.x - PORT_INSET
       : PORT_INSET;
     const anchorY = TITLE_HEIGHT + PORT_RADIUS;
+
+    // When hovering over a spliceable edge, snap ghost to center between nodes
+    const edge = hoveredEdge();
+    if (edge) {
+      const upstreamNode = graphStore.nodes[edge.output.node];
+      const downstreamNode = graphStore.nodes[edge.input.node];
+      if (upstreamNode && downstreamNode) {
+        const upstreamRight = upstreamNode.x + upstreamNode.dimensions.x;
+        const centerX = snapToGrid(
+          upstreamRight +
+            (downstreamNode.x - upstreamRight - typeDef.dimensions.x) / 2,
+        );
+        const centerY = snapToGrid((upstreamNode.y + downstreamNode.y) / 2);
+        return {
+          x: centerX,
+          y: centerY,
+          dimensions: typeDef.dimensions,
+          title: typeDef.title || type,
+          borderColor,
+          ports: typeDef.ports,
+        };
+      }
+    }
 
     return {
       x: snapToGrid(pos.x - anchorX),
@@ -287,6 +316,7 @@ export function AudioGraphEditor(props: {
         setGraphStore={setGraphStore}
         ghostNode={ghostNode()}
         onCursorMove={setCursorPos}
+        onEdgeHover={(event) => setHoveredEdge(event?.edge)}
         onClick={({ x, y, graph }) => {
           const type = selectedNodeType();
           if (!type) return;
@@ -386,7 +416,7 @@ export function AudioGraphEditor(props: {
           const newNodeWidth = newNode.dimensions.x;
           const upstreamRight = upstreamNode.x + upstreamNode.dimensions.x;
           const availableGap = downstreamNode.x - upstreamRight;
-          const requiredSpace = newNodeWidth + 2 * GRID;
+          const requiredSpace = newNodeWidth + 4 * GRID;
           const surplus = Math.max(0, requiredSpace - availableGap);
 
           // Splice into the edge and only push by the surplus
@@ -408,38 +438,52 @@ export function AudioGraphEditor(props: {
           setGraphStore("nodes", id, "y", centerY);
 
           setSelectedNodeType(undefined);
+          setHoveredEdge(undefined);
         }}
         onPortDragStart={({ handle, kind }) => {
           const type = selectedNodeType();
-          if (!type) return false;
+          if (!type) return;
 
-          const typeDef = config[type];
-          if (!typeDef) return false;
-
-          const clickedNode = graphStore.nodes[handle.node];
-          if (!clickedNode) return false;
-
-          const clickedPortDef = config[clickedNode.type]?.ports[kind]?.find(
-            (p: any) => p.name === handle.port,
-          ) as any;
-          if (!clickedPortDef) return false;
-
-          if (kind === "in") {
-            const firstOut = typeDef.ports.out?.[0] as any;
-            if (!firstOut || firstOut.kind !== clickedPortDef.kind)
-              return false;
-          } else {
-            const firstIn = typeDef.ports.in?.[0] as any;
-            if (!firstIn || firstIn.kind !== clickedPortDef.kind) return false;
-          }
-
+          // Block normal edge drag when a type is selected
           setPortDragKind(kind);
+          return false;
         }}
         onPortDragEnd={({ handle, kind, x, y, graph }) => {
           const type = selectedNodeType();
-          if (!type) return;
+          if (!type) {
+            setPortDragKind(undefined);
+            return;
+          }
 
           const typeDef = config[type];
+
+          // Validate port compatibility before creating
+          const clickedNode = graphStore.nodes[handle.node];
+          if (!clickedNode) {
+            setPortDragKind(undefined);
+            return;
+          }
+          const clickedPortDef = config[clickedNode.type]?.ports[kind]?.find(
+            (p: any) => p.name === handle.port,
+          ) as any;
+          if (!clickedPortDef) {
+            setPortDragKind(undefined);
+            return;
+          }
+
+          if (kind === "in") {
+            const firstOut = typeDef.ports.out?.[0] as any;
+            if (!firstOut || firstOut.kind !== clickedPortDef.kind) {
+              setPortDragKind(undefined);
+              return;
+            }
+          } else {
+            const firstIn = typeDef.ports.in?.[0] as any;
+            if (!firstIn || firstIn.kind !== clickedPortDef.kind) {
+              setPortDragKind(undefined);
+              return;
+            }
+          }
 
           const anchorAtOutput = kind === "in";
           const anchorX = anchorAtOutput
