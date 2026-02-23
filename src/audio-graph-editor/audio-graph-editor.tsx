@@ -4,8 +4,11 @@ import { createSignal, For, Setter, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import {
   GRID,
+  HEADING_PADDING_BLOCK,
+  HEADING_PADDING_INLINE,
   PORT_INSET,
   PORT_RADIUS,
+  PORT_SPACING,
   snapToGrid,
   TITLE_HEIGHT,
 } from "~/lib/graph/constants";
@@ -340,7 +343,6 @@ export function AudioGraphEditor(props: {
         config={config}
         graphStore={graphStore}
         setGraphStore={setGraphStore}
-        ghostNode={ghostNode()}
         onCursorMove={setCursorPos}
         onEdgeHover={(event) => setHoveredEdge(event?.edge)}
         onClick={({ x, y, graph }) => {
@@ -534,7 +536,63 @@ export function AudioGraphEditor(props: {
           setSelectedNodeType(undefined);
           setPortDragKind(undefined);
         }}
-      />
+      >
+        <Show when={ghostNode()}>
+          {(ghost) => <GhostNode {...ghost()} />}
+        </Show>
+      </GraphEditor>
     </>
+  );
+}
+
+function GhostNode(props: {
+  x: number;
+  y: number;
+  dimensions: { x: number; y: number };
+  title: string;
+  borderColor: string;
+  ports?: {
+    in?: { name: string; kind?: string }[];
+    out?: { name: string; kind?: string }[];
+  };
+}) {
+  return (
+    <g
+      transform={`translate(${props.x}, ${props.y})`}
+      opacity={0.4}
+      pointer-events="none"
+    >
+      <rect
+        width={props.dimensions.x}
+        height={props.dimensions.y}
+        fill="white"
+        stroke={props.borderColor}
+        stroke-width={1}
+      />
+      <text
+        x={HEADING_PADDING_INLINE}
+        y={HEADING_PADDING_BLOCK + 12}
+        font-size="14"
+        fill="var(--color-text)"
+      >
+        {props.title}
+      </text>
+      {props.ports?.in?.map((port, i) => (
+        <circle
+          cx={PORT_INSET}
+          cy={i * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS}
+          r={PORT_RADIUS}
+          fill={`var(--color-port-${port.kind || "audio"})`}
+        />
+      ))}
+      {props.ports?.out?.map((port, i) => (
+        <circle
+          cx={props.dimensions.x - PORT_INSET}
+          cy={i * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS}
+          r={PORT_RADIUS}
+          fill={`var(--color-port-${port.kind || "audio"})`}
+        />
+      ))}
+    </g>
   );
 }

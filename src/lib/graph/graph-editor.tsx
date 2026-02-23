@@ -1,7 +1,6 @@
 import { minni } from "@bigmistqke/minni";
 import clsx from "clsx";
-import { For, mergeProps, Show, splitProps } from "solid-js";
-import { JSX } from "solid-js/h/jsx-runtime";
+import { For, type JSX, mergeProps, Show, splitProps } from "solid-js";
 import { createStore } from "solid-js/store";
 import { GraphEdge } from "./components/edge";
 import { GraphNode } from "./components/node";
@@ -93,18 +92,8 @@ export interface GraphEditorProps<
     y: number;
     graph: GraphAPI<GraphConfig<TContext>>;
   }): void;
-  /** Fully positioned ghost node preview rendered in the SVG. */
-  ghostNode?: {
-    x: number;
-    y: number;
-    dimensions: { x: number; y: number };
-    title: string;
-    borderColor: string;
-    ports?: {
-      in?: { name: string; kind?: string }[];
-      out?: { name: string; kind?: string }[];
-    };
-  };
+  /** SVG content rendered inside the graph (e.g. ghost node previews). */
+  children?: JSX.Element;
   /** Fires when cursor position changes in SVG coordinates. */
   onCursorMove?(position: { x: number; y: number } | undefined): void;
   /** Called when cursor enters/leaves a spliceable edge. */
@@ -349,47 +338,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
         <Show when={UIState.temporaryEdge}>
           {(edge) => <GraphTemporaryEdge {...edge()} />}
         </Show>
-        <Show when={rest.ghostNode}>
-          {(ghost) => (
-            <g
-              transform={`translate(${ghost().x}, ${ghost().y})`}
-              opacity={0.4}
-              pointer-events="none"
-            >
-              <rect
-                width={ghost().dimensions.x}
-                height={ghost().dimensions.y}
-                fill="white"
-                stroke={ghost().borderColor}
-                stroke-width={1}
-              />
-              <text
-                x={HEADING_PADDING_INLINE}
-                y={HEADING_PADDING_BLOCK + 12}
-                font-size="14"
-                fill="var(--color-text)"
-              >
-                {ghost().title}
-              </text>
-              {ghost().ports?.in?.map((port, i) => (
-                <circle
-                  cx={PORT_INSET}
-                  cy={i * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS}
-                  r={PORT_RADIUS}
-                  fill={`var(--color-port-${port.kind || "audio"})`}
-                />
-              ))}
-              {ghost().ports?.out?.map((port, i) => (
-                <circle
-                  cx={ghost().dimensions.x - PORT_INSET}
-                  cy={i * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS}
-                  r={PORT_RADIUS}
-                  fill={`var(--color-port-${port.kind || "audio"})`}
-                />
-              ))}
-            </g>
-          )}
-        </Show>
+        {rest.children}
         <Show when={UIState.selectionBox}>
           {(box) => {
             const x = () => Math.min(box().startX, box().endX);
