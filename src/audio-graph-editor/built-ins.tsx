@@ -1291,7 +1291,12 @@ export const builtIns = {
 
           const workletError = () => {
             const error = workletNode.error;
-            return error instanceof Error ? error.message : undefined;
+            return error instanceof Error
+              ? error.message.replace(
+                  `Failed to execute 'registerProcessor' on 'AudioWorkletGlobalScope': `,
+                  "",
+                )
+              : undefined;
           };
 
           const nodeType = () => props.graphStore.nodes[props.id]?.type;
