@@ -10,7 +10,13 @@ import {
   snapToGrid,
   TITLE_HEIGHT,
 } from "~/lib/graph/constants";
-import type { GraphConfig, GraphStore } from "~/lib/graph/create-graph-api";
+import type {
+  Edge,
+  EdgeHandle,
+  GraphAPI,
+  GraphConfig,
+  GraphStore,
+} from "~/lib/graph/create-graph-api";
 import { GraphEditor } from "~/lib/graph/graph-editor";
 
 import {
@@ -184,10 +190,46 @@ export function AudioGraphEditor(props: {
     | undefined
   >();
 
-  function isPortCompatible(
-    handle: { node: string; port: string },
-    kind: "in" | "out",
-  ) {
+  const [graphStore, setGraphStore] = makePersisted(
+    createStore<GraphStore>({ nodes: {}, edges: [] }),
+    {
+      name: `audiograph-${props.id}`,
+    },
+  );
+
+  // Initialize worklet files for persisted custom nodes
+  for (const node of Object.values(graphStore.nodes)) {
+    const { state } = graphStore.nodes[node.id];
+    if (state?.name && state?.code) {
+      const name = state.name;
+      if (!workletFS.readFile(`/${name}/source.js`)) {
+        workletFS.writeFile(`/${name}/source.js`, state.code);
+        workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
+      }
+    }
+  }
+
+  // Derive custom types from persisted nodes
+  for (const node of Object.values(graphStore.nodes)) {
+    if (!config[node.type] && node.state?.code !== undefined) {
+      setConfig(node.type, {
+        ...builtIns.audioworklet,
+        title: node.type,
+        state: { name: "", code: node.state.code },
+      });
+    }
+  }
+
+  const context: AudioGraphContext = {
+    get audioContext() {
+      return audioContext;
+    },
+    workletFS,
+    updateUserAudioWorkletNode,
+    addUserAudioWorkletNode,
+  };
+
+  function isPortCompatible(handle: EdgeHandle, kind: "in" | "out") {
     const type = selectedNodeType();
     if (!type) return false;
     const typeDef = config[type];
@@ -236,11 +278,8 @@ export function AudioGraphEditor(props: {
 
   /** Create a node of selectedNodeType, splice it into an edge, center it, and resolve overlaps. */
   function spliceSelectedOntoEdge(
-    edge: {
-      output: { node: string; port: string };
-      input: { node: string; port: string };
-    },
-    graph: ReturnType<typeof graphStore extends any ? any : never>,
+    edge: Edge,
+    graph: GraphAPI<GraphConfig<AudioGraphContext>>,
   ) {
     const type = selectedNodeType();
     if (!type) return;
@@ -290,13 +329,21 @@ export function AudioGraphEditor(props: {
     setHoveredEdge(undefined);
   }
 
-  const ghostNode = () => {
+  function ghostNode() {
     const type = selectedNodeType();
     const pos = cursorPos();
-    if (!type || !pos) return undefined;
+
+    if (!type || !pos) {
+      return undefined;
+    }
+
     const typeDef = config[type];
-    if (!typeDef) return undefined;
-    const borderColor = `var(--color-port-${(typeDef.ports?.out?.[0] as any)?.kind || "audio"})`;
+
+    if (!typeDef) {
+      return undefined;
+    }
+
+    const borderColor = `var(--color-port-${(typeDef.ports?.out?.[0] as any)?.kind || "default"})`;
 
     // Anchor cursor at first output port when hovering/dragging from input or when node has no inputs
     const hasInputPorts = (typeDef.ports.in?.length ?? 0) > 0;
@@ -338,24 +385,6 @@ export function AudioGraphEditor(props: {
       borderColor,
       ports: typeDef.ports,
     };
-  };
-  const [graphStore, setGraphStore] = makePersisted(
-    createStore<GraphStore>({ nodes: {}, edges: [] }),
-    {
-      name: `audiograph-${props.id}`,
-    },
-  );
-
-  // Initialize worklet files for persisted custom nodes
-  for (const node of Object.values(graphStore.nodes)) {
-    const { state } = graphStore.nodes[node.id];
-    if (state?.name && state?.code) {
-      const name = state.name;
-      if (!workletFS.readFile(`/${name}/source.js`)) {
-        workletFS.writeFile(`/${name}/source.js`, state.code);
-        workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
-      }
-    }
   }
 
   function addUserAudioWorkletNode(code: string, nodeId: string) {
@@ -391,26 +420,6 @@ export function AudioGraphEditor(props: {
       }
     }
   }
-
-  // Derive custom types from persisted nodes
-  for (const node of Object.values(graphStore.nodes)) {
-    if (!config[node.type] && node.state?.code !== undefined) {
-      setConfig(node.type, {
-        ...builtIns.audioworklet,
-        title: node.type,
-        state: { name: "", code: node.state.code },
-      });
-    }
-  }
-
-  const context: AudioGraphContext = {
-    get audioContext() {
-      return audioContext;
-    },
-    workletFS,
-    updateUserAudioWorkletNode,
-    addUserAudioWorkletNode,
-  };
 
   return (
     <>

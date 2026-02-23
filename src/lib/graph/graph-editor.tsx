@@ -25,7 +25,6 @@ import type {
   Edge,
   EdgeHandle,
   GraphAPI,
-  GraphConfig,
   NodeInstance,
 } from "./create-graph-api";
 import { createGraphAPI } from "./create-graph-api";
@@ -47,27 +46,23 @@ function getNodesInRect(
 }
 
 export interface GraphEditorProps<
-  TContext extends Record<string, any>,
-> extends CreateGraphAPIConfig<unknown, TContext> {
+  TConfig extends Record<string, any>,
+> extends CreateGraphAPIConfig<unknown, TConfig> {
   style?: JSX.CSSProperties;
   class?: string;
-  onClick(event: {
-    x: number;
-    y: number;
-    graph: GraphAPI<GraphConfig<TContext>>;
-  }): void;
+  onClick(event: { x: number; y: number; graph: GraphAPI<TConfig> }): void;
   /** Called when pointer down on a node header. Call preventDefault() to block normal drag. */
   onNodePointerDown?(event: {
     node: NodeInstance;
     nativeEvent: PointerEvent;
-    graph: GraphAPI<GraphConfig<TContext>>;
+    graph: GraphAPI<TConfig>;
     preventDefault(): void;
   }): void;
   onEdgeClick?(event: {
     edge: Edge;
     x: number;
     y: number;
-    graph: GraphAPI<GraphConfig<TContext>>;
+    graph: GraphAPI<TConfig>;
   }): void;
   /** Return true if a splice onto this edge should be allowed. */
   onEdgeSpliceValidate?(event: { edge: Edge }): boolean;
@@ -75,20 +70,20 @@ export interface GraphEditorProps<
   onPortHover?(event: {
     handle: EdgeHandle;
     kind: "in" | "out";
-    graph: GraphAPI<GraphConfig<TContext>>;
+    graph: GraphAPI<TConfig>;
     preventDefault(): void;
   }): void;
   /** Called when pointer leaves a port. */
   onPortHoverEnd?(event: {
     handle: EdgeHandle;
     kind: "in" | "out";
-    graph: GraphAPI<GraphConfig<TContext>>;
+    graph: GraphAPI<TConfig>;
   }): void;
   /** Called when dragging from a port. */
   onPortDragStart?(event: {
     handle: EdgeHandle;
     kind: "in" | "out";
-    graph: GraphAPI<GraphConfig<TContext>>;
+    graph: GraphAPI<TConfig>;
     preventDefault(): void;
   }): void;
   /** Called when port drag ends (pointer released). */
@@ -97,7 +92,7 @@ export interface GraphEditorProps<
     kind: "in" | "out";
     x: number;
     y: number;
-    graph: GraphAPI<GraphConfig<TContext>>;
+    graph: GraphAPI<TConfig>;
   }): void;
   /** SVG content rendered inside the graph (e.g. ghost node previews). */
   children?: JSX.Element;
@@ -166,7 +161,11 @@ export function GraphEditor<TContext extends Record<string, any>>(
     setSelectedNodes(ids: string[]) {
       setUIState("selectedNodes", ids);
     },
-    onNodePointerDown(event: { node: NodeInstance; nativeEvent: PointerEvent; preventDefault(): void }) {
+    onNodePointerDown(event: {
+      node: NodeInstance;
+      nativeEvent: PointerEvent;
+      preventDefault(): void;
+    }) {
       rest.onNodePointerDown?.({ ...event, graph: graphAPI });
     },
     onEdgeClick(event: { edge: Edge; x: number; y: number }) {
