@@ -1,0 +1,13 @@
+.edge {
+  stroke-width: 1;
+  stroke: var(--color-edge);
+}
+
+.hitTarget {
+  cursor: pointer;
+}
+
+.spliceable:hover .hitTarget {
+  stroke: var(--color-edge);
+  opacity: 0.5;
+}
