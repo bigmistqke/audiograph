@@ -249,6 +249,18 @@ export function AudioGraphEditor(props: {
         config={config}
         graphStore={graphStore}
         setGraphStore={setGraphStore}
+        cursorGhost={(() => {
+          const type = selectedNodeType();
+          if (!type) return undefined;
+          const typeDef = config[type];
+          if (!typeDef) return undefined;
+          const borderColor = `var(--color-port-${(typeDef.ports?.out?.[0] as any)?.kind || "audio"})`;
+          return {
+            dimensions: typeDef.dimensions,
+            title: typeDef.title || type,
+            borderColor,
+          };
+        })()}
         onClick={({ x, y, graph }) => {
           const type = selectedNodeType();
           if (!type) return;
@@ -354,6 +366,67 @@ export function AudioGraphEditor(props: {
 
           setGraphStore("nodes", id, "x", centerX);
           setGraphStore("nodes", id, "y", centerY);
+
+          setSelectedNodeType(undefined);
+        }}
+        onPortDrag={({ handle, kind }) => {
+          const type = selectedNodeType();
+          if (!type) return undefined;
+
+          const typeDef = config[type];
+          if (!typeDef) return undefined;
+
+          // Get the port definition of the clicked port
+          const clickedNode = graphStore.nodes[handle.node];
+          if (!clickedNode) return undefined;
+
+          const clickedPortDef = config[clickedNode.type]?.ports[kind]?.find(
+            (p: any) => p.name === handle.port,
+          ) as any;
+          if (!clickedPortDef) return undefined;
+
+          // Validate port kind compatibility
+          if (kind === "in") {
+            // Dragging from input: new node's first output must match
+            const firstOut = typeDef.ports.out?.[0] as any;
+            if (!firstOut || firstOut.kind !== clickedPortDef.kind) return undefined;
+          } else {
+            // Dragging from output: new node's first input must match
+            const firstIn = typeDef.ports.in?.[0] as any;
+            if (!firstIn || firstIn.kind !== clickedPortDef.kind) return undefined;
+          }
+
+          return type;
+        }}
+        onPortDragEnd={({ handle, kind, x, y, graph }) => {
+          const type = selectedNodeType();
+          if (!type) return;
+
+          const typeDef = config[type];
+
+          const id = graph.addNode(type, { x, y });
+
+          if (typeDef?.state && "code" in typeDef.state) {
+            const name = `custom-${id}`;
+            const code = typeDef.state.code || getSourceBoilerplate();
+            setGraphStore("nodes", id, "state", "name", name);
+            setGraphStore("nodes", id, "state", "code", code);
+            workletFS.writeFile(`/${name}/source.js`, code);
+            workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
+          }
+
+          // Connect: new node's first compatible port ↔ the dragged port
+          if (kind === "in") {
+            const firstOut = typeDef.ports.out?.[0] as any;
+            if (firstOut) {
+              graph.link({ node: id, port: firstOut.name }, handle);
+            }
+          } else {
+            const firstIn = typeDef.ports.in?.[0] as any;
+            if (firstIn) {
+              graph.link(handle, { node: id, port: firstIn.name });
+            }
+          }
 
           setSelectedNodeType(undefined);
         }}

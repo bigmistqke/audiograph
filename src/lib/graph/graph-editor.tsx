@@ -20,10 +20,16 @@ import {
   snapToGrid,
   TITLE_HEIGHT,
 } from "./constants";
-import { GraphContext, GraphContextType, type TemporaryEdge } from "./context";
+import {
+  GraphContext,
+  GraphContextType,
+  type GhostNode,
+  type TemporaryEdge,
+} from "./context";
 import type {
   CreateGraphAPIConfig,
   Edge,
+  EdgeHandle,
   GraphAPI,
   GraphConfig,
   NodeInstance,
@@ -64,6 +70,26 @@ export interface GraphEditorProps<
   }): void;
   /** Return true if a splice onto this edge should be allowed. */
   onEdgeSpliceValidate?(edge: Edge): boolean;
+  /** Called when dragging from a port. Return node type string to show ghost, undefined for normal drag. */
+  onPortDrag?(event: {
+    handle: EdgeHandle;
+    kind: "in" | "out";
+    graph: GraphAPI<GraphConfig<TContext>>;
+  }): string | undefined;
+  /** Called when ghost node drag ends. Creates node and connects it. */
+  onPortDragEnd?(event: {
+    handle: EdgeHandle;
+    kind: "in" | "out";
+    x: number;
+    y: number;
+    graph: GraphAPI<GraphConfig<TContext>>;
+  }): void;
+  /** Ghost node preview shown at cursor when set. */
+  cursorGhost?: {
+    dimensions: { x: number; y: number };
+    title: string;
+    borderColor: string;
+  };
 }
 
 export function GraphEditor<TContext extends Record<string, any>>(
@@ -73,6 +99,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
     origin: { x: number; y: number };
     dimensions: { width: number; height: number };
     temporaryEdge: TemporaryEdge | undefined;
+    ghostNode: GhostNode | undefined;
     dragging: boolean;
     cursorPosition: { x: number; y: number } | undefined;
     selectionBox:
@@ -88,6 +115,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
     origin: { x: 0, y: 0 },
     dimensions: { width: 0, height: 0 },
     temporaryEdge: undefined,
+    ghostNode: undefined,
     dragging: false,
     cursorPosition: undefined,
     selectionBox: undefined,
@@ -130,6 +158,18 @@ export function GraphEditor<TContext extends Record<string, any>>(
     },
     onEdgeSpliceValidate(edge: Edge) {
       return rest.onEdgeSpliceValidate?.(edge) ?? true;
+    },
+    setGhostNode(ghost: GhostNode | undefined) {
+      setUIState("ghostNode", ghost);
+    },
+    getGhostNode() {
+      return UIState.ghostNode;
+    },
+    onPortDrag(handle: EdgeHandle, kind: "in" | "out") {
+      return rest.onPortDrag?.({ handle, kind, graph: graphAPI });
+    },
+    onPortDragEnd(handle: EdgeHandle, kind: "in" | "out", x: number, y: number) {
+      rest.onPortDragEnd?.({ handle, kind, x, y, graph: graphAPI });
     },
   }) satisfies GraphContextType;
 
@@ -260,6 +300,35 @@ export function GraphEditor<TContext extends Record<string, any>>(
         </For>
         <Show when={UIState.temporaryEdge}>
           {(edge) => <GraphTemporaryEdge {...edge()} />}
+        </Show>
+        <Show when={UIState.ghostNode ?? (rest.cursorGhost && UIState.cursorPosition && {
+          ...rest.cursorGhost,
+          x: snapToGrid(UIState.cursorPosition.x),
+          y: snapToGrid(UIState.cursorPosition.y),
+        })}>
+          {(ghost) => (
+            <g
+              transform={`translate(${ghost().x}, ${ghost().y})`}
+              opacity={0.4}
+              pointer-events="none"
+            >
+              <rect
+                width={ghost().dimensions.x}
+                height={ghost().dimensions.y}
+                fill="white"
+                stroke={ghost().borderColor}
+                stroke-width={1}
+              />
+              <text
+                x={HEADING_PADDING_INLINE}
+                y={HEADING_PADDING_BLOCK + 12}
+                font-size="14"
+                fill="var(--color-text)"
+              >
+                {ghost().title}
+              </text>
+            </g>
+          )}
         </Show>
         <Show when={UIState.selectionBox}>
           {(box) => {

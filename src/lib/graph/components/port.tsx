@@ -5,6 +5,7 @@ import {
   PORT_INSET,
   PORT_RADIUS,
   PORT_SPACING,
+  snapToGrid,
   TITLE_HEIGHT,
 } from "../constants";
 import { useGraph, useNode } from "../context";
@@ -69,6 +70,82 @@ export function GraphPort(props: {
         }}
         onPointerDown={async (event) => {
           event.stopPropagation();
+
+          // Check if we should show a ghost node instead of normal edge dragging
+          const ghostType = graph.onPortDrag?.(
+            { node: node.id, port: props.name },
+            props.kind,
+          );
+
+          if (ghostType) {
+            const typeDef = graph.config[ghostType];
+            if (!typeDef) return;
+
+            const portPosition = {
+              x: node.x + cx(),
+              y: node.y + cy(),
+            };
+            const dims = typeDef.dimensions;
+            const borderColor = `var(--color-port-${(typeDef.ports?.out?.[0] as any)?.kind || "audio"})`;
+
+            graph.setDragging(true);
+
+            // Show temporary edge from the port
+            graph.setTemporaryEdge({
+              node: node.id,
+              kind: props.kind,
+              port: props.name,
+            });
+
+            // Show ghost at initial position (cursor = top-left)
+            graph.setGhostNode({
+              type: ghostType,
+              x: snapToGrid(portPosition.x),
+              y: snapToGrid(portPosition.y),
+              dimensions: dims,
+              title: typeDef.title || ghostType,
+              borderColor,
+            });
+
+            await minni(event, (delta) => {
+              const ghostX = snapToGrid(portPosition.x + delta.x);
+              const ghostY = snapToGrid(portPosition.y - delta.y);
+
+              graph.setGhostNode({
+                type: ghostType,
+                x: ghostX,
+                y: ghostY,
+                dimensions: dims,
+                title: typeDef.title || ghostType,
+                borderColor,
+              });
+
+              // Update temporary edge to point at the ghost node's connection port
+              const edgeX =
+                props.kind === "in"
+                  ? ghostX + dims.x // ghost's right edge (output port)
+                  : ghostX; // ghost's left edge (input port)
+              const edgeY = ghostY + dims.y / 2;
+              graph.updateTemporaryEdge(edgeX, edgeY);
+            });
+
+            // On release: create node and connect
+            const ghost = graph.getGhostNode();
+            if (ghost) {
+              graph.onPortDragEnd?.(
+                { node: node.id, port: props.name },
+                props.kind,
+                ghost.x,
+                ghost.y,
+              );
+            }
+
+            graph.setGhostNode(undefined);
+            graph.setTemporaryEdge(undefined);
+            graph.setDragging(false);
+            return;
+          }
+
           graph.setDragging(true);
 
           // If dragging from an in-port with an existing edge, detach it
