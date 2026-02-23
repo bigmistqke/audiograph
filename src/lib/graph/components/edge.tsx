@@ -47,14 +47,50 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
     return `var(--color-port-${kind})`;
   };
 
+  const x1 = () => fromNode()!.x + fromNode()!.dimensions.x - PORT_INSET;
+  const y1 = () => fromNode()!.y + portY(fromPortIndex());
+  const x2 = () => toNode()!.x + PORT_INSET;
+  const y2 = () => toNode()!.y + portY(toPortIndex());
+
   return (
     <Show when={fromNode() && toNode()}>
+      {/* Invisible wide hit-test line (only when splice is valid) */}
+      <Show
+        when={graph.onEdgeSpliceValidate?.({
+          output: props.output,
+          input: props.input,
+        })}
+      >
+        <line
+          x1={x1()}
+          y1={y1()}
+          x2={x2()}
+          y2={y2()}
+          stroke="transparent"
+          stroke-width={10}
+          style={{ cursor: "pointer" }}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            const svg = event.currentTarget.closest("svg")!;
+            const rect = svg.getBoundingClientRect();
+            const viewBox = svg.viewBox.baseVal;
+            const x = event.clientX - rect.left + viewBox.x;
+            const y = event.clientY - rect.top + viewBox.y;
+            graph.onEdgeClick?.(
+              { output: props.output, input: props.input },
+              x,
+              y,
+            );
+          }}
+        />
+      </Show>
+      {/* Visible edge line */}
       <line
         pointer-events="none"
-        x1={fromNode()!.x + fromNode()!.dimensions.x - PORT_INSET}
-        y1={fromNode()!.y + portY(fromPortIndex())}
-        x2={toNode()!.x + PORT_INSET}
-        y2={toNode()!.y + portY(toPortIndex())}
+        x1={x1()}
+        y1={y1()}
+        x2={x2()}
+        y2={y2()}
         stroke={edgeColor()}
       />
     </Show>

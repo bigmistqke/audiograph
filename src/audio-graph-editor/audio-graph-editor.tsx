@@ -2,7 +2,11 @@ import { makePersisted } from "@solid-primitives/storage";
 import clsx from "clsx";
 import { createSignal, For, Setter, Show } from "solid-js";
 import { createStore } from "solid-js/store";
-import type { GraphConfig, GraphStore } from "~/lib/graph/create-graph-api";
+import type {
+  GraphConfig,
+  GraphStore,
+} from "~/lib/graph/create-graph-api";
+import { GAP } from "~/lib/graph/constants";
 import { GraphEditor } from "~/lib/graph/graph-editor";
 
 import {
@@ -263,6 +267,77 @@ export function AudioGraphEditor(props: {
             workletFS.writeFile(`/${name}/source.js`, code);
             workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
           }
+          setSelectedNodeType(undefined);
+        }}
+        onEdgeSpliceValidate={(edge) => {
+          const type = selectedNodeType();
+          if (!type) return false;
+
+          const typeDef = config[type];
+          if (!typeDef) return false;
+
+          const firstIn = typeDef.ports.in?.[0] as any;
+          const firstOut = typeDef.ports.out?.[0] as any;
+          if (!firstIn || !firstOut) return false;
+
+          // Check output side of existing edge matches new node's first input
+          const outputPortDef = (() => {
+            const outputNode = graphStore.nodes[edge.output.node];
+            if (!outputNode) return undefined;
+            return config[outputNode.type]?.ports.out?.find(
+              (p: any) => p.name === edge.output.port,
+            ) as any;
+          })();
+
+          // Check input side of existing edge matches new node's first output
+          const inputPortDef = (() => {
+            const inputNode = graphStore.nodes[edge.input.node];
+            if (!inputNode) return undefined;
+            return config[inputNode.type]?.ports.in?.find(
+              (p: any) => p.name === edge.input.port,
+            ) as any;
+          })();
+
+          if (!outputPortDef || !inputPortDef) return false;
+
+          return (
+            outputPortDef.kind === firstIn.kind &&
+            firstOut.kind === inputPortDef.kind
+          );
+        }}
+        onEdgeClick={({ edge, x, y, graph }) => {
+          const type = selectedNodeType();
+          if (!type) return;
+
+          const typeDef = config[type];
+
+          // Place new node at the downstream node's position (same Y, just before it)
+          const downstreamNode = graphStore.nodes[edge.input.node];
+          if (!downstreamNode) return;
+
+          const id = graph.addNode(type, {
+            x: downstreamNode.x,
+            y: downstreamNode.y,
+          });
+
+          if (typeDef?.state && "code" in typeDef.state) {
+            const name = `custom-${id}`;
+            const code = typeDef.state.code || getSourceBoilerplate();
+
+            setGraphStore("nodes", id, "state", "name", name);
+            setGraphStore("nodes", id, "state", "code", code);
+
+            workletFS.writeFile(`/${name}/source.js`, code);
+            workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
+          }
+
+          // Splice into the edge and push downstream nodes right
+          graph.spliceNodeIntoEdge(edge, id);
+          const newNode = graphStore.nodes[id];
+          if (newNode) {
+            graph.pushDownstream(edge.input.node, newNode.dimensions.x + GAP);
+          }
+
           setSelectedNodeType(undefined);
         }}
       />

@@ -1,5 +1,5 @@
 import { createContext, useContext } from "solid-js";
-import type { GraphAPI, NodeInstance } from "./create-graph-api";
+import type { Edge, GraphAPI, NodeInstance } from "./create-graph-api";
 
 export interface TemporaryEdge {
   kind: "in" | "out";
@@ -17,6 +17,8 @@ export type GraphContextType = GraphAPI & {
   getCursorPosition(): { x: number; y: number } | undefined;
   selectedNodes: string[];
   setSelectedNodes(ids: string[]): void;
+  onEdgeClick?(edge: Edge, x: number, y: number): void;
+  onEdgeSpliceValidate?(edge: Edge): boolean;
 };
 
 export const GraphContext = createContext<GraphContextType>();

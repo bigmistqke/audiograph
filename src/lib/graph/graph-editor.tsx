@@ -23,6 +23,7 @@ import {
 import { GraphContext, GraphContextType, type TemporaryEdge } from "./context";
 import type {
   CreateGraphAPIConfig,
+  Edge,
   GraphAPI,
   GraphConfig,
   NodeInstance,
@@ -55,6 +56,14 @@ export interface GraphEditorProps<
     y: number;
     graph: GraphAPI<GraphConfig<TContext>>;
   }): void;
+  onEdgeClick?(event: {
+    edge: Edge;
+    x: number;
+    y: number;
+    graph: GraphAPI<GraphConfig<TContext>>;
+  }): void;
+  /** Return true if a splice onto this edge should be allowed. */
+  onEdgeSpliceValidate?(edge: Edge): boolean;
 }
 
 export function GraphEditor<TContext extends Record<string, any>>(
@@ -115,6 +124,12 @@ export function GraphEditor<TContext extends Record<string, any>>(
     },
     setSelectedNodes(ids: string[]) {
       setUIState("selectedNodes", ids);
+    },
+    onEdgeClick(edge: Edge, x: number, y: number) {
+      rest.onEdgeClick?.({ edge, x, y, graph: graphAPI });
+    },
+    onEdgeSpliceValidate(edge: Edge) {
+      return rest.onEdgeSpliceValidate?.(edge) ?? true;
     },
   }) satisfies GraphContextType;
 
