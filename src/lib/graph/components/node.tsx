@@ -4,8 +4,8 @@ import { snapToGrid } from "../constants";
 import { NodeContext, useGraph } from "../context";
 import type { NodeInstance } from "../create-graph-api";
 import { NodeShell } from "./node-shell";
-import { GraphPort } from "./port";
 import styles from "./node.module.css";
+import { Port } from "./port";
 
 export function GraphNode(props: { node: NodeInstance }) {
   const graph = useGraph();
@@ -39,31 +39,13 @@ export function GraphNode(props: { node: NodeInstance }) {
         ports={typeDef()?.ports}
         hideLabels={typeDef()?.hideLabels}
         selected={graph.selectedNodes.includes(props.node.id)}
-        portSlot={
-          <>
-            {typeDef().ports.in?.map((port: any, index: number) => (
-              <GraphPort
-                name={port.name}
-                index={index}
-                kind="in"
-                dataKind={port.kind}
-                hideLabels={typeDef()?.hideLabels}
-              />
-            ))}
-            {typeDef().ports.out?.map((port: any, index: number) => (
-              <GraphPort
-                name={port.name}
-                index={index}
-                kind="out"
-                dataKind={port.kind}
-                hideLabels={typeDef()?.hideLabels}
-              />
-            ))}
-          </>
-        }
         headerProps={{
           onPointerDown: async (event: PointerEvent) => {
-            if ((event.target as HTMLElement).closest("[data-pointerevents-block=true]")) {
+            if (
+              (event.target as HTMLElement).closest(
+                "[data-pointerevents-block=true]",
+              )
+            ) {
               return;
             }
 
@@ -71,7 +53,9 @@ export function GraphNode(props: { node: NodeInstance }) {
             graph.onNodePointerDown?.({
               node: props.node,
               nativeEvent: event,
-              preventDefault: () => { defaultPrevented = true; },
+              preventDefault: () => {
+                defaultPrevented = true;
+              },
             });
             if (defaultPrevented) return;
 
@@ -118,6 +102,28 @@ export function GraphNode(props: { node: NodeInstance }) {
               graph.deleteNode(props.node.id);
             }}
           />
+        }
+        portSlot={
+          <>
+            {typeDef().ports.in?.map((port: any, index: number) => (
+              <Port
+                name={port.name}
+                index={index}
+                kind="in"
+                dataKind={port.kind}
+                hideLabels={typeDef()?.hideLabels}
+              />
+            ))}
+            {typeDef().ports.out?.map((port: any, index: number) => (
+              <Port
+                name={port.name}
+                index={index}
+                kind="out"
+                dataKind={port.kind}
+                hideLabels={typeDef()?.hideLabels}
+              />
+            ))}
+          </>
         }
       >
         {graph.nodes[props.node.id].render?.()}

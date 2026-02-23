@@ -4,6 +4,7 @@ import type {
   EdgeHandle,
   GraphAPI,
   NodeInstance,
+  NodeTypeDef,
 } from "./create-graph-api";
 
 export interface TemporaryEdge {
@@ -65,7 +66,7 @@ export function useGraph() {
 
 export const NodeContext = createContext<{
   node: NodeInstance;
-  typeDef: any;
+  typeDef: NodeTypeDef;
 }>();
 
 export function useNode() {

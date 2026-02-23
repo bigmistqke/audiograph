@@ -103,8 +103,7 @@ function SideBar(props: {
                 {(type) => {
                   const portColor = () => {
                     const kind =
-                      (props.config[type]?.ports?.out?.[0] as any)?.kind ||
-                      "audio";
+                      props.config[type]?.ports?.out?.[0]?.kind || "audio";
                     return `var(--color-port-${kind})`;
                   };
                   return (
@@ -236,14 +235,14 @@ export function AudioGraphEditor(props: {
     const clickedNode = graphStore.nodes[handle.node];
     if (!clickedNode) return false;
     const clickedPortDef = config[clickedNode.type]?.ports[kind]?.find(
-      (p: any) => p.name === handle.port,
-    ) as any;
+      (p) => p.name === handle.port,
+    );
     if (!clickedPortDef) return false;
     if (kind === "in") {
-      const firstOut = typeDef.ports.out?.[0] as any;
+      const firstOut = typeDef.ports.out?.[0];
       return firstOut && firstOut.kind === clickedPortDef.kind;
     } else {
-      const firstIn = typeDef.ports.in?.[0] as any;
+      const firstIn = typeDef.ports.in?.[0];
       return firstIn && firstIn.kind === clickedPortDef.kind;
     }
   }
@@ -343,7 +342,7 @@ export function AudioGraphEditor(props: {
       return undefined;
     }
 
-    const borderColor = `var(--color-port-${(typeDef.ports?.out?.[0] as any)?.kind || "default"})`;
+    const borderColor = `var(--color-port-${typeDef.ports?.out?.[0]?.kind || "default"})`;
 
     // Anchor cursor at first output port when hovering/dragging from input or when node has no inputs
     const hasInputPorts = (typeDef.ports.in?.length ?? 0) > 0;
@@ -457,13 +456,13 @@ export function AudioGraphEditor(props: {
           // Bridge A→B(deleted)→C into A→C when port kinds match
           for (const incoming of incomingEdges) {
             const inPortDef = inPorts.find(
-              (p: any) => p.name === incoming.input.port,
-            ) as any;
+              (p) => p.name === incoming.input.port,
+            );
             if (!inPortDef) continue;
             for (const outgoing of outgoingEdges) {
               const outPortDef = outPorts.find(
-                (p: any) => p.name === outgoing.output.port,
-              ) as any;
+                (p) => p.name === outgoing.output.port,
+              );
               if (!outPortDef) continue;
               if (inPortDef.kind === outPortDef.kind) {
                 graph.link(incoming.output, outgoing.input);
@@ -520,8 +519,8 @@ export function AudioGraphEditor(props: {
           const typeDef = config[type];
           if (!typeDef) return false;
 
-          const firstIn = typeDef.ports.in?.[0] as any;
-          const firstOut = typeDef.ports.out?.[0] as any;
+          const firstIn = typeDef.ports.in?.[0];
+          const firstOut = typeDef.ports.out?.[0];
           if (!firstIn || !firstOut) return false;
 
           // Check output side of existing edge matches new node's first input
@@ -529,8 +528,8 @@ export function AudioGraphEditor(props: {
             const outputNode = graphStore.nodes[edge.output.node];
             if (!outputNode) return undefined;
             return config[outputNode.type]?.ports.out?.find(
-              (p: any) => p.name === edge.output.port,
-            ) as any;
+              (p) => p.name === edge.output.port,
+            );
           })();
 
           // Check input side of existing edge matches new node's first output
@@ -538,8 +537,8 @@ export function AudioGraphEditor(props: {
             const inputNode = graphStore.nodes[edge.input.node];
             if (!inputNode) return undefined;
             return config[inputNode.type]?.ports.in?.find(
-              (p: any) => p.name === edge.input.port,
-            ) as any;
+              (p) => p.name === edge.input.port,
+            );
           })();
 
           if (!outputPortDef || !inputPortDef) return false;
@@ -603,12 +602,12 @@ export function AudioGraphEditor(props: {
 
           // Connect: new node's first compatible port ↔ the dragged port
           if (kind === "in") {
-            const firstOut = typeDef.ports.out?.[0] as any;
+            const firstOut = typeDef.ports.out?.[0];
             if (firstOut) {
               graph.link({ node: id, port: firstOut.name }, handle);
             }
           } else {
-            const firstIn = typeDef.ports.in?.[0] as any;
+            const firstIn = typeDef.ports.in?.[0];
             if (firstIn) {
               graph.link(handle, { node: id, port: firstIn.name });
             }

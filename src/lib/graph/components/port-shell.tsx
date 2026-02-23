@@ -1,5 +1,6 @@
+import clsx from "clsx";
 import type { JSX } from "solid-js";
-import { Show } from "solid-js";
+import { Show, splitProps } from "solid-js";
 import {
   GRID,
   PORT_INSET,
@@ -9,16 +10,27 @@ import {
 } from "../constants";
 import styles from "./port.module.css";
 
-export function PortShell(props: {
+export interface PortShellProps extends Omit<
+  JSX.CircleSVGAttributes<SVGCircleElement>,
+  "cx" | "cy" | "r"
+> {
   name: string;
   index: number;
   kind: "in" | "out";
   width: number;
   dataKind?: string;
   hideLabels?: boolean;
-  /** Props spread onto the hit-target circle (the larger invisible one). */
-  hitTargetProps?: JSX.CircleSVGAttributes<SVGCircleElement>;
-}) {
+}
+
+export function PortShell(_props: PortShellProps) {
+  const [props, rest] = splitProps(_props, [
+    "name",
+    "index",
+    "kind",
+    "width",
+    "dataKind",
+    "hideLabels",
+  ]);
   const cx = () =>
     props.kind === "in" ? PORT_INSET : props.width - PORT_INSET;
   const cy = () => props.index * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS;
@@ -38,14 +50,13 @@ export function PortShell(props: {
           {props.name}
         </text>
       </Show>
-
       <circle
+        {...rest}
         cx={cx()}
         cy={cy()}
         r={PORT_RADIUS * 2}
-        class={styles.portExtended}
+        class={clsx(styles.portExtended, rest.class)}
         data-kind={props.dataKind}
-        {...props.hitTargetProps}
       />
       <circle
         cx={cx()}
