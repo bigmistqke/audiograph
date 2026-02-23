@@ -2012,6 +2012,28 @@
       "created_at": "2026-02-23T14:42:17.659800+01:00",
       "updated_at": "2026-02-23T14:42:17.659800+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"594a92f\",\"confidence\":95}"
+    },
+    {
+      "id": 184,
+      "change_id": "d608ac56-ea1c-41b4-b084-d727e07257be",
+      "node_type": "outcome",
+      "title": "Committed: pushDownstream only pushes nodes that actually overlap with upstream",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T14:58:21.058579+01:00",
+      "updated_at": "2026-02-23T14:58:21.058579+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"b38f0f0\",\"confidence\":95}"
+    },
+    {
+      "id": 185,
+      "change_id": "a9a7e5dc-183c-4a4b-b558-0a571248adf0",
+      "node_type": "outcome",
+      "title": "Committed: option+click bridges edges through removed node before entering ghost mode",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T14:58:21.156531+01:00",
+      "updated_at": "2026-02-23T14:58:21.156531+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"cc27200\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -3928,6 +3950,28 @@
       "weight": 1.0,
       "rationale": "New feature",
       "created_at": "2026-02-23T14:42:17.672853+01:00"
+    },
+    {
+      "id": 175,
+      "from_node_id": 183,
+      "to_node_id": 184,
+      "from_change_id": "a9e8cea4-6d12-4978-b809-a7affba18f60",
+      "to_change_id": "d608ac56-ea1c-41b4-b084-d727e07257be",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Bug fix",
+      "created_at": "2026-02-23T14:58:21.070048+01:00"
+    },
+    {
+      "id": 176,
+      "from_node_id": 183,
+      "to_node_id": 185,
+      "from_change_id": "a9e8cea4-6d12-4978-b809-a7affba18f60",
+      "to_change_id": "a9a7e5dc-183c-4a4b-b558-0a571248adf0",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Feature extension",
+      "created_at": "2026-02-23T14:58:21.168342+01:00"
     }
   ]
 }
