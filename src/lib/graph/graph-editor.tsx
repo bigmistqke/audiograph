@@ -86,6 +86,10 @@ export interface GraphEditorProps<
     dimensions: { x: number; y: number };
     title: string;
     borderColor: string;
+    ports?: {
+      in?: { name: string; kind?: string }[];
+      out?: { name: string; kind?: string }[];
+    };
   };
   /** Fires when cursor position changes in SVG coordinates. */
   onCursorMove?(position: { x: number; y: number } | undefined): void;
@@ -322,6 +326,22 @@ export function GraphEditor<TContext extends Record<string, any>>(
               >
                 {ghost().title}
               </text>
+              {ghost().ports?.in?.map((port, i) => (
+                <circle
+                  cx={PORT_INSET}
+                  cy={i * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS}
+                  r={PORT_RADIUS}
+                  fill={`var(--color-port-${port.kind || "audio"})`}
+                />
+              ))}
+              {ghost().ports?.out?.map((port, i) => (
+                <circle
+                  cx={ghost().dimensions.x - PORT_INSET}
+                  cy={i * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS}
+                  r={PORT_RADIUS}
+                  fill={`var(--color-port-${port.kind || "audio"})`}
+                />
+              ))}
             </g>
           )}
         </Show>

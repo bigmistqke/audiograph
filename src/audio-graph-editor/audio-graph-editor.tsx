@@ -2,7 +2,14 @@ import { makePersisted } from "@solid-primitives/storage";
 import clsx from "clsx";
 import { createSignal, For, Setter, Show } from "solid-js";
 import { createStore } from "solid-js/store";
-import { GRID, snapToGrid } from "~/lib/graph/constants";
+import {
+  GRID,
+  PORT_INSET,
+  PORT_RADIUS,
+  PORT_SPACING,
+  snapToGrid,
+  TITLE_HEIGHT,
+} from "~/lib/graph/constants";
 import type { GraphConfig, GraphStore } from "~/lib/graph/create-graph-api";
 import { GraphEditor } from "~/lib/graph/graph-editor";
 
@@ -174,14 +181,21 @@ export function AudioGraphEditor(props: {
     const typeDef = config[type];
     if (!typeDef) return undefined;
     const borderColor = `var(--color-port-${(typeDef.ports?.out?.[0] as any)?.kind || "audio"})`;
-    // When dragging from an input port, place ghost to the left of cursor
-    const xOffset = portDragKind() === "in" ? -typeDef.dimensions.x : 0;
+
+    // Anchor cursor at first output port when dragging from input, else first input port
+    const anchorAtOutput = portDragKind() === "in";
+    const anchorX = anchorAtOutput
+      ? typeDef.dimensions.x - PORT_INSET
+      : PORT_INSET;
+    const anchorY = TITLE_HEIGHT + PORT_RADIUS;
+
     return {
-      x: snapToGrid(pos.x + xOffset),
-      y: snapToGrid(pos.y),
+      x: snapToGrid(pos.x - anchorX),
+      y: snapToGrid(pos.y - anchorY),
       dimensions: typeDef.dimensions,
       title: typeDef.title || type,
       borderColor,
+      ports: typeDef.ports,
     };
   };
   const [graphStore, setGraphStore] = makePersisted(
@@ -416,10 +430,14 @@ export function AudioGraphEditor(props: {
 
           const typeDef = config[type];
 
-          const xOffset = kind === "in" ? -typeDef.dimensions.x : 0;
+          const anchorAtOutput = kind === "in";
+          const anchorX = anchorAtOutput
+            ? typeDef.dimensions.x - PORT_INSET
+            : PORT_INSET;
+          const anchorY = TITLE_HEIGHT + PORT_RADIUS;
           const id = graph.addNode(type, {
-            x: snapToGrid(x + xOffset),
-            y: snapToGrid(y),
+            x: snapToGrid(x - anchorX),
+            y: snapToGrid(y - anchorY),
           });
 
           if (typeDef?.state && "code" in typeDef.state) {
