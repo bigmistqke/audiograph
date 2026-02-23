@@ -1957,6 +1957,28 @@
       "created_at": "2026-02-23T14:07:45.362075+01:00",
       "updated_at": "2026-02-23T14:07:45.362075+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"f68ccda\",\"confidence\":95}"
+    },
+    {
+      "id": 179,
+      "change_id": "ab46c4c8-bdb7-4358-96c4-a7ea27af1811",
+      "node_type": "outcome",
+      "title": "Committed: unify port event callbacks to single preventDefault pattern",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T14:15:14.956001+01:00",
+      "updated_at": "2026-02-23T14:15:14.956001+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"5780815\",\"confidence\":95}"
+    },
+    {
+      "id": 180,
+      "change_id": "9c9f93d7-da87-48ba-b4ab-9081751c8425",
+      "node_type": "outcome",
+      "title": "Committed: delete selected nodes with Backspace/Delete key",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T14:15:15.023236+01:00",
+      "updated_at": "2026-02-23T14:15:15.023236+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"53f1b27\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -3818,6 +3840,28 @@
       "weight": 1.0,
       "rationale": "Follow-up fix",
       "created_at": "2026-02-23T14:07:45.375134+01:00"
+    },
+    {
+      "id": 170,
+      "from_node_id": 177,
+      "to_node_id": 179,
+      "from_change_id": "6d3aff03-b577-4d7c-9cc2-c0f1f12084f3",
+      "to_change_id": "ab46c4c8-bdb7-4358-96c4-a7ea27af1811",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "User cleanup",
+      "created_at": "2026-02-23T14:15:14.971035+01:00"
+    },
+    {
+      "id": 171,
+      "from_node_id": 179,
+      "to_node_id": 180,
+      "from_change_id": "ab46c4c8-bdb7-4358-96c4-a7ea27af1811",
+      "to_change_id": "9c9f93d7-da87-48ba-b4ab-9081751c8425",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "New feature",
+      "created_at": "2026-02-23T14:15:15.032673+01:00"
     }
   ]
 }
