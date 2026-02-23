@@ -56,6 +56,13 @@ export interface GraphEditorProps<
     y: number;
     graph: GraphAPI<GraphConfig<TContext>>;
   }): void;
+  /** Called when pointer down on a node header. Call preventDefault() to block normal drag. */
+  onNodePointerDown?(event: {
+    node: NodeInstance;
+    nativeEvent: PointerEvent;
+    graph: GraphAPI<GraphConfig<TContext>>;
+    preventDefault(): void;
+  }): void;
   onEdgeClick?(event: {
     edge: Edge;
     x: number;
@@ -158,6 +165,9 @@ export function GraphEditor<TContext extends Record<string, any>>(
     },
     setSelectedNodes(ids: string[]) {
       setUIState("selectedNodes", ids);
+    },
+    onNodePointerDown(event: { node: NodeInstance; nativeEvent: PointerEvent; preventDefault(): void }) {
+      rest.onNodePointerDown?.({ ...event, graph: graphAPI });
     },
     onEdgeClick(event: { edge: Edge; x: number; y: number }) {
       rest.onEdgeClick?.({ ...event, graph: graphAPI });

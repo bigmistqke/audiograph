@@ -22,6 +22,12 @@ export type GraphContextType = GraphAPI & {
   getCursorPosition(): { x: number; y: number } | undefined;
   selectedNodes: string[];
   setSelectedNodes(ids: string[]): void;
+  /** Called when pointer down on a node header. Call preventDefault() to block normal drag. */
+  onNodePointerDown?(event: {
+    node: NodeInstance;
+    nativeEvent: PointerEvent;
+    preventDefault(): void;
+  }): void;
   onEdgeClick?(event: { edge: Edge; x: number; y: number }): void;
   onEdgeSpliceValidate?(event: { edge: Edge }): boolean;
   /** Called when pointer enters a port. Call preventDefault() to disable all port interaction. */

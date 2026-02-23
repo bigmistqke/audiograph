@@ -67,6 +67,14 @@ export function GraphNode(props: { node: NodeInstance }) {
               return;
             }
 
+            let defaultPrevented = false;
+            graph.onNodePointerDown?.({
+              node: props.node,
+              nativeEvent: event,
+              preventDefault: () => { defaultPrevented = true; },
+            });
+            if (defaultPrevented) return;
+
             const isSelected = graph.selectedNodes.includes(props.node.id);
 
             if (!isSelected) {

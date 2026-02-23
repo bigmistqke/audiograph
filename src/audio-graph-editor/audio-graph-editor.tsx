@@ -343,6 +343,12 @@ export function AudioGraphEditor(props: {
         setGraphStore={setGraphStore}
         onCursorMove={setCursorPos}
         onEdgeHover={(event) => setHoveredEdge(event?.edge)}
+        onNodePointerDown={({ node, nativeEvent, preventDefault, graph }) => {
+          if (!nativeEvent.altKey) return;
+          preventDefault();
+          graph.deleteNode(node.id);
+          setSelectedNodeType(node.type);
+        }}
         onClick={({ x, y, graph }) => {
           const type = selectedNodeType();
           if (!type) return;
