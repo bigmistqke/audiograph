@@ -182,8 +182,9 @@ export function AudioGraphEditor(props: {
     if (!typeDef) return undefined;
     const borderColor = `var(--color-port-${(typeDef.ports?.out?.[0] as any)?.kind || "audio"})`;
 
-    // Anchor cursor at first output port when dragging from input, else first input port
-    const anchorAtOutput = portDragKind() === "in";
+    // Anchor cursor at first output port when dragging from input or when node has no inputs
+    const hasInputPorts = (typeDef.ports.in?.length ?? 0) > 0;
+    const anchorAtOutput = portDragKind() === "in" || !hasInputPorts;
     const anchorX = anchorAtOutput
       ? typeDef.dimensions.x - PORT_INSET
       : PORT_INSET;
