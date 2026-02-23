@@ -1704,6 +1704,94 @@
       "created_at": "2026-02-23T11:24:28.357689+01:00",
       "updated_at": "2026-02-23T11:24:28.357689+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"ce8ee68\",\"confidence\":95}"
+    },
+    {
+      "id": 156,
+      "change_id": "f2de26ac-23bf-4d45-82da-6cda210dc220",
+      "node_type": "goal",
+      "title": "Click port with selected type to insert and connect node",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T11:27:47.212525+01:00",
+      "updated_at": "2026-02-23T11:27:47.212525+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"i want the following features too: 1. when having a node-type selected and clicking on another node's input (does not matter if it's first/...) -> add node to the left of the input (and push previous nodes to the left if there is surplus overlap) and connect its first output to that input 2. when having a node-type selected and clicking on another node's output -> add node to the right (and do the spacing algo we implemented before) and connect its first input to that node's output -> add to deciduous and then implement\"}"
+    },
+    {
+      "id": 157,
+      "change_id": "8545b1f5-5148-412d-8f8e-7a62900eab11",
+      "node_type": "action",
+      "title": "Implement click-on-port to insert and connect node",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T11:27:53.809569+01:00",
+      "updated_at": "2026-02-23T11:27:53.809569+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 158,
+      "change_id": "2bec407e-39cb-4a1a-adce-6c5f8cdd5ba3",
+      "node_type": "outcome",
+      "title": "Implemented click-on-port to insert node: input ports insert left with pushUpstream, output ports insert right with pushDownstream",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T11:31:57.931647+01:00",
+      "updated_at": "2026-02-23T11:31:57.931647+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95}"
+    },
+    {
+      "id": 159,
+      "change_id": "3f2d1c6b-1fa9-4107-a8dc-87a2b781147b",
+      "node_type": "outcome",
+      "title": "Committed: feat: click port with selected type to insert and connect node",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T11:51:01.645916+01:00",
+      "updated_at": "2026-02-23T11:51:01.645916+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"afedb1e\",\"confidence\":95}"
+    },
+    {
+      "id": 160,
+      "change_id": "d52e85d7-fd40-440d-93db-cd885dbf1c60",
+      "node_type": "goal",
+      "title": "Drag from port with selected type to place and connect node with ghost preview",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T11:56:08.278245+01:00",
+      "updated_at": "2026-02-23T11:56:08.278245+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"i want to have different behavior: instead of clicking on port and injecting left/right -> if you have node-type selected and then you DRAG from a port, it will create and attach the node on release -> display a ghost node to visualize this more clearly. no layout adjustments needed, this is only done for edge clicking. also only connect to the port you dragged from, no injection needed\"}"
+    },
+    {
+      "id": 161,
+      "change_id": "3d7e6767-3d5d-48f4-b2cc-cd8c82c90363",
+      "node_type": "action",
+      "title": "Implement drag-from-port with ghost node preview",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T11:56:12.673919+01:00",
+      "updated_at": "2026-02-23T11:56:12.673919+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 162,
+      "change_id": "fbda3c45-4c86-480b-a3bf-1cf1014d86f9",
+      "node_type": "outcome",
+      "title": "Implemented drag-from-port ghost node preview: drag shows ghost + temp edge, release creates and connects",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T11:58:42.519035+01:00",
+      "updated_at": "2026-02-23T11:58:42.519035+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95}"
+    },
+    {
+      "id": 163,
+      "change_id": "4856043e-6804-4d4b-98de-5ddafa3417fa",
+      "node_type": "outcome",
+      "title": "Committed: feat: drag from port with selected type to place and connect node with ghost preview",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T12:06:21.905514+01:00",
+      "updated_at": "2026-02-23T12:06:21.905514+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"8b7118f\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -3312,6 +3400,94 @@
       "weight": 1.0,
       "rationale": "Follow-up error cleanup",
       "created_at": "2026-02-23T11:24:28.366868+01:00"
+    },
+    {
+      "id": 147,
+      "from_node_id": 133,
+      "to_node_id": 156,
+      "from_change_id": "9e4f7e1f-a12b-476d-b6e9-9744549a5751",
+      "to_change_id": "f2de26ac-23bf-4d45-82da-6cda210dc220",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Extension of chain editing workflows",
+      "created_at": "2026-02-23T11:27:50.686220+01:00"
+    },
+    {
+      "id": 148,
+      "from_node_id": 156,
+      "to_node_id": 157,
+      "from_change_id": "f2de26ac-23bf-4d45-82da-6cda210dc220",
+      "to_change_id": "8545b1f5-5148-412d-8f8e-7a62900eab11",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation",
+      "created_at": "2026-02-23T11:27:56.741910+01:00"
+    },
+    {
+      "id": 149,
+      "from_node_id": 157,
+      "to_node_id": 158,
+      "from_change_id": "8545b1f5-5148-412d-8f8e-7a62900eab11",
+      "to_change_id": "2bec407e-39cb-4a1a-adce-6c5f8cdd5ba3",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation complete",
+      "created_at": "2026-02-23T11:32:01.718218+01:00"
+    },
+    {
+      "id": 150,
+      "from_node_id": 157,
+      "to_node_id": 159,
+      "from_change_id": "8545b1f5-5148-412d-8f8e-7a62900eab11",
+      "to_change_id": "3f2d1c6b-1fa9-4107-a8dc-87a2b781147b",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-02-23T11:51:01.659624+01:00"
+    },
+    {
+      "id": 151,
+      "from_node_id": 133,
+      "to_node_id": 160,
+      "from_change_id": "9e4f7e1f-a12b-476d-b6e9-9744549a5751",
+      "to_change_id": "d52e85d7-fd40-440d-93db-cd885dbf1c60",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Alternative approach to port-based node insertion",
+      "created_at": "2026-02-23T11:56:12.644847+01:00"
+    },
+    {
+      "id": 152,
+      "from_node_id": 160,
+      "to_node_id": 161,
+      "from_change_id": "d52e85d7-fd40-440d-93db-cd885dbf1c60",
+      "to_change_id": "3d7e6767-3d5d-48f4-b2cc-cd8c82c90363",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation",
+      "created_at": "2026-02-23T11:56:12.683522+01:00"
+    },
+    {
+      "id": 153,
+      "from_node_id": 161,
+      "to_node_id": 162,
+      "from_change_id": "3d7e6767-3d5d-48f4-b2cc-cd8c82c90363",
+      "to_change_id": "fbda3c45-4c86-480b-a3bf-1cf1014d86f9",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation complete",
+      "created_at": "2026-02-23T11:58:42.537294+01:00"
+    },
+    {
+      "id": 154,
+      "from_node_id": 161,
+      "to_node_id": 163,
+      "from_change_id": "3d7e6767-3d5d-48f4-b2cc-cd8c82c90363",
+      "to_change_id": "4856043e-6804-4d4b-98de-5ddafa3417fa",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-02-23T12:06:21.917696+01:00"
     }
   ]
 }
