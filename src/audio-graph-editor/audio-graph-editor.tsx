@@ -2,6 +2,7 @@ import { makePersisted } from "@solid-primitives/storage";
 import clsx from "clsx";
 import { createSignal, For, Setter, Show } from "solid-js";
 import { createStore } from "solid-js/store";
+import { NodeShell } from "~/lib/graph/components/node-shell";
 import {
   GRID,
   PORT_INSET,
@@ -10,7 +11,6 @@ import {
   TITLE_HEIGHT,
 } from "~/lib/graph/constants";
 import type { GraphConfig, GraphStore } from "~/lib/graph/create-graph-api";
-import { NodeShell } from "~/lib/graph/components/node-shell";
 import { GraphEditor } from "~/lib/graph/graph-editor";
 
 import {
@@ -206,6 +206,90 @@ export function AudioGraphEditor(props: {
     }
   }
 
+  /** Walk downstream from a node, fixing overlaps. Stops when gap is already sufficient. */
+  function resolveOverlaps(startNodeId: string, minGap = GRID * 3) {
+    let currentId: string | undefined = startNodeId;
+    const visited = new Set<string>();
+    while (currentId && !visited.has(currentId)) {
+      visited.add(currentId);
+      const node = graphStore.nodes[currentId];
+      if (!node) break;
+      const upstreamRight = node.x + node.dimensions.x;
+
+      const edge = graphStore.edges.find((e) => e.output.node === currentId);
+      if (!edge) break;
+      const downstream = graphStore.nodes[edge.input.node];
+      if (!downstream) break;
+
+      // Stop if gap is already sufficient
+      if (downstream.x >= upstreamRight + minGap) break;
+
+      setGraphStore(
+        "nodes",
+        edge.input.node,
+        "x",
+        snapToGrid(upstreamRight + minGap),
+      );
+      currentId = edge.input.node;
+    }
+  }
+
+  /** Create a node of selectedNodeType, splice it into an edge, center it, and resolve overlaps. */
+  function spliceSelectedOntoEdge(
+    edge: {
+      output: { node: string; port: string };
+      input: { node: string; port: string };
+    },
+    graph: ReturnType<typeof graphStore extends any ? any : never>,
+  ) {
+    const type = selectedNodeType();
+    if (!type) return;
+
+    const typeDef = config[type];
+    const upstreamNode = graphStore.nodes[edge.output.node];
+    const downstreamNode = graphStore.nodes[edge.input.node];
+    if (!upstreamNode || !downstreamNode) return;
+
+    const id = graph.addNode(type, {
+      x: downstreamNode.x,
+      y: downstreamNode.y,
+    });
+
+    if (typeDef?.state && "code" in typeDef.state) {
+      const name = `custom-${id}`;
+      const code = typeDef.state.code || getSourceBoilerplate();
+      setGraphStore("nodes", id, "state", "name", name);
+      setGraphStore("nodes", id, "state", "code", code);
+      workletFS.writeFile(`/${name}/source.js`, code);
+      workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
+    }
+
+    const newNode = graphStore.nodes[id];
+    if (!newNode) return;
+
+    const newNodeWidth = newNode.dimensions.x;
+    const upstreamRight = upstreamNode.x + upstreamNode.dimensions.x;
+
+    graph.spliceNodeIntoEdge(edge, id);
+
+    const gap = downstreamNode.x - upstreamRight;
+    const minGap = GRID * 3;
+    // Center only if there's enough room; otherwise place right after upstream
+    const centerX =
+      gap >= newNodeWidth + minGap * 2
+        ? snapToGrid(upstreamRight + (gap - newNodeWidth) / 2)
+        : snapToGrid(upstreamRight + minGap);
+    const centerY = snapToGrid((upstreamNode.y + downstreamNode.y) / 2);
+
+    setGraphStore("nodes", id, "x", centerX);
+    setGraphStore("nodes", id, "y", centerY);
+
+    resolveOverlaps(id);
+
+    setSelectedNodeType(undefined);
+    setHoveredEdge(undefined);
+  }
+
   const ghostNode = () => {
     const type = selectedNodeType();
     const pos = cursorPos();
@@ -386,6 +470,13 @@ export function AudioGraphEditor(props: {
 
           const typeDef = config[type];
 
+          // If hovering an edge, splice into it
+          const edge = hoveredEdge();
+          if (edge) {
+            spliceSelectedOntoEdge(edge, graph);
+            return;
+          }
+
           const hasInputPorts = (typeDef.ports.in?.length ?? 0) > 0;
           const anchorAtOutput = !hasInputPorts;
           const anchorX = anchorAtOutput
@@ -409,6 +500,9 @@ export function AudioGraphEditor(props: {
             workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
           }
           setSelectedNodeType(undefined);
+        }}
+        onEdgeClick={({ edge, graph }) => {
+          spliceSelectedOntoEdge(edge, graph);
         }}
         onEdgeSpliceValidate={({ edge }) => {
           const type = selectedNodeType();
@@ -445,63 +539,6 @@ export function AudioGraphEditor(props: {
             outputPortDef.kind === firstIn.kind &&
             firstOut.kind === inputPortDef.kind
           );
-        }}
-        onEdgeClick={({ edge, graph }) => {
-          const type = selectedNodeType();
-          if (!type) return;
-
-          const typeDef = config[type];
-
-          const upstreamNode = graphStore.nodes[edge.output.node];
-          const downstreamNode = graphStore.nodes[edge.input.node];
-          if (!upstreamNode || !downstreamNode) return;
-
-          // Create node at temporary position
-          const id = graph.addNode(type, {
-            x: downstreamNode.x,
-            y: downstreamNode.y,
-          });
-
-          if (typeDef?.state && "code" in typeDef.state) {
-            const name = `custom-${id}`;
-            const code = typeDef.state.code || getSourceBoilerplate();
-
-            setGraphStore("nodes", id, "state", "name", name);
-            setGraphStore("nodes", id, "state", "code", code);
-
-            workletFS.writeFile(`/${name}/source.js`, code);
-            workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
-          }
-
-          const newNode = graphStore.nodes[id];
-          if (!newNode) return;
-
-          const newNodeWidth = newNode.dimensions.x;
-          const upstreamRight = upstreamNode.x + upstreamNode.dimensions.x;
-          const availableGap = downstreamNode.x - upstreamRight;
-          const requiredSpace = newNodeWidth + 4 * GRID;
-          const surplus = Math.max(0, requiredSpace - availableGap);
-
-          // Splice into the edge and only push by the surplus
-          graph.spliceNodeIntoEdge(edge, id);
-          if (surplus > 0) {
-            graph.pushDownstream(edge.input.node, surplus);
-          }
-
-          // Center new node horizontally between upstream right edge and downstream left edge
-          const actualDownstreamX =
-            graphStore.nodes[edge.input.node]?.x ?? downstreamNode.x + surplus;
-          const centerX = snapToGrid(
-            upstreamRight +
-              (actualDownstreamX - upstreamRight - newNodeWidth) / 2,
-          );
-          const centerY = snapToGrid((upstreamNode.y + downstreamNode.y) / 2);
-
-          setGraphStore("nodes", id, "x", centerX);
-          setGraphStore("nodes", id, "y", centerY);
-
-          setSelectedNodeType(undefined);
-          setHoveredEdge(undefined);
         }}
         onPortHover={({ handle, kind, preventDefault: preventInteraction }) => {
           const type = selectedNodeType();
@@ -572,9 +609,7 @@ export function AudioGraphEditor(props: {
           setPortDragKind(undefined);
         }}
       >
-        <Show when={ghostNode()}>
-          {(ghost) => <GhostNode {...ghost()} />}
-        </Show>
+        <Show when={ghostNode()}>{(ghost) => <GhostNode {...ghost()} />}</Show>
       </GraphEditor>
     </>
   );
@@ -591,7 +626,5 @@ function GhostNode(props: {
     out?: { name: string; kind?: string }[];
   };
 }) {
-  return (
-    <NodeShell {...props} opacity={0.4} pointer-events="none" />
-  );
+  return <NodeShell {...props} opacity={0.4} pointer-events="none" />;
 }

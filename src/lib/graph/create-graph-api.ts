@@ -6,7 +6,7 @@ import {
   type JSX,
 } from "solid-js";
 import { createStore, produce, type SetStoreFunction } from "solid-js/store";
-import { GRID, snapToGrid } from "./constants";
+import { snapToGrid } from "./constants";
 
 export interface PortDef {
   name: string;
@@ -117,8 +117,6 @@ export type GraphAPI<
   ): void;
   /** Splice a node into an existing edge: A→B becomes A→node→B using first ports. */
   spliceNodeIntoEdge(edge: Edge, nodeId: string): void;
-  /** Collect all downstream nodes (following edges from nodeId) and push them right. */
-  pushDownstream(nodeId: string, dx: number, minGap?: number): void;
 };
 
 export interface CreateGraphAPIConfig<
@@ -363,36 +361,6 @@ export function createGraphAPI<
           }),
         ),
       );
-    },
-    pushDownstream(nodeId: string, dx: number, minGap = GRID * 4) {
-      // BFS propagation: only push each node by the surplus it actually needs
-      const visited = new Set<string>();
-      const queue: { id: string; push: number }[] = [{ id: nodeId, push: dx }];
-
-      while (queue.length > 0) {
-        const { id: current, push } = queue.shift()!;
-        if (visited.has(current) || push <= 0) continue;
-        visited.add(current);
-
-        const node = graphStore.nodes[current];
-        if (!node) continue;
-
-        const newX = snapToGrid(node.x + push);
-        setGraphStore("nodes", current, "x", newX);
-
-        // Propagate to downstream nodes, but only by the overlap amount
-        for (const edge of graphStore.edges) {
-          if (edge.output.node === current && !visited.has(edge.input.node)) {
-            const downstream = graphStore.nodes[edge.input.node];
-            if (!downstream) continue;
-            const upstreamRight = newX + node.dimensions.x;
-            const overlap = upstreamRight + minGap - downstream.x;
-            if (overlap > 0) {
-              queue.push({ id: edge.input.node, push: overlap });
-            }
-          }
-        }
-      }
     },
   };
 }
