@@ -163,6 +163,28 @@ export function AudioGraphEditor(props: {
   const [selectedNodeType, setSelectedNodeType] = createSignal<
     string | undefined
   >();
+  const [cursorPos, setCursorPos] = createSignal<
+    { x: number; y: number } | undefined
+  >();
+  const [portDragKind, setPortDragKind] = createSignal<"in" | "out" | undefined>();
+
+  const ghostNode = () => {
+    const type = selectedNodeType();
+    const pos = cursorPos();
+    if (!type || !pos) return undefined;
+    const typeDef = config[type];
+    if (!typeDef) return undefined;
+    const borderColor = `var(--color-port-${(typeDef.ports?.out?.[0] as any)?.kind || "audio"})`;
+    // When dragging from an input port, place ghost to the left of cursor
+    const xOffset = portDragKind() === "in" ? -typeDef.dimensions.x : 0;
+    return {
+      x: snapToGrid(pos.x + xOffset),
+      y: snapToGrid(pos.y),
+      dimensions: typeDef.dimensions,
+      title: typeDef.title || type,
+      borderColor,
+    };
+  };
   const [graphStore, setGraphStore] = makePersisted(
     createStore<GraphStore>({ nodes: {}, edges: [] }),
     {
@@ -249,18 +271,8 @@ export function AudioGraphEditor(props: {
         config={config}
         graphStore={graphStore}
         setGraphStore={setGraphStore}
-        cursorGhost={(() => {
-          const type = selectedNodeType();
-          if (!type) return undefined;
-          const typeDef = config[type];
-          if (!typeDef) return undefined;
-          const borderColor = `var(--color-port-${(typeDef.ports?.out?.[0] as any)?.kind || "audio"})`;
-          return {
-            dimensions: typeDef.dimensions,
-            title: typeDef.title || type,
-            borderColor,
-          };
-        })()}
+        ghostNode={ghostNode()}
+        onCursorMove={setCursorPos}
         onClick={({ x, y, graph }) => {
           const type = selectedNodeType();
           if (!type) return;
@@ -371,32 +383,29 @@ export function AudioGraphEditor(props: {
         }}
         onPortDrag={({ handle, kind }) => {
           const type = selectedNodeType();
-          if (!type) return undefined;
+          if (!type) return false;
 
           const typeDef = config[type];
-          if (!typeDef) return undefined;
+          if (!typeDef) return false;
 
-          // Get the port definition of the clicked port
           const clickedNode = graphStore.nodes[handle.node];
-          if (!clickedNode) return undefined;
+          if (!clickedNode) return false;
 
           const clickedPortDef = config[clickedNode.type]?.ports[kind]?.find(
             (p: any) => p.name === handle.port,
           ) as any;
-          if (!clickedPortDef) return undefined;
+          if (!clickedPortDef) return false;
 
-          // Validate port kind compatibility
           if (kind === "in") {
-            // Dragging from input: new node's first output must match
             const firstOut = typeDef.ports.out?.[0] as any;
-            if (!firstOut || firstOut.kind !== clickedPortDef.kind) return undefined;
+            if (!firstOut || firstOut.kind !== clickedPortDef.kind) return false;
           } else {
-            // Dragging from output: new node's first input must match
             const firstIn = typeDef.ports.in?.[0] as any;
-            if (!firstIn || firstIn.kind !== clickedPortDef.kind) return undefined;
+            if (!firstIn || firstIn.kind !== clickedPortDef.kind) return false;
           }
 
-          return type;
+          setPortDragKind(kind);
+          return true;
         }}
         onPortDragEnd={({ handle, kind, x, y, graph }) => {
           const type = selectedNodeType();
@@ -404,7 +413,11 @@ export function AudioGraphEditor(props: {
 
           const typeDef = config[type];
 
-          const id = graph.addNode(type, { x, y });
+          const xOffset = kind === "in" ? -typeDef.dimensions.x : 0;
+          const id = graph.addNode(type, {
+            x: snapToGrid(x + xOffset),
+            y: snapToGrid(y),
+          });
 
           if (typeDef?.state && "code" in typeDef.state) {
             const name = `custom-${id}`;
@@ -429,6 +442,7 @@ export function AudioGraphEditor(props: {
           }
 
           setSelectedNodeType(undefined);
+          setPortDragKind(undefined);
         }}
       />
     </>

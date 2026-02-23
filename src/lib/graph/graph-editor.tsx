@@ -20,12 +20,7 @@ import {
   snapToGrid,
   TITLE_HEIGHT,
 } from "./constants";
-import {
-  GraphContext,
-  GraphContextType,
-  type GhostNode,
-  type TemporaryEdge,
-} from "./context";
+import { GraphContext, GraphContextType, type TemporaryEdge } from "./context";
 import type {
   CreateGraphAPIConfig,
   Edge,
@@ -70,13 +65,13 @@ export interface GraphEditorProps<
   }): void;
   /** Return true if a splice onto this edge should be allowed. */
   onEdgeSpliceValidate?(edge: Edge): boolean;
-  /** Called when dragging from a port. Return node type string to show ghost, undefined for normal drag. */
+  /** Called when dragging from a port. Return true to prevent normal edge drag. */
   onPortDrag?(event: {
     handle: EdgeHandle;
     kind: "in" | "out";
     graph: GraphAPI<GraphConfig<TContext>>;
-  }): string | undefined;
-  /** Called when ghost node drag ends. Creates node and connects it. */
+  }): boolean;
+  /** Called when port drag ends. Creates node and connects it. */
   onPortDragEnd?(event: {
     handle: EdgeHandle;
     kind: "in" | "out";
@@ -84,12 +79,16 @@ export interface GraphEditorProps<
     y: number;
     graph: GraphAPI<GraphConfig<TContext>>;
   }): void;
-  /** Ghost node preview shown at cursor when set. */
-  cursorGhost?: {
+  /** Fully positioned ghost node preview rendered in the SVG. */
+  ghostNode?: {
+    x: number;
+    y: number;
     dimensions: { x: number; y: number };
     title: string;
     borderColor: string;
   };
+  /** Fires when cursor position changes in SVG coordinates. */
+  onCursorMove?(position: { x: number; y: number } | undefined): void;
 }
 
 export function GraphEditor<TContext extends Record<string, any>>(
@@ -99,7 +98,6 @@ export function GraphEditor<TContext extends Record<string, any>>(
     origin: { x: number; y: number };
     dimensions: { width: number; height: number };
     temporaryEdge: TemporaryEdge | undefined;
-    ghostNode: GhostNode | undefined;
     dragging: boolean;
     cursorPosition: { x: number; y: number } | undefined;
     selectionBox:
@@ -115,7 +113,6 @@ export function GraphEditor<TContext extends Record<string, any>>(
     origin: { x: 0, y: 0 },
     dimensions: { width: 0, height: 0 },
     temporaryEdge: undefined,
-    ghostNode: undefined,
     dragging: false,
     cursorPosition: undefined,
     selectionBox: undefined,
@@ -159,14 +156,8 @@ export function GraphEditor<TContext extends Record<string, any>>(
     onEdgeSpliceValidate(edge: Edge) {
       return rest.onEdgeSpliceValidate?.(edge) ?? true;
     },
-    setGhostNode(ghost: GhostNode | undefined) {
-      setUIState("ghostNode", ghost);
-    },
-    getGhostNode() {
-      return UIState.ghostNode;
-    },
     onPortDrag(handle: EdgeHandle, kind: "in" | "out") {
-      return rest.onPortDrag?.({ handle, kind, graph: graphAPI });
+      return rest.onPortDrag?.({ handle, kind, graph: graphAPI }) ?? false;
     },
     onPortDragEnd(handle: EdgeHandle, kind: "in" | "out", x: number, y: number) {
       rest.onPortDragEnd?.({ handle, kind, x, y, graph: graphAPI });
@@ -200,13 +191,16 @@ export function GraphEditor<TContext extends Record<string, any>>(
         data-dragging={UIState.dragging || undefined}
         onPointerMove={(event) => {
           const rect = event.currentTarget.getBoundingClientRect();
-          setUIState("cursorPosition", {
+          const pos = {
             x: event.clientX - rect.left - UIState.origin.x,
             y: event.clientY - rect.top + UIState.origin.y,
-          });
+          };
+          setUIState("cursorPosition", pos);
+          rest.onCursorMove?.(pos);
         }}
         onPointerLeave={() => {
           setUIState("cursorPosition", undefined);
+          rest.onCursorMove?.(undefined);
         }}
         onPointerDown={async (event) => {
           if (event.target !== event.currentTarget) return;
@@ -301,11 +295,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
         <Show when={UIState.temporaryEdge}>
           {(edge) => <GraphTemporaryEdge {...edge()} />}
         </Show>
-        <Show when={UIState.ghostNode ?? (rest.cursorGhost && UIState.cursorPosition && {
-          ...rest.cursorGhost,
-          x: snapToGrid(UIState.cursorPosition.x),
-          y: snapToGrid(UIState.cursorPosition.y),
-        })}>
+        <Show when={rest.ghostNode}>
           {(ghost) => (
             <g
               transform={`translate(${ghost().x}, ${ghost().y})`}
