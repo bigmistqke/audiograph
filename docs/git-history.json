@@ -1,5 +1,13 @@
 [
   {
+    "hash": "edfaa45045cb614a46324bd6dcc8e440b7b27294",
+    "short_hash": "edfaa45",
+    "author": "bigmistqke",
+    "date": "2026-02-23T13:20:50+01:00",
+    "message": "refactor: simplify onPortDragStart to false | void, remove intercept codepath from port",
+    "files_changed": 4
+  },
+  {
     "hash": "f154b79b28956bacc6900b4abb066a03369b5524",
     "short_hash": "f154b79",
     "author": "bigmistqke",
