@@ -65,12 +65,13 @@ export interface GraphEditorProps<
   }): void;
   /** Return true if a splice onto this edge should be allowed. */
   onEdgeSpliceValidate?(event: { edge: Edge }): boolean;
-  /** Called when dragging from a port. Return false to prevent drag. */
+  /** Called when dragging from a port. Call preventDefault() to skip default edge behaviors (detachment, linking). */
   onPortDragStart?(event: {
     handle: EdgeHandle;
     kind: "in" | "out";
     graph: GraphAPI<GraphConfig<TContext>>;
-  }): false | void;
+    preventDefault(): void;
+  }): void;
   /** Called when port drag ends. Creates node and connects it. */
   onPortDragEnd?(event: {
     handle: EdgeHandle;
@@ -162,7 +163,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
     onEdgeSpliceValidate(event: { edge: Edge }) {
       return rest.onEdgeSpliceValidate?.(event) ?? true;
     },
-    onPortDragStart(event: { handle: EdgeHandle; kind: "in" | "out" }) {
+    onPortDragStart(event: { handle: EdgeHandle; kind: "in" | "out"; preventDefault(): void }) {
       return rest.onPortDragStart?.({ ...event, graph: graphAPI });
     },
     onEdgeHover(event: { edge: Edge } | undefined) {

@@ -70,17 +70,19 @@ export function GraphPort(props: {
         onPointerDown={async (event) => {
           event.stopPropagation();
 
-          if (
-            graph.onPortDragStart?.({
-              handle: { node: node.id, port: props.name },
-              kind: props.kind,
-            }) === false
-          ) return;
+          let defaultPrevented = false;
+          graph.onPortDragStart?.({
+            handle: { node: node.id, port: props.name },
+            kind: props.kind,
+            preventDefault: () => { defaultPrevented = true; },
+          });
 
           graph.setDragging(true);
 
-          // If dragging from an in-port with an existing edge, detach it
-          if (props.kind === "in") {
+          // Default edge behaviors: detach existing in-port edge, and
+          // delay cleanup so onPointerUp on target port can link.
+          // Skipped when preventDefault() was called.
+          if (!defaultPrevented && props.kind === "in") {
             const existingEdge = graph.graphStore.edges.find(
               (e) => e.input.node === node.id && e.input.port === props.name,
             );
@@ -144,12 +146,17 @@ export function GraphPort(props: {
             });
           }
 
-          // NOTE:  wait a frame so that port's onPointerUp
-          //        can receive the current temporary edge.
-          requestAnimationFrame(() => {
+          if (defaultPrevented) {
             graph.setTemporaryEdge(undefined);
             graph.setDragging(false);
-          });
+          } else {
+            // Wait a frame so that port's onPointerUp
+            // can receive the current temporary edge.
+            requestAnimationFrame(() => {
+              graph.setTemporaryEdge(undefined);
+              graph.setDragging(false);
+            });
+          }
         }}
       />
       <circle

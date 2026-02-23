@@ -440,29 +440,30 @@ export function AudioGraphEditor(props: {
           setSelectedNodeType(undefined);
           setHoveredEdge(undefined);
         }}
-        onPortDragStart={({ handle, kind }) => {
+        onPortDragStart={({ handle, kind, preventDefault }) => {
           const type = selectedNodeType();
           if (!type) return;
 
-          const typeDef = config[type];
+          // Manage edges ourselves when a node type is selected
+          preventDefault();
 
-          // Block incompatible port drags when a node type is selected
+          const typeDef = config[type];
           const clickedNode = graphStore.nodes[handle.node];
-          if (!clickedNode) return false;
+          if (!clickedNode) return;
           const clickedPortDef = config[clickedNode.type]?.ports[kind]?.find(
             (p: any) => p.name === handle.port,
           ) as any;
-          if (!clickedPortDef) return false;
+          if (!clickedPortDef) return;
 
           if (kind === "in") {
             const firstOut = typeDef.ports.out?.[0] as any;
-            if (!firstOut || firstOut.kind !== clickedPortDef.kind) return false;
+            if (!firstOut || firstOut.kind !== clickedPortDef.kind) return;
           } else {
             const firstIn = typeDef.ports.in?.[0] as any;
-            if (!firstIn || firstIn.kind !== clickedPortDef.kind) return false;
+            if (!firstIn || firstIn.kind !== clickedPortDef.kind) return;
           }
 
-          // Port is compatible — let normal drag proceed, track kind for ghost
+          // Port is compatible — track kind for ghost node
           setPortDragKind(kind);
         }}
         onPortDragEnd={({ handle, kind, x, y, graph }) => {
