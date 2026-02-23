@@ -1,15 +1,15 @@
 import { minni } from "@bigmistqke/minni";
-import { createSignal, Show } from "solid-js";
+import { createSignal } from "solid-js";
+import { useGraph, useNode } from "../context";
+import type { EdgeHandle } from "../create-graph-api";
+import { PortShell } from "./port-shell";
+import styles from "./port.module.css";
 import {
-  GRID,
   PORT_INSET,
   PORT_RADIUS,
   PORT_SPACING,
   TITLE_HEIGHT,
 } from "../constants";
-import { useGraph, useNode } from "../context";
-import type { EdgeHandle } from "../create-graph-api";
-import styles from "./port.module.css";
 
 export function GraphPort(props: {
   name: string;
@@ -25,35 +25,21 @@ export function GraphPort(props: {
     props.kind === "in" ? PORT_INSET : node.dimensions.x - PORT_INSET;
   const cy = () => props.index * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS;
 
-  const labelX = () =>
-    props.kind === "in" ? `${GRID + 1}px` : `${node.dimensions.x - GRID - 1}px`;
-
   const [hovered, setHovered] = createSignal(false);
   const [disabled, setDisabled] = createSignal(false);
 
   return (
-    <g>
-      <Show when={!props.hideLabels}>
-        <text
-          x={labelX()}
-          y={cy()}
-          dy="0.35em"
-          text-anchor={props.kind === "in" ? "start" : "end"}
-          class={styles.label}
-        >
-          {props.name}
-        </text>
-      </Show>
-
-      <circle
-        cx={cx()}
-        cy={cy()}
-        r={PORT_RADIUS * 2}
-        class={styles.portExtended}
-        classList={{ [styles.hovered]: hovered() && !disabled() }}
-        data-kind={props.dataKind}
-        style={{ cursor: disabled() ? "default" : undefined }}
-        onPointerEnter={() => {
+    <PortShell
+      name={props.name}
+      index={props.index}
+      kind={props.kind}
+      width={node.dimensions.x}
+      dataKind={props.dataKind}
+      hideLabels={props.hideLabels}
+      hitTargetProps={{
+        classList: { [styles.hovered]: hovered() && !disabled() },
+        style: { cursor: disabled() ? "default" : undefined },
+        onPointerEnter: () => {
           let interactionPrevented = false;
           graph.onPortHover?.({
             handle: { node: node.id, port: props.name },
@@ -64,16 +50,16 @@ export function GraphPort(props: {
           });
           setDisabled(interactionPrevented);
           setHovered(true);
-        }}
-        onPointerLeave={() => {
+        },
+        onPointerLeave: () => {
           graph.onPortHoverEnd?.({
             handle: { node: node.id, port: props.name },
             kind: props.kind,
           });
           setHovered(false);
           setDisabled(false);
-        }}
-        onPointerUp={(event) => {
+        },
+        onPointerUp: (event: PointerEvent) => {
           event.stopPropagation();
           if (disabled()) return;
 
@@ -93,8 +79,8 @@ export function GraphPort(props: {
               : { node: node.id, port: props.name };
 
           graph.link(output, input);
-        }}
-        onPointerDown={async (event) => {
+        },
+        onPointerDown: async (event: PointerEvent) => {
           event.stopPropagation();
           if (disabled()) return;
 
@@ -185,15 +171,8 @@ export function GraphPort(props: {
               graph.setDragging(false);
             });
           }
-        }}
-      />
-      <circle
-        cx={cx()}
-        cy={cy()}
-        r={PORT_RADIUS}
-        data-kind={props.dataKind}
-        class={styles.port}
-      />
-    </g>
+        },
+      }}
+    />
   );
 }
