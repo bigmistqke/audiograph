@@ -115,6 +115,10 @@ export type GraphAPI<
       }>;
     },
   ): void;
+  /** Splice a node into an existing edge: A→B becomes A→node→B using first ports. */
+  spliceNodeIntoEdge(edge: Edge, nodeId: string): void;
+  /** Collect all downstream nodes (following edges from nodeId) and push them right. */
+  pushDownstream(nodeId: string, dx: number): void;
 };
 
 export interface CreateGraphAPIConfig<
@@ -309,6 +313,83 @@ export function createGraphAPI<
           const { dimensions, ...rest } = update;
           Object.assign(nodes[id], rest);
           if (dimensions) Object.assign(nodes[id].dimensions, dimensions);
+        }),
+      );
+    },
+    spliceNodeIntoEdge(edge: Edge, nodeId: string) {
+      const node = graphStore.nodes[nodeId];
+      if (!node) return;
+
+      const typeDef = config[node.type];
+      if (!typeDef) return;
+
+      const firstInPort = typeDef.ports.in?.[0];
+      const firstOutPort = typeDef.ports.out?.[0];
+      if (!firstInPort || !firstOutPort) return;
+
+      // Remove original edge A→B
+      setGraphStore(
+        "edges",
+        produce((edges) => {
+          const index = edges.findIndex(
+            (e) =>
+              e.output.node === edge.output.node &&
+              e.output.port === edge.output.port &&
+              e.input.node === edge.input.node &&
+              e.input.port === edge.input.port,
+          );
+          if (index !== -1) edges.splice(index, 1);
+        }),
+      );
+
+      // Add edge A→node (using first input port)
+      setGraphStore(
+        "edges",
+        produce((edges) =>
+          edges.push({
+            output: edge.output,
+            input: { node: nodeId, port: firstInPort.name },
+          }),
+        ),
+      );
+
+      // Add edge node→B (using first output port)
+      setGraphStore(
+        "edges",
+        produce((edges) =>
+          edges.push({
+            output: { node: nodeId, port: firstOutPort.name },
+            input: edge.input,
+          }),
+        ),
+      );
+    },
+    pushDownstream(nodeId: string, dx: number) {
+      // BFS to collect all downstream nodes
+      const visited = new Set<string>();
+      const queue = [nodeId];
+
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        if (visited.has(current)) continue;
+        visited.add(current);
+
+        for (const edge of graphStore.edges) {
+          if (edge.output.node === current && !visited.has(edge.input.node)) {
+            queue.push(edge.input.node);
+          }
+        }
+      }
+
+      // Move all visited nodes
+      setGraphStore(
+        "nodes",
+        produce((nodes) => {
+          for (const id of visited) {
+            if (nodes[id]) {
+              nodes[id].x = snapToGrid(nodes[id].x + dx);
+            }
+          }
         }),
       );
     },
