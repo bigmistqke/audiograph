@@ -24,11 +24,11 @@ export type GraphContextType = GraphAPI & {
   setSelectedNodes(ids: string[]): void;
   onEdgeClick?(event: { edge: Edge; x: number; y: number }): void;
   onEdgeSpliceValidate?(event: { edge: Edge }): boolean;
-  /** Called when dragging from a port. Return false to prevent normal edge drag. */
+  /** Called when dragging from a port. Return "intercept" to handle drag yourself, "block" to prevent any drag. */
   onPortDragStart?(event: {
     handle: EdgeHandle;
     kind: "in" | "out";
-  }): false | void;
+  }): "intercept" | "block" | void;
   /** Called when cursor enters/leaves a spliceable edge. */
   onEdgeHover?(event: { edge: Edge } | undefined): void;
   /** Called when port drag ends (pointer released). */

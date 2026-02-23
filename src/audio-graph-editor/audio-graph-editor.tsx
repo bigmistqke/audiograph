@@ -444,9 +444,27 @@ export function AudioGraphEditor(props: {
           const type = selectedNodeType();
           if (!type) return;
 
-          // Block normal edge drag when a type is selected
+          const typeDef = config[type];
+
+          // Block all port drags when a node type is selected
+          const clickedNode = graphStore.nodes[handle.node];
+          if (!clickedNode) return "block";
+          const clickedPortDef = config[clickedNode.type]?.ports[kind]?.find(
+            (p: any) => p.name === handle.port,
+          ) as any;
+          if (!clickedPortDef) return "block";
+
+          if (kind === "in") {
+            const firstOut = typeDef.ports.out?.[0] as any;
+            if (!firstOut || firstOut.kind !== clickedPortDef.kind) return "block";
+          } else {
+            const firstIn = typeDef.ports.in?.[0] as any;
+            if (!firstIn || firstIn.kind !== clickedPortDef.kind) return "block";
+          }
+
+          // Port is compatible — start ghost placement drag
           setPortDragKind(kind);
-          return false;
+          return "intercept";
         }}
         onPortDragEnd={({ handle, kind, x, y, graph }) => {
           const type = selectedNodeType();
@@ -456,34 +474,6 @@ export function AudioGraphEditor(props: {
           }
 
           const typeDef = config[type];
-
-          // Validate port compatibility before creating
-          const clickedNode = graphStore.nodes[handle.node];
-          if (!clickedNode) {
-            setPortDragKind(undefined);
-            return;
-          }
-          const clickedPortDef = config[clickedNode.type]?.ports[kind]?.find(
-            (p: any) => p.name === handle.port,
-          ) as any;
-          if (!clickedPortDef) {
-            setPortDragKind(undefined);
-            return;
-          }
-
-          if (kind === "in") {
-            const firstOut = typeDef.ports.out?.[0] as any;
-            if (!firstOut || firstOut.kind !== clickedPortDef.kind) {
-              setPortDragKind(undefined);
-              return;
-            }
-          } else {
-            const firstIn = typeDef.ports.in?.[0] as any;
-            if (!firstIn || firstIn.kind !== clickedPortDef.kind) {
-              setPortDragKind(undefined);
-              return;
-            }
-          }
 
           const anchorAtOutput = kind === "in";
           const anchorX = anchorAtOutput

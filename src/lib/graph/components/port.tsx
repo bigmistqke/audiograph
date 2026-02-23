@@ -70,13 +70,14 @@ export function GraphPort(props: {
         onPointerDown={async (event) => {
           event.stopPropagation();
 
-          // Check if port drag should be intercepted (e.g. for ghost node placement)
-          if (
-            graph.onPortDragStart?.({
-              handle: { node: node.id, port: props.name },
-              kind: props.kind,
-            }) === false
-          ) {
+          const dragResult = graph.onPortDragStart?.({
+            handle: { node: node.id, port: props.name },
+            kind: props.kind,
+          });
+
+          if (dragResult === "block") return;
+
+          if (dragResult === "intercept") {
             graph.setDragging(true);
 
             // Show temporary edge from this port
