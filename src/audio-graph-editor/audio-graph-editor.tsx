@@ -446,25 +446,24 @@ export function AudioGraphEditor(props: {
 
           const typeDef = config[type];
 
-          // Block all port drags when a node type is selected
+          // Block incompatible port drags when a node type is selected
           const clickedNode = graphStore.nodes[handle.node];
-          if (!clickedNode) return "block";
+          if (!clickedNode) return false;
           const clickedPortDef = config[clickedNode.type]?.ports[kind]?.find(
             (p: any) => p.name === handle.port,
           ) as any;
-          if (!clickedPortDef) return "block";
+          if (!clickedPortDef) return false;
 
           if (kind === "in") {
             const firstOut = typeDef.ports.out?.[0] as any;
-            if (!firstOut || firstOut.kind !== clickedPortDef.kind) return "block";
+            if (!firstOut || firstOut.kind !== clickedPortDef.kind) return false;
           } else {
             const firstIn = typeDef.ports.in?.[0] as any;
-            if (!firstIn || firstIn.kind !== clickedPortDef.kind) return "block";
+            if (!firstIn || firstIn.kind !== clickedPortDef.kind) return false;
           }
 
-          // Port is compatible — start ghost placement drag
+          // Port is compatible — let normal drag proceed, track kind for ghost
           setPortDragKind(kind);
-          return "intercept";
         }}
         onPortDragEnd={({ handle, kind, x, y, graph }) => {
           const type = selectedNodeType();

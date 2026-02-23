@@ -70,50 +70,12 @@ export function GraphPort(props: {
         onPointerDown={async (event) => {
           event.stopPropagation();
 
-          const dragResult = graph.onPortDragStart?.({
-            handle: { node: node.id, port: props.name },
-            kind: props.kind,
-          });
-
-          if (dragResult === "block") return;
-
-          if (dragResult === "intercept") {
-            graph.setDragging(true);
-
-            // Show temporary edge from this port
-            graph.setTemporaryEdge({
-              node: node.id,
+          if (
+            graph.onPortDragStart?.({
+              handle: { node: node.id, port: props.name },
               kind: props.kind,
-              port: props.name,
-            });
-
-            const position = {
-              x: node.x + cx(),
-              y: node.y + cy(),
-            };
-
-            await minni(event, (delta) => {
-              graph.updateTemporaryEdge(
-                position.x + delta.x,
-                position.y - delta.y,
-              );
-            });
-
-            // On release: get final cursor position for node placement
-            const cursor = graph.getCursorPosition();
-            if (cursor) {
-              graph.onPortDragEnd?.({
-                handle: { node: node.id, port: props.name },
-                kind: props.kind,
-                x: cursor.x,
-                y: cursor.y,
-              });
-            }
-
-            graph.setTemporaryEdge(undefined);
-            graph.setDragging(false);
-            return;
-          }
+            }) === false
+          ) return;
 
           graph.setDragging(true);
 
@@ -171,6 +133,16 @@ export function GraphPort(props: {
               position.y - delta.y,
             );
           });
+
+          const cursor = graph.getCursorPosition();
+          if (cursor) {
+            graph.onPortDragEnd?.({
+              handle: { node: node.id, port: props.name },
+              kind: props.kind,
+              x: cursor.x,
+              y: cursor.y,
+            });
+          }
 
           // NOTE:  wait a frame so that port's onPointerUp
           //        can receive the current temporary edge.
