@@ -1792,6 +1792,39 @@
       "created_at": "2026-02-23T12:06:21.905514+01:00",
       "updated_at": "2026-02-23T12:06:21.905514+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"8b7118f\",\"confidence\":95}"
+    },
+    {
+      "id": 164,
+      "change_id": "2e9be086-69a9-4f3a-b68f-54fed1096dce",
+      "node_type": "goal",
+      "title": "Consolidate ghost nodes at application level with edge hover feedback",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T12:08:13.069595+01:00",
+      "updated_at": "2026-02-23T12:08:13.069595+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"1. i think we should consolidate cursor- and drag-ghost node 2. i think ghost nodes should be an application level thing 3. we need visual feedback for when hovering over edge with ghost-node\"}"
+    },
+    {
+      "id": 165,
+      "change_id": "a4ec2c8f-567e-49b0-994c-28c88317048d",
+      "node_type": "action",
+      "title": "Consolidate ghost nodes at app level, add edge hover highlight",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T12:10:44.776459+01:00",
+      "updated_at": "2026-02-23T12:10:44.776459+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 166,
+      "change_id": "4798ce16-ba83-4f12-8239-4f9cca4833eb",
+      "node_type": "outcome",
+      "title": "Committed: refactor ghost node consolidation + edge hover highlight",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-23T12:20:22.115260+01:00",
+      "updated_at": "2026-02-23T12:20:22.115260+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"6ba6408\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -3488,6 +3521,39 @@
       "weight": 1.0,
       "rationale": "Committed",
       "created_at": "2026-02-23T12:06:21.917696+01:00"
+    },
+    {
+      "id": 155,
+      "from_node_id": 160,
+      "to_node_id": 164,
+      "from_change_id": "d52e85d7-fd40-440d-93db-cd885dbf1c60",
+      "to_change_id": "2e9be086-69a9-4f3a-b68f-54fed1096dce",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Refinement of ghost node approach",
+      "created_at": "2026-02-23T12:08:16.586935+01:00"
+    },
+    {
+      "id": 156,
+      "from_node_id": 164,
+      "to_node_id": 165,
+      "from_change_id": "2e9be086-69a9-4f3a-b68f-54fed1096dce",
+      "to_change_id": "a4ec2c8f-567e-49b0-994c-28c88317048d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation",
+      "created_at": "2026-02-23T12:10:44.787975+01:00"
+    },
+    {
+      "id": 157,
+      "from_node_id": 165,
+      "to_node_id": 166,
+      "from_change_id": "a4ec2c8f-567e-49b0-994c-28c88317048d",
+      "to_change_id": "4798ce16-ba83-4f12-8239-4f9cca4833eb",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-02-23T12:20:22.130420+01:00"
     }
   ]
 }
