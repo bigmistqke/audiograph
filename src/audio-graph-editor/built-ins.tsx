@@ -1312,13 +1312,13 @@ export const builtIns = {
                 );
               }
 
-              onCleanup(() => {
-                props.setState(
-                  produce((state) => {
-                    delete state.metadata[name];
-                  }),
-                );
-              });
+              // onCleanup(() => {
+              //   props.setState(
+              //     produce((state) => {
+              //       delete state.metadata[name];
+              //     }),
+              //   );
+              // });
             }),
           );
 
