@@ -39,6 +39,23 @@ function autoformatSavePlugin(): Plugin {
     configureServer(server) {
       migrate();
 
+      // Watch case files and broadcast changes via HMR
+      server.watcher.add(dir);
+      let watchDebounce: ReturnType<typeof setTimeout>;
+      server.watcher.on("change", (filePath) => {
+        if (!filePath.startsWith(dir) || !filePath.endsWith(".json")) return;
+        const id = path.basename(filePath, ".json");
+        if (id === "index") return;
+        clearTimeout(watchDebounce);
+        watchDebounce = setTimeout(() => {
+          server.hot.send({
+            type: "custom",
+            event: "autoformat-updated",
+            data: { id },
+          });
+        }, 50);
+      });
+
       server.middlewares.use("/api/autoformat-cases", (req, res) => {
         if (req.method !== "GET") {
           res.writeHead(405);
@@ -62,6 +79,25 @@ function autoformatSavePlugin(): Plugin {
             );
           res.writeHead(200, { "content-type": "application/json" });
           res.end(JSON.stringify(cases));
+        } catch (e) {
+          res.writeHead(500);
+          res.end(String(e));
+        }
+      });
+
+      server.middlewares.use("/api/autoformat-case", (req, res) => {
+        if (req.method !== "GET") {
+          res.writeHead(405);
+          res.end();
+          return;
+        }
+        try {
+          const id = req.url?.replace(/^\//, "").replace(/\?.*$/, "");
+          if (!id) { res.writeHead(400); res.end(); return; }
+          const filePath = path.join(dir, `${id}.json`);
+          if (!fs.existsSync(filePath)) { res.writeHead(404); res.end(); return; }
+          res.writeHead(200, { "content-type": "application/json" });
+          res.end(fs.readFileSync(filePath, "utf-8"));
         } catch (e) {
           res.writeHead(500);
           res.end(String(e));

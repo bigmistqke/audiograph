@@ -1,4 +1,4 @@
-import { For, createSignal } from "solid-js";
+import { For, createEffect, createSignal, on } from "solid-js";
 import { createStore } from "solid-js/store";
 import { GRID } from "~/lib/graph/constants";
 import type {
@@ -62,6 +62,15 @@ async function fetchCases(): Promise<TestCase[]> {
   }
 }
 
+async function fetchCase(id: string): Promise<TestCase | null> {
+  try {
+    const res = await fetch(`/api/autoformat-case/${id}`);
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 async function saveCases(cases: TestCase[]) {
   await fetch("/api/save-autoformat", {
     method: "POST",
@@ -76,7 +85,6 @@ function CommentThread(props: {
   comments: Comment[];
   onAdd: (text: string) => void;
 }) {
-  let ref!: HTMLTextAreaElement;
   const [draft, setDraft] = createSignal("");
 
   const submit = () => {
@@ -105,7 +113,6 @@ function CommentThread(props: {
         )}
       </For>
       <textarea
-        ref={ref}
         class={styles.commentInput}
         placeholder="Add a note… (Enter to send, Shift+Enter for newline)"
         rows={2}
@@ -164,8 +171,59 @@ function GraphPanel(props: {
 
 export function AutoformatRoute() {
   const [state, setState] = createStore<State>({ cases: [] });
+  const [ready, setReady] = createSignal(false);
+  const [saveStatus, setSaveStatus] = createSignal<"idle" | "saving" | "saved">(
+    "idle",
+  );
 
-  fetchCases().then((loaded) => setState("cases", loaded));
+  let isSaving = false;
+  let saveTimer: ReturnType<typeof setTimeout>;
+  let savedTimer: ReturnType<typeof setTimeout>;
+
+  fetchCases().then((loaded) => {
+    setState("cases", loaded);
+    setReady(true);
+  });
+
+  // Autosave: debounced 1s after any state change.
+  // Using `on(snapshot, ...)` so ready() is read but not tracked —
+  // setReady(true) alone won't trigger a spurious save.
+  createEffect(
+    on(
+      () => JSON.stringify(state.cases),
+      () => {
+        if (!ready()) return;
+        clearTimeout(saveTimer);
+        setSaveStatus("idle");
+        saveTimer = setTimeout(async () => {
+          isSaving = true;
+          setSaveStatus("saving");
+          await saveCases(state.cases);
+          isSaving = false;
+          setSaveStatus("saved");
+          clearTimeout(savedTimer);
+          savedTimer = setTimeout(() => setSaveStatus("idle"), 2000);
+        }, 1000);
+      },
+      { defer: true },
+    ),
+  );
+
+  // WebSocket: receive comment updates from file edits (e.g. by Claude)
+  if (import.meta.hot) {
+    import.meta.hot.on("autoformat-updated", async ({ id }: { id: string }) => {
+      if (isSaving) return;
+      const index = state.cases.findIndex((c) => c.id === id);
+      if (index === -1) return;
+      const updated = await fetchCase(id);
+      if (!updated) return;
+      const cur = JSON.stringify(state.cases[index]!.comments);
+      const next = JSON.stringify(updated.comments);
+      if (cur !== next) {
+        setState("cases", index, "comments", updated.comments);
+      }
+    });
+  }
 
   const addCase = () => {
     setState("cases", (prev) => [
@@ -191,18 +249,20 @@ export function AutoformatRoute() {
     });
   };
 
-  const save = () => saveCases(state.cases);
-
   return (
     <div class={styles.root}>
       <header class={styles.header}>
         <h1 class={styles.title}>Autoformat Workshop</h1>
         <div class={styles.headerActions}>
+          <span class={styles.saveStatus}>
+            {saveStatus() === "saving"
+              ? "Saving…"
+              : saveStatus() === "saved"
+                ? "Saved"
+                : ""}
+          </span>
           <button class={styles.addBtn} onClick={addCase}>
             + Add case
-          </button>
-          <button class={styles.saveBtn} onClick={save}>
-            Save
           </button>
         </div>
       </header>

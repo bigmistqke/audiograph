@@ -169,7 +169,6 @@
 /* ─── Buttons ────────────────────────────────────── */
 
 .addBtn,
-.saveBtn,
 .duplicateBtn,
 .deleteBtn {
   padding: 6px 12px;
@@ -180,15 +179,11 @@
   font-size: 13px;
 }
 
-.saveBtn {
-  background: #1a1a1a;
-  color: #fff;
-  border-color: #1a1a1a;
-}
-
-.saveBtn:disabled {
-  opacity: 0.5;
-  cursor: default;
+.saveStatus {
+  font-size: 12px;
+  color: #999;
+  min-width: 50px;
+  text-align: right;
 }
 
 .rowActions {
