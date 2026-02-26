@@ -1,0 +1,255 @@
+{
+  "id": "74223105-62c3-49bc-8c48-5fcf97b0b28b",
+  "comments": [
+    {
+      "role": "user",
+      "text": "we prefer top-alignment currently, although in this case it does create a long diagonal edge, which is something we in general try to avoid"
+    },
+    {
+      "role": "assistant",
+      "text": "Two paths from A to D (merge): top path A→B→C→D (3 nodes) and bottom path A→E→D (1 node).\n\nForward pass: D.x = max(C.right, E.right) + gap = max(360, 230) + 30 = 390 — driven entirely by the longer top chain. E goes to row 1 (y=110) because it can't fit alongside [A,B,C,D] in row 0.\n\nThe E→D edge spans x=230 to x=390 across two rows — a long diagonal. The algorithm accepts this as a trade-off of preferring top-alignment.\n\nRule tested: forward pass places merge at the longest incoming chain; top-alignment preference can produce long cross-row diagonal edges."
+    }
+  ],
+  "initial": {
+    "nodes": {
+      "0bbde27b-5bcd-447e-b9c4-2978c3f6deda": {
+        "id": "0bbde27b-5bcd-447e-b9c4-2978c3f6deda",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "8a43a1b8-7399-4d91-b24a-f2a04fc1b203": {
+        "id": "8a43a1b8-7399-4d91-b24a-f2a04fc1b203",
+        "type": "node",
+        "x": 150,
+        "y": -30,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "24688345-678b-4911-9b0d-09b4ad5f389c": {
+        "id": "24688345-678b-4911-9b0d-09b4ad5f389c",
+        "type": "node",
+        "x": 300,
+        "y": -10,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "cbcf251a-e652-44cf-b44a-44ad5c3498bf": {
+        "id": "cbcf251a-e652-44cf-b44a-44ad5c3498bf",
+        "type": "node",
+        "x": 430,
+        "y": 100,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      },
+      "5775fec8-4295-4979-beb2-9862ddb3b1b7": {
+        "id": "5775fec8-4295-4979-beb2-9862ddb3b1b7",
+        "type": "node",
+        "x": 220,
+        "y": 200,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "E"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "0bbde27b-5bcd-447e-b9c4-2978c3f6deda",
+          "port": "out"
+        },
+        "input": {
+          "node": "5775fec8-4295-4979-beb2-9862ddb3b1b7",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "0bbde27b-5bcd-447e-b9c4-2978c3f6deda",
+          "port": "out"
+        },
+        "input": {
+          "node": "8a43a1b8-7399-4d91-b24a-f2a04fc1b203",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "8a43a1b8-7399-4d91-b24a-f2a04fc1b203",
+          "port": "out"
+        },
+        "input": {
+          "node": "24688345-678b-4911-9b0d-09b4ad5f389c",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "24688345-678b-4911-9b0d-09b4ad5f389c",
+          "port": "out"
+        },
+        "input": {
+          "node": "cbcf251a-e652-44cf-b44a-44ad5c3498bf",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "5775fec8-4295-4979-beb2-9862ddb3b1b7",
+          "port": "out"
+        },
+        "input": {
+          "node": "cbcf251a-e652-44cf-b44a-44ad5c3498bf",
+          "port": "in"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "nodes": {
+      "7071aee2-9fc5-4fe3-9a01-014db2713aa9": {
+        "id": "7071aee2-9fc5-4fe3-9a01-014db2713aa9",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "f910438d-ae44-432f-84ee-0b57cc27ebdc": {
+        "id": "f910438d-ae44-432f-84ee-0b57cc27ebdc",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "f95146eb-3185-4c53-a30b-3c0cd6c596c4": {
+        "id": "f95146eb-3185-4c53-a30b-3c0cd6c596c4",
+        "type": "node",
+        "x": 260,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "3c510181-6340-4829-ad3d-3e43eab30e7e": {
+        "id": "3c510181-6340-4829-ad3d-3e43eab30e7e",
+        "type": "node",
+        "x": 390,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      },
+      "a82fcad4-afcb-4a66-b0ea-4cebb4473781": {
+        "id": "a82fcad4-afcb-4a66-b0ea-4cebb4473781",
+        "type": "node",
+        "x": 130,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "E"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "7071aee2-9fc5-4fe3-9a01-014db2713aa9",
+          "port": "out"
+        },
+        "input": {
+          "node": "f910438d-ae44-432f-84ee-0b57cc27ebdc",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "f910438d-ae44-432f-84ee-0b57cc27ebdc",
+          "port": "out"
+        },
+        "input": {
+          "node": "f95146eb-3185-4c53-a30b-3c0cd6c596c4",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "f95146eb-3185-4c53-a30b-3c0cd6c596c4",
+          "port": "out"
+        },
+        "input": {
+          "node": "3c510181-6340-4829-ad3d-3e43eab30e7e",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "7071aee2-9fc5-4fe3-9a01-014db2713aa9",
+          "port": "out"
+        },
+        "input": {
+          "node": "a82fcad4-afcb-4a66-b0ea-4cebb4473781",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "a82fcad4-afcb-4a66-b0ea-4cebb4473781",
+          "port": "out"
+        },
+        "input": {
+          "node": "3c510181-6340-4829-ad3d-3e43eab30e7e",
+          "port": "in"
+        }
+      }
+    ]
+  }
+}

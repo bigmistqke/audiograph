@@ -1,0 +1,281 @@
+{
+  "id": "1b2e9d45-34bb-4760-a051-20f8b3ad11ea",
+  "comments": [
+    {
+      "role": "user",
+      "text": "the y query takes into account all higher rows"
+    },
+    {
+      "role": "assistant",
+      "text": "Same structure as case 5 but with an extra node F: chain [A,D,F] where D.x=130, F.x=D.right+gap=260.\n\nF lands at x=260, which is in the same column as E (placed at y=110–190 from row 1). So in x-range 260–360, the occupied bottom is E.bottom = 190.\n\nThe whole chain [A,D,F] must be placed as a unit. Its y = max occupied bottom across the full chain x-span (130–360) = max(B.bottom=140, C.bottom=80, E.bottom=190) = 190. Chain y = 190 + 30 = 220.\n\nD ends up at y=220 even though its own x-range (130–230) would only require y=170 — because F's x-range pulls the whole chain down.\n\nRule tested: a chain's row y is the max occupied bottom across the entire chain's x-span, not each node's individual x-range."
+    }
+  ],
+  "initial": {
+    "nodes": {
+      "952b4c59-e9f0-4355-ab91-9f1dcdac1a7d": {
+        "id": "952b4c59-e9f0-4355-ab91-9f1dcdac1a7d",
+        "type": "node",
+        "x": 10,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "248c43a9-8cd8-43ae-9de3-eaf5c688489b": {
+        "id": "248c43a9-8cd8-43ae-9de3-eaf5c688489b",
+        "type": "node",
+        "x": 140,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 140
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "d88a06fd-9d18-4a78-9732-7dcaaf7dba71": {
+        "id": "d88a06fd-9d18-4a78-9732-7dcaaf7dba71",
+        "type": "node",
+        "x": 270,
+        "y": 20,
+        "dimensions": {
+          "x": 100,
+          "y": 90
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "34ee9914-45dd-4af6-a1d1-2bab438fcdde": {
+        "id": "34ee9914-45dd-4af6-a1d1-2bab438fcdde",
+        "type": "node",
+        "x": 50,
+        "y": 250,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      },
+      "2840bb45-6e71-41e6-a091-a7dace081818": {
+        "id": "2840bb45-6e71-41e6-a091-a7dace081818",
+        "type": "node",
+        "x": 280,
+        "y": 190,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "E"
+        }
+      },
+      "f0f12849-c943-4a21-af87-aa2e523c855e": {
+        "id": "f0f12849-c943-4a21-af87-aa2e523c855e",
+        "type": "node",
+        "x": 180,
+        "y": 290,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "F"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "952b4c59-e9f0-4355-ab91-9f1dcdac1a7d",
+          "port": "out"
+        },
+        "input": {
+          "node": "248c43a9-8cd8-43ae-9de3-eaf5c688489b",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "248c43a9-8cd8-43ae-9de3-eaf5c688489b",
+          "port": "out"
+        },
+        "input": {
+          "node": "d88a06fd-9d18-4a78-9732-7dcaaf7dba71",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "952b4c59-e9f0-4355-ab91-9f1dcdac1a7d",
+          "port": "out"
+        },
+        "input": {
+          "node": "34ee9914-45dd-4af6-a1d1-2bab438fcdde",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "248c43a9-8cd8-43ae-9de3-eaf5c688489b",
+          "port": "out"
+        },
+        "input": {
+          "node": "2840bb45-6e71-41e6-a091-a7dace081818",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "34ee9914-45dd-4af6-a1d1-2bab438fcdde",
+          "port": "out"
+        },
+        "input": {
+          "node": "f0f12849-c943-4a21-af87-aa2e523c855e",
+          "port": "in"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "nodes": {
+      "0915e2f5-d796-4265-a348-02d1fde8102c": {
+        "id": "0915e2f5-d796-4265-a348-02d1fde8102c",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "4b999763-c94c-44d8-9b24-9a311cba600a": {
+        "id": "4b999763-c94c-44d8-9b24-9a311cba600a",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 140
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "b14b39ae-6b22-4dcd-811a-c6e5d66d8a5f": {
+        "id": "b14b39ae-6b22-4dcd-811a-c6e5d66d8a5f",
+        "type": "node",
+        "x": 260,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "98091897-fed4-4210-91ed-dabebd23acfe": {
+        "id": "98091897-fed4-4210-91ed-dabebd23acfe",
+        "type": "node",
+        "x": 130,
+        "y": 220,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      },
+      "7182a213-b021-4052-9b87-fd424027c117": {
+        "id": "7182a213-b021-4052-9b87-fd424027c117",
+        "type": "node",
+        "x": 260,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "E"
+        }
+      },
+      "2d200df5-7785-4adb-b2c3-82a6242c630f": {
+        "id": "2d200df5-7785-4adb-b2c3-82a6242c630f",
+        "type": "node",
+        "x": 260,
+        "y": 220,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "F"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "0915e2f5-d796-4265-a348-02d1fde8102c",
+          "port": "out"
+        },
+        "input": {
+          "node": "98091897-fed4-4210-91ed-dabebd23acfe",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "0915e2f5-d796-4265-a348-02d1fde8102c",
+          "port": "out"
+        },
+        "input": {
+          "node": "4b999763-c94c-44d8-9b24-9a311cba600a",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "4b999763-c94c-44d8-9b24-9a311cba600a",
+          "port": "out"
+        },
+        "input": {
+          "node": "b14b39ae-6b22-4dcd-811a-c6e5d66d8a5f",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "4b999763-c94c-44d8-9b24-9a311cba600a",
+          "port": "out"
+        },
+        "input": {
+          "node": "7182a213-b021-4052-9b87-fd424027c117",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "98091897-fed4-4210-91ed-dabebd23acfe",
+          "port": "out"
+        },
+        "input": {
+          "node": "2d200df5-7785-4adb-b2c3-82a6242c630f",
+          "port": "in"
+        }
+      }
+    ]
+  }
+}

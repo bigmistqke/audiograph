@@ -1,4 +1,4 @@
-import { For } from "solid-js";
+import { For, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 import { GRID } from "~/lib/graph/constants";
 import type {
@@ -33,9 +33,14 @@ const workshopConfig: GraphConfig<null> = {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+interface Comment {
+  role: "user" | "assistant";
+  text: string;
+}
+
 interface TestCase {
   id: string;
-  description: string;
+  comments: Comment[];
   initial: GraphStore;
   expected: GraphStore;
 }
@@ -50,9 +55,8 @@ const emptyGraphStore = (): GraphStore => ({ nodes: {}, edges: [] });
 
 async function fetchCases(): Promise<TestCase[]> {
   try {
-    const res = await fetch("/autoformat-cases.json");
-    const data = await res.json();
-    return data.cases ?? [];
+    const res = await fetch("/api/autoformat-cases");
+    return await res.json();
   } catch {
     return [];
   }
@@ -64,6 +68,58 @@ async function saveCases(cases: TestCase[]) {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ cases }),
   });
+}
+
+// ─── Comment thread ───────────────────────────────────────────────────────────
+
+function CommentThread(props: {
+  comments: Comment[];
+  onAdd: (text: string) => void;
+}) {
+  let ref!: HTMLTextAreaElement;
+  const [draft, setDraft] = createSignal("");
+
+  const submit = () => {
+    const text = draft().trim();
+    if (!text) return;
+    props.onAdd(text);
+    setDraft("");
+  };
+
+  return (
+    <div class={styles.commentThread}>
+      <For each={props.comments}>
+        {(comment) => (
+          <div
+            class={
+              comment.role === "user"
+                ? styles.userComment
+                : styles.assistantComment
+            }
+          >
+            <span class={styles.commentRole}>
+              {comment.role === "user" ? "You" : "Claude"}
+            </span>
+            <p class={styles.commentText}>{comment.text}</p>
+          </div>
+        )}
+      </For>
+      <textarea
+        ref={ref}
+        class={styles.commentInput}
+        placeholder="Add a note… (Enter to send, Shift+Enter for newline)"
+        rows={2}
+        value={draft()}
+        onInput={(e) => setDraft(e.currentTarget.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            submit();
+          }
+        }}
+      />
+    </div>
+  );
 }
 
 // ─── Graph panel ─────────────────────────────────────────────────────────────
@@ -116,7 +172,7 @@ export function AutoformatRoute() {
       ...prev,
       {
         id: crypto.randomUUID(),
-        description: "",
+        comments: [],
         initial: emptyGraphStore(),
         expected: emptyGraphStore(),
       },
@@ -155,14 +211,7 @@ export function AutoformatRoute() {
           {(c, i) => (
             <div class={styles.row}>
               <div class={styles.rowHeader}>
-                <textarea
-                  class={styles.description}
-                  placeholder="Describe this test case…"
-                  value={c.description}
-                  onInput={(e) =>
-                    setState("cases", i(), "description", e.currentTarget.value)
-                  }
-                />
+                <span class={styles.caseNumber}>#{i() + 1}</span>
                 <div class={styles.rowActions}>
                   <button
                     class={styles.duplicateBtn}
@@ -178,6 +227,15 @@ export function AutoformatRoute() {
                   </button>
                 </div>
               </div>
+              <CommentThread
+                comments={state.cases[i()].comments}
+                onAdd={(text) =>
+                  setState("cases", i(), "comments", (prev) => [
+                    ...prev,
+                    { role: "user" as const, text },
+                  ])
+                }
+              />
               <div class={styles.panels}>
                 <div class={styles.panelWrap}>
                   <span class={styles.panelLabel}>Initial</span>

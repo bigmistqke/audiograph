@@ -43,34 +43,91 @@
   border-radius: 6px;
   overflow: hidden;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto minmax(300px, 1fr);
   resize: vertical;
-  height: 300px;
   flex-shrink: 0;
 }
 
 .rowHeader {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
   gap: 8px;
-  padding: 10px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #eee;
+  background: #fafafa;
+}
+
+.caseNumber {
+  font-size: 11px;
+  font-weight: 700;
+  color: #aaa;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Comment thread ─────────────────────────────── */
+
+.commentThread {
+  padding: 8px 12px;
+  display: grid;
+  gap: 6px;
   border-bottom: 1px solid #eee;
 }
 
-.description {
-  resize: vertical;
-  min-height: 48px;
+.userComment,
+.assistantComment {
+  display: grid;
+  gap: 1px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  max-width: 85%;
+}
+
+.userComment {
+  background: #e8f0fe;
+  justify-self: end;
+}
+
+.assistantComment {
+  background: #f1f3f4;
+  justify-self: start;
+}
+
+.commentRole {
+  font-size: 10px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.commentText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  color: #222;
+}
+
+.commentInput {
   padding: 6px 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 13px;
   font-family: inherit;
+  resize: none;
+  color: #333;
+
+  &::placeholder {
+    color: #bbb;
+  }
 }
+
+/* ─── Panels ─────────────────────────────────────── */
 
 .panels {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  min-height: 0;
 }
 
 .panelWrap {
@@ -109,6 +166,8 @@
   height: 100%;
 }
 
+/* ─── Buttons ────────────────────────────────────── */
+
 .addBtn,
 .saveBtn,
 .duplicateBtn,
@@ -136,15 +195,11 @@
   display: grid;
   grid-template-columns: auto auto;
   gap: 4px;
-  align-self: start;
+  justify-self: end;
 }
 
 .duplicateBtn,
 .deleteBtn {
   padding: 4px 8px;
-  color: #999;
-}
-
-.deleteBtn {
   color: #999;
 }

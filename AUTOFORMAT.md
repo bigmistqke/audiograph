@@ -87,8 +87,9 @@ This requires a spatial data structure that tracks occupied y-space per x-range 
 
 - **Start boundary**: x determined externally by its own dependencies
 - **Internal nodes D1 … Dn-1**: sequential — `x = prev.x + prev.width + gap`
-- **Last internal node Dn**: pulled toward the end boundary —
+- **Last internal node Dn**: pulled toward the end boundary **only when they are in different rows** (i.e. the edge would be diagonal) —
   `x = max(prev.right + gap, end.x - Dn.width - gap)`
+  If the end boundary shares the same row, Dn stays sequential.
 - **End boundary**: x determined externally by its own dependencies
 
 The last internal node is the only one that gets pulled. All other internal nodes are strictly sequential from the start.

@@ -1,0 +1,259 @@
+{
+  "id": "a7bed139-71d4-478a-b40d-f153ae4935db",
+  "comments": [
+    {
+      "role": "assistant",
+      "text": "Two paths from A to C (merge): short path A→B→C and long path A→D→E→C. Chains: [A,B,C] (B is last internal) and [A,D,E,C] (E is last internal).\n\nForward pass: C.x = max(B.right, E.right) + gap = max(230, 360) + 30 = 390 — driven by the longer path.\n\nBackward pass for B (last internal in [A,B,C]): pull rule gives max(A.right+gap, C.x−B.width−gap) = max(130, 260) = 260. But the expected output shows B at x=130, not 260.\n\nB stays sequential at A.right+gap=130. The long diagonal B→C (from x=230 to x=390) is accepted. This appears to be the cross-row alignment rule in effect: the shorter chain's internal node is not pulled toward the merge when the merge's position is determined by a different, longer chain in a different row.\n\nRule tested: when two chains converge at a merge and one is much longer, the shorter chain's internals stay sequential — they are not pulled. The result is a long diagonal edge, accepted as a trade-off."
+    },
+    {
+      "role": "user",
+      "text": "we only pull away if there is a diagonal. the edge B-C is NOT a diagonal: it is a horizontal edge, as B and C are both in the same row."
+    },
+    {
+      "role": "assistant",
+      "text": "Right — this refines the backward pass pull rule. The pull on the last internal node is only meaningful when it would reduce a diagonal (cross-row) edge. B and C are both in row 0, so B→C is already horizontal regardless of how far apart they are. Pulling B from 130 to 260 would just create an unnecessary gap after A without any visual benefit.\n\nSo the rule is more precisely: the last internal node is pulled only when the end boundary is in a different row. If they share a row, the node stays sequential."
+    }
+  ],
+  "initial": {
+    "nodes": {
+      "e8dc0643-425e-4772-bf44-5b0895b375c1": {
+        "id": "e8dc0643-425e-4772-bf44-5b0895b375c1",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "3582463d-d895-43d6-bb1c-35760599fb43": {
+        "id": "3582463d-d895-43d6-bb1c-35760599fb43",
+        "type": "node",
+        "x": 140,
+        "y": -30,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "7c832d93-1f3c-409e-85bb-6fbfd9c1d607": {
+        "id": "7c832d93-1f3c-409e-85bb-6fbfd9c1d607",
+        "type": "node",
+        "x": 360,
+        "y": 80,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "daa2dacd-7b03-4697-bbdb-b6cc5dea658a": {
+        "id": "daa2dacd-7b03-4697-bbdb-b6cc5dea658a",
+        "type": "node",
+        "x": 110,
+        "y": 170,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      },
+      "900156e2-b49f-4a20-bcea-76139d2185bc": {
+        "id": "900156e2-b49f-4a20-bcea-76139d2185bc",
+        "type": "node",
+        "x": 240,
+        "y": 190,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "E"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "e8dc0643-425e-4772-bf44-5b0895b375c1",
+          "port": "out"
+        },
+        "input": {
+          "node": "daa2dacd-7b03-4697-bbdb-b6cc5dea658a",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "e8dc0643-425e-4772-bf44-5b0895b375c1",
+          "port": "out"
+        },
+        "input": {
+          "node": "3582463d-d895-43d6-bb1c-35760599fb43",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "3582463d-d895-43d6-bb1c-35760599fb43",
+          "port": "out"
+        },
+        "input": {
+          "node": "7c832d93-1f3c-409e-85bb-6fbfd9c1d607",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "daa2dacd-7b03-4697-bbdb-b6cc5dea658a",
+          "port": "out"
+        },
+        "input": {
+          "node": "900156e2-b49f-4a20-bcea-76139d2185bc",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "900156e2-b49f-4a20-bcea-76139d2185bc",
+          "port": "out"
+        },
+        "input": {
+          "node": "7c832d93-1f3c-409e-85bb-6fbfd9c1d607",
+          "port": "in"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "nodes": {
+      "4e31b219-9e12-4c10-b67a-466034d3773a": {
+        "id": "4e31b219-9e12-4c10-b67a-466034d3773a",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "298119a7-e1a6-4e9b-9dfc-66017319684d": {
+        "id": "298119a7-e1a6-4e9b-9dfc-66017319684d",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "3b2f5331-e3ca-4183-85dd-2ed85a2ef953": {
+        "id": "3b2f5331-e3ca-4183-85dd-2ed85a2ef953",
+        "type": "node",
+        "x": 390,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "90fa3af6-ddde-44d7-8af9-fdd21a2689ed": {
+        "id": "90fa3af6-ddde-44d7-8af9-fdd21a2689ed",
+        "type": "node",
+        "x": 130,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      },
+      "86394f9f-4a8d-440b-a9e6-e39a2f393b98": {
+        "id": "86394f9f-4a8d-440b-a9e6-e39a2f393b98",
+        "type": "node",
+        "x": 260,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "E"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "86394f9f-4a8d-440b-a9e6-e39a2f393b98",
+          "port": "out"
+        },
+        "input": {
+          "node": "3b2f5331-e3ca-4183-85dd-2ed85a2ef953",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "4e31b219-9e12-4c10-b67a-466034d3773a",
+          "port": "out"
+        },
+        "input": {
+          "node": "298119a7-e1a6-4e9b-9dfc-66017319684d",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "298119a7-e1a6-4e9b-9dfc-66017319684d",
+          "port": "out"
+        },
+        "input": {
+          "node": "3b2f5331-e3ca-4183-85dd-2ed85a2ef953",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "4e31b219-9e12-4c10-b67a-466034d3773a",
+          "port": "out"
+        },
+        "input": {
+          "node": "90fa3af6-ddde-44d7-8af9-fdd21a2689ed",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "90fa3af6-ddde-44d7-8af9-fdd21a2689ed",
+          "port": "out"
+        },
+        "input": {
+          "node": "86394f9f-4a8d-440b-a9e6-e39a2f393b98",
+          "port": "in"
+        }
+      }
+    ]
+  }
+}

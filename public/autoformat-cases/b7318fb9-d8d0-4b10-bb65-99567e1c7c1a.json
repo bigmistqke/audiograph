@@ -1,0 +1,235 @@
+{
+  "id": "b7318fb9-d8d0-4b10-bb65-99567e1c7c1a",
+  "comments": [
+    {
+      "role": "user",
+      "text": "an example to clarify that the y-position of a row is dependent on the available space underneath it. D and E are both 1 row below the main branch, but this does not necessarily mean they are the same row or share the same y"
+    },
+    {
+      "role": "assistant",
+      "text": "Main row (row 0): A→B (h=140)→C at y=0. B is taller than the rest.\n\nD is a leaf child of A. D.x = A.right + gap = 130. In the x-range 130–230, the occupied bottom comes from B (bottom = 0 + 140 = 140). So D.y = 140 + 30 = 170.\n\nE is a leaf child of B. E.x = B.right + gap = 260. In the x-range 260–360, the occupied bottom comes from C (bottom = 0 + 80 = 80). So E.y = 80 + 30 = 110.\n\nSame topological depth, different y — because each chain queries the occupied bottom only in its own x-range, and B's extra height only affects the segment it occupies.\n\nRule tested: Y-pass interval query — each chain's y is determined by the max occupied bottom in its specific x-range, not a global row height."
+    }
+  ],
+  "initial": {
+    "nodes": {
+      "952b4c59-e9f0-4355-ab91-9f1dcdac1a7d": {
+        "id": "952b4c59-e9f0-4355-ab91-9f1dcdac1a7d",
+        "type": "node",
+        "x": 10,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "248c43a9-8cd8-43ae-9de3-eaf5c688489b": {
+        "id": "248c43a9-8cd8-43ae-9de3-eaf5c688489b",
+        "type": "node",
+        "x": 140,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 140
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "d88a06fd-9d18-4a78-9732-7dcaaf7dba71": {
+        "id": "d88a06fd-9d18-4a78-9732-7dcaaf7dba71",
+        "type": "node",
+        "x": 270,
+        "y": 20,
+        "dimensions": {
+          "x": 100,
+          "y": 90
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "34ee9914-45dd-4af6-a1d1-2bab438fcdde": {
+        "id": "34ee9914-45dd-4af6-a1d1-2bab438fcdde",
+        "type": "node",
+        "x": 100,
+        "y": 200,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      },
+      "2840bb45-6e71-41e6-a091-a7dace081818": {
+        "id": "2840bb45-6e71-41e6-a091-a7dace081818",
+        "type": "node",
+        "x": 280,
+        "y": 190,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "E"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "952b4c59-e9f0-4355-ab91-9f1dcdac1a7d",
+          "port": "out"
+        },
+        "input": {
+          "node": "248c43a9-8cd8-43ae-9de3-eaf5c688489b",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "248c43a9-8cd8-43ae-9de3-eaf5c688489b",
+          "port": "out"
+        },
+        "input": {
+          "node": "d88a06fd-9d18-4a78-9732-7dcaaf7dba71",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "952b4c59-e9f0-4355-ab91-9f1dcdac1a7d",
+          "port": "out"
+        },
+        "input": {
+          "node": "34ee9914-45dd-4af6-a1d1-2bab438fcdde",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "248c43a9-8cd8-43ae-9de3-eaf5c688489b",
+          "port": "out"
+        },
+        "input": {
+          "node": "2840bb45-6e71-41e6-a091-a7dace081818",
+          "port": "in"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "nodes": {
+      "0915e2f5-d796-4265-a348-02d1fde8102c": {
+        "id": "0915e2f5-d796-4265-a348-02d1fde8102c",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "4b999763-c94c-44d8-9b24-9a311cba600a": {
+        "id": "4b999763-c94c-44d8-9b24-9a311cba600a",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 140
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "b14b39ae-6b22-4dcd-811a-c6e5d66d8a5f": {
+        "id": "b14b39ae-6b22-4dcd-811a-c6e5d66d8a5f",
+        "type": "node",
+        "x": 260,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "98091897-fed4-4210-91ed-dabebd23acfe": {
+        "id": "98091897-fed4-4210-91ed-dabebd23acfe",
+        "type": "node",
+        "x": 130,
+        "y": 170,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      },
+      "7182a213-b021-4052-9b87-fd424027c117": {
+        "id": "7182a213-b021-4052-9b87-fd424027c117",
+        "type": "node",
+        "x": 260,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "E"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "0915e2f5-d796-4265-a348-02d1fde8102c",
+          "port": "out"
+        },
+        "input": {
+          "node": "98091897-fed4-4210-91ed-dabebd23acfe",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "0915e2f5-d796-4265-a348-02d1fde8102c",
+          "port": "out"
+        },
+        "input": {
+          "node": "4b999763-c94c-44d8-9b24-9a311cba600a",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "4b999763-c94c-44d8-9b24-9a311cba600a",
+          "port": "out"
+        },
+        "input": {
+          "node": "b14b39ae-6b22-4dcd-811a-c6e5d66d8a5f",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "4b999763-c94c-44d8-9b24-9a311cba600a",
+          "port": "out"
+        },
+        "input": {
+          "node": "7182a213-b021-4052-9b87-fd424027c117",
+          "port": "in"
+        }
+      }
+    ]
+  }
+}

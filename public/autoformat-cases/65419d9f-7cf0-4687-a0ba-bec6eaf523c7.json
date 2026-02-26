@@ -1,0 +1,185 @@
+{
+  "id": "65419d9f-7cf0-4687-a0ba-bec6eaf523c7",
+  "comments": [
+    {
+      "role": "assistant",
+      "text": "Two roots: A (no inputs, one output to B) and C (no inputs, one output to D). B is a merge node (inputs from A and D). Chain [A,B] and chain [C,D,B] (D is last internal before merge B).\n\nPer spec, the topmost root (smallest y) is chosen as the primary anchor. A is at y=0, C is at y=130 — A is primary.\n\nA stays at (0,0). B.x = max(A.right, D.right) + gap. Forward pass: D.x must be resolved first via chain [C,D,B]. Backward pass: D is last internal before B, so D.x = max(C.right+gap, B.x−D.width−gap). With B.x=130: D.x = max(0, 0) = 0. Then C.x = D.x − C.width − gap = 0 − 100 − 30 = −130.\n\nC ends up at negative x — the layout freely extends leftward. C and D go to row 1 (y=110).\n\nRule tested: multi-root layout — secondary root is placed in a lower row and can extend into negative x coordinates."
+    }
+  ],
+  "initial": {
+    "nodes": {
+      "9be5fbe3-7251-44f3-87f5-79bb6870bbba": {
+        "id": "9be5fbe3-7251-44f3-87f5-79bb6870bbba",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "ce7ae20a-63fd-438a-820a-4394076236aa": {
+        "id": "ce7ae20a-63fd-438a-820a-4394076236aa",
+        "type": "node",
+        "x": 280,
+        "y": 20,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "c8f3200b-8646-489d-b8d5-0a3832f16a9f": {
+        "id": "c8f3200b-8646-489d-b8d5-0a3832f16a9f",
+        "type": "node",
+        "x": 30,
+        "y": 130,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "df7572c0-fb95-4303-852b-cc1ccf3db529": {
+        "id": "df7572c0-fb95-4303-852b-cc1ccf3db529",
+        "type": "node",
+        "x": 170,
+        "y": 150,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "9be5fbe3-7251-44f3-87f5-79bb6870bbba",
+          "port": "out"
+        },
+        "input": {
+          "node": "ce7ae20a-63fd-438a-820a-4394076236aa",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "df7572c0-fb95-4303-852b-cc1ccf3db529",
+          "port": "out"
+        },
+        "input": {
+          "node": "ce7ae20a-63fd-438a-820a-4394076236aa",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "c8f3200b-8646-489d-b8d5-0a3832f16a9f",
+          "port": "out"
+        },
+        "input": {
+          "node": "df7572c0-fb95-4303-852b-cc1ccf3db529",
+          "port": "in"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "nodes": {
+      "3956d6f9-3378-413e-825b-32c8a8c59f5e": {
+        "id": "3956d6f9-3378-413e-825b-32c8a8c59f5e",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "e60be423-3e36-46e9-807e-ec4e3a9d5c80": {
+        "id": "e60be423-3e36-46e9-807e-ec4e3a9d5c80",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "9d198be9-500c-42c2-9209-c273e148dd29": {
+        "id": "9d198be9-500c-42c2-9209-c273e148dd29",
+        "type": "node",
+        "x": -130,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "39aab42c-8557-4978-9852-381612f7b3af": {
+        "id": "39aab42c-8557-4978-9852-381612f7b3af",
+        "type": "node",
+        "x": 0,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "9d198be9-500c-42c2-9209-c273e148dd29",
+          "port": "out"
+        },
+        "input": {
+          "node": "39aab42c-8557-4978-9852-381612f7b3af",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "39aab42c-8557-4978-9852-381612f7b3af",
+          "port": "out"
+        },
+        "input": {
+          "node": "e60be423-3e36-46e9-807e-ec4e3a9d5c80",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "3956d6f9-3378-413e-825b-32c8a8c59f5e",
+          "port": "out"
+        },
+        "input": {
+          "node": "e60be423-3e36-46e9-807e-ec4e3a9d5c80",
+          "port": "in"
+        }
+      }
+    ]
+  }
+}

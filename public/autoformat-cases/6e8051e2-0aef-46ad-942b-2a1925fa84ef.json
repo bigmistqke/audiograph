@@ -1,0 +1,209 @@
+{
+  "id": "6e8051e2-0aef-46ad-942b-2a1925fa84ef",
+  "comments": [
+    {
+      "role": "user",
+      "text": "diamond structure: we aim for consecutive chains to be top-aligned and try to keep the nodes at the higher branches"
+    },
+    {
+      "role": "assistant",
+      "text": "Classic diamond: A→B, A→C, both→D (merge). Chains: [A,B,D] and [A,C,D].\n\nForward pass: D.x = max(B.right, C.right) + gap = max(230, 230) + 30 = 260. Both paths are equal length.\n\nRow assignment: chain [A,B] gets row 0. Chain [A,C] starts at x=130 — same as B, x-ranges overlap, drops to row 1 (y=110). D belongs to row 0 as end boundary of [A,B,D].\n\nRule tested: merge x = max(parents.right) + gap via CPM forward pass; top-alignment preference cascades chains downward on x-range conflict."
+    }
+  ],
+  "initial": {
+    "nodes": {
+      "1fbdd95e-1361-4bea-802b-9325db6d68a0": {
+        "id": "1fbdd95e-1361-4bea-802b-9325db6d68a0",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "89b7fa68-c6db-4261-9ce8-26db613d2ea3": {
+        "id": "89b7fa68-c6db-4261-9ce8-26db613d2ea3",
+        "type": "node",
+        "x": 140,
+        "y": -40,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "57dcac17-7319-4e8c-affd-996b24088071": {
+        "id": "57dcac17-7319-4e8c-affd-996b24088071",
+        "type": "node",
+        "x": 140,
+        "y": 100,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "e7502b6f-2b58-4389-98b2-be472d756af7": {
+        "id": "e7502b6f-2b58-4389-98b2-be472d756af7",
+        "type": "node",
+        "x": 310,
+        "y": 30,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "1fbdd95e-1361-4bea-802b-9325db6d68a0",
+          "port": "out"
+        },
+        "input": {
+          "node": "57dcac17-7319-4e8c-affd-996b24088071",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "1fbdd95e-1361-4bea-802b-9325db6d68a0",
+          "port": "out"
+        },
+        "input": {
+          "node": "89b7fa68-c6db-4261-9ce8-26db613d2ea3",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "89b7fa68-c6db-4261-9ce8-26db613d2ea3",
+          "port": "out"
+        },
+        "input": {
+          "node": "e7502b6f-2b58-4389-98b2-be472d756af7",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "57dcac17-7319-4e8c-affd-996b24088071",
+          "port": "out"
+        },
+        "input": {
+          "node": "e7502b6f-2b58-4389-98b2-be472d756af7",
+          "port": "in"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "nodes": {
+      "e1238e10-0a81-4065-8bd9-0f0a159c0f15": {
+        "id": "e1238e10-0a81-4065-8bd9-0f0a159c0f15",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "52a097cf-9a17-49c1-95ca-d967e8e400a9": {
+        "id": "52a097cf-9a17-49c1-95ca-d967e8e400a9",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "71754a0b-4ece-4521-af19-c1e1f1cde173": {
+        "id": "71754a0b-4ece-4521-af19-c1e1f1cde173",
+        "type": "node",
+        "x": 130,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "97fabb86-61fb-45b1-8f8d-e740d5edd720": {
+        "id": "97fabb86-61fb-45b1-8f8d-e740d5edd720",
+        "type": "node",
+        "x": 260,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "e1238e10-0a81-4065-8bd9-0f0a159c0f15",
+          "port": "out"
+        },
+        "input": {
+          "node": "52a097cf-9a17-49c1-95ca-d967e8e400a9",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "52a097cf-9a17-49c1-95ca-d967e8e400a9",
+          "port": "out"
+        },
+        "input": {
+          "node": "97fabb86-61fb-45b1-8f8d-e740d5edd720",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "e1238e10-0a81-4065-8bd9-0f0a159c0f15",
+          "port": "out"
+        },
+        "input": {
+          "node": "71754a0b-4ece-4521-af19-c1e1f1cde173",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "71754a0b-4ece-4521-af19-c1e1f1cde173",
+          "port": "out"
+        },
+        "input": {
+          "node": "97fabb86-61fb-45b1-8f8d-e740d5edd720",
+          "port": "in"
+        }
+      }
+    ]
+  }
+}
