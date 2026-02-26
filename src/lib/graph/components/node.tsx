@@ -126,20 +126,20 @@ export function GraphNode(props: { node: NodeInstance }) {
           </>
         }
       >
-        {graph.nodes[props.node.id].render?.()}
+        {graph.nodes[props.node.id]?.render?.()}
         <Show when={typeDef().resizable}>
           <div
-            class={styles.resizeHandle}
+            class={typeDef().resizable === "y" ? styles.resizeHandleY : styles.resizeHandle}
             onPointerDown={async (event) => {
               event.stopPropagation();
               const startDims = { ...props.node.dimensions };
               graph.setDragging(true);
               await minni(event, (delta) => {
                 graph.updateNode(props.node.id, {
-                  dimensions: {
-                    x: Math.max(80, snapToGrid(startDims.x + delta.x)),
-                    y: Math.max(60, snapToGrid(startDims.y - delta.y)),
-                  },
+                  dimensions:
+                    typeDef().resizable === "y"
+                      ? { x: startDims.x, y: Math.max(60, snapToGrid(startDims.y - delta.y)) }
+                      : { x: Math.max(80, snapToGrid(startDims.x + delta.x)), y: Math.max(60, snapToGrid(startDims.y - delta.y)) },
                 });
               });
               graph.setDragging(false);

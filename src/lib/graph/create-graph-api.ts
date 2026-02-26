@@ -53,7 +53,7 @@ export interface NodeTypeDef<
     out?: PortDef[];
   };
   state?: TState;
-  resizable?: boolean;
+  resizable?: boolean | "y";
   hideLabels?: boolean;
   construct(props: ConstructProps<TState, TContext>): ConstructResult;
 }
@@ -248,7 +248,7 @@ export function createGraphAPI<
             x: snapToGrid(position.x),
             y: snapToGrid(position.y),
             dimensions: { ...typeDef.dimensions },
-            state: config[type]?.state,
+            state: { ...config[type]?.state },
           };
         }),
       );

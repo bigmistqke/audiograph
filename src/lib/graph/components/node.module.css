@@ -58,3 +58,17 @@
   background-color: color-mix(in srgb, var(--color-node), white 60%);
   clip-path: polygon(100% 100%, 100% 0, 0 100%);
 }
+
+.resizeHandleY {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: ns-resize;
+  background: transparent;
+
+  &:hover {
+    background: color-mix(in srgb, var(--color-node), white 70%);
+  }
+}

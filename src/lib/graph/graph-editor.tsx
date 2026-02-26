@@ -338,6 +338,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
           fill="url(#grid)"
           pointer-events="none"
         />
+        <circle cx={0} cy={0} r={3} fill="#e05" pointer-events="none" opacity={0.6} />
         <For each={props.graphStore.edges}>
           {(edge) => <GraphEdge {...edge} />}
         </For>
