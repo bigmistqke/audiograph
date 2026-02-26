@@ -67,6 +67,8 @@ split node:                x = max(prev.right + gap, merge.x - minChildPathWidth
 last internal before end:  x = max(prev.right + gap, end.x - node.width - gap)
 ```
 
+**Which merge to pull toward:** A split is only pulled toward merges whose x-position is **fixed independently** of the split — determined by a chain that doesn't pass through it. Merges whose position depends on the split's own forward-pass output are excluded (circular dependency). Same-row merges are also excluded (same-row rule: no pull when edge is horizontal).
+
 **Key guarantee:** pulled nodes end up with `node.right = merge.x - gap`, which does not increase the merge's position (it was already set to `max(...) + gap` in the forward pass). Therefore merge positions remain stable — exactly two passes suffice, no iteration needed.
 
 **Minimal widths** (pre-computed in Phase 1) are used in the backward pass so that split nodes can determine how much space their longest child path requires without re-resolving variable nodes.
