@@ -110,7 +110,8 @@ Every node's x-position is determined by exactly one rule. The rules form a prio
 **Rule 4:**
 
 - `min_direct_path_width` = `this.width + sum(internal.widths) + (n+1) × gap`, where n = number of internals on the direct chain between this node and the target merge. Does not cross chain boundaries.
-- **Independence:** merge M is independent of split S if S is not the dominant input to M — i.e., increasing S.right would not increase M.x_fwd. To verify, compute M.x without S's contribution by traversing alternative paths to M, **explicitly skipping S** to avoid cycles. (Example: if S→E→M and S→M directly, skip S when evaluating E's contribution to M.)
+- **Independence:** merge M is independent of split S if S is not the dominant input to M — i.e., increasing S.right would not increase M.x_fwd. Some other path (not going through S) drives M further right. To verify, compute M.x without S's contribution by traversing alternative paths to M, **explicitly skipping S** to avoid cycles. (Example: if S→E→M and S→M directly, skip S when evaluating E's contribution to M.)
+- **Independence guarantees convergence.** If M is independent of S, its dominant path starts from a node not downstream of S — a root or something positioned earlier in the DFS. By the time the traversal returns to position S, all branches have been explored and M.x_fwd is already settled. No circular dependency arises. If M were dependent on S, rule 4 would not fire and S falls through to rule 5, where no merge position is needed. A single DFS pass always converges.
 - **Target merge selection:** among all independent downstream merges, pick the one that results in the **largest x for the split** (most constraining). Prefer same-row merges among equally-constraining candidates.
 - **Secondary roots** (no prev): the pull alone determines x and can be negative — no `max(prev.right + gap, …)` guard.
 
@@ -138,8 +139,6 @@ Inter-island collision resolution — shifting lower islands downward to avoid o
 
 ## Open Questions
 
-1. **Convergence** — Rule 4 positions a split based on a downstream merge's x, which is itself computed during the same DFS pass. In most topologies a single pass suffices, but deeply nested fan-in/fan-out structures may cause a split's pull to invalidate a merge position computed earlier in the traversal. Open question: does a single DFS always converge, or is fixed-point iteration needed in the worst case?
+1. **Audio graph cycles** — The algorithm assumes a DAG. The Web Audio API permits cycles (e.g., a delay node in a feedback loop). Deferred for now.
 
-2. **Audio graph cycles** — The algorithm assumes a DAG. The Web Audio API permits cycles (e.g., a delay node in a feedback loop). Deferred for now.
-
-3. **Inter-island collision resolution** — Deferred. See *Islands* section.
+2. **Inter-island collision resolution** — Deferred. See *Islands* section.

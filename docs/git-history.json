@@ -1,10 +1,10 @@
 [
   {
-    "hash": "51d854d92c31b88884ee40c986f4b815e8f9e65e",
-    "short_hash": "51d854d",
+    "hash": "3b5442ee61132dc49d22c3efd4b74b61685776a8",
+    "short_hash": "3b5442e",
     "author": "bigmistqke",
-    "date": "2026-02-28T12:43:46+01:00",
-    "message": "docs/feat: clarify traversal still needed for split candidates; show filename in case header\n\n- Q16: traversal is needed to identify candidate merges and check independence,\n  even though the ref itself is just merge.x_fwd (no traversal to find the ref node)\n- Show case JSON filename in autoformat workshop row header",
+    "date": "2026-02-28T13:34:04+01:00",
+    "message": "docs: rewrite AUTOFORMAT.md with prettier thesis, DFS traversal, resolved Q2",
     "files_changed": 3
   },
   {
@@ -456,19 +456,19 @@
     "files_changed": 10
   },
   {
-    "hash": "95daa5143cc8cb5e24891f3fd5b37d91f4916593",
-    "short_hash": "95daa51",
-    "author": "bigmistqke",
-    "date": "2026-02-22T13:40:25+01:00",
-    "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Make GraphEditor generic and domain-agnostic: takes config, store,\n  context, and onClick as props with no audio/worklet knowledge\n- Extract GraphRoute (src/routes/graph-route.tsx) as the application\n  layer: sidebar, worklet setup, save callbacks, node placement\n- Move graph internals into src/graph/ (editor, nodes, edges, ports,\n  context, constants, create-graph)\n- Add graph/setGraph to ConstructProps so constructs can access the\n  store directly (e.g. audioworklet reads its own node type)\n- Move saveType/saveAsNewType from SolidJS GraphContext to\n  AudioGraphContext (construct context), keeping GraphContext pure UI\n- Extract GraphAPI type for typed references in component props\n- Rename props.ctx to props.context, audio to audioContext\n- Lowercase all filenames, simplify App.tsx to just routing",
-    "files_changed": 41
-  },
-  {
     "hash": "ce2cd469724a633d76f3c14d2448558e2aef6fdf",
     "short_hash": "ce2cd46",
     "author": "bigmistqke",
     "date": "2026-02-22T13:40:25+01:00",
     "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Move graph components into src/graph/ (editor, nodes, edges, ports, context, constants)\n- Split GraphRoute into src/routes/graph-route.tsx\n- Lowercase all filenames (Select→select, HorizontalSlider→horizontal-slider, etc.)\n- Move GraphNodeContent to src/ui/node-content.tsx\n- Delete unused lib/minni.ts and old GraphEditor.tsx",
+    "files_changed": 41
+  },
+  {
+    "hash": "95daa5143cc8cb5e24891f3fd5b37d91f4916593",
+    "short_hash": "95daa51",
+    "author": "bigmistqke",
+    "date": "2026-02-22T13:40:25+01:00",
+    "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Make GraphEditor generic and domain-agnostic: takes config, store,\n  context, and onClick as props with no audio/worklet knowledge\n- Extract GraphRoute (src/routes/graph-route.tsx) as the application\n  layer: sidebar, worklet setup, save callbacks, node placement\n- Move graph internals into src/graph/ (editor, nodes, edges, ports,\n  context, constants, create-graph)\n- Add graph/setGraph to ConstructProps so constructs can access the\n  store directly (e.g. audioworklet reads its own node type)\n- Move saveType/saveAsNewType from SolidJS GraphContext to\n  AudioGraphContext (construct context), keeping GraphContext pure UI\n- Extract GraphAPI type for typed references in component props\n- Rename props.ctx to props.context, audio to audioContext\n- Lowercase all filenames, simplify App.tsx to just routing",
     "files_changed": 41
   },
   {
