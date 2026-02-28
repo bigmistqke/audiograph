@@ -1,4 +1,4 @@
-import { For, createEffect, createSignal, on } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal, on } from "solid-js";
 import { createStore } from "solid-js/store";
 import { autoformat } from "~/lib/autoformat";
 import { GRID } from "~/lib/graph/constants";
@@ -81,11 +81,31 @@ async function saveCases(cases: TestCase[]) {
   });
 }
 
+// ─── X-position comparison ────────────────────────────────────────────────────
+
+interface XDiff {
+  pass: boolean;
+  mismatches: { id: string; expected: number; got: number }[];
+}
+
+function compareX(expected: Graph, result: Graph): XDiff {
+  const mismatches: XDiff["mismatches"] = [];
+  for (const [id, node] of Object.entries(expected.nodes)) {
+    const got = result.nodes[id]?.x;
+    if (got === undefined) continue;
+    if (Math.round(got) !== Math.round(node.x)) {
+      mismatches.push({ id, expected: Math.round(node.x), got: Math.round(got) });
+    }
+  }
+  return { pass: mismatches.length === 0, mismatches };
+}
+
 // ─── Comment thread ───────────────────────────────────────────────────────────
 
 function CommentThread(props: {
   comments: Comment[];
   onAdd: (text: string) => void;
+  collapsed: boolean;
 }) {
   const [draft, setDraft] = createSignal("");
 
@@ -97,36 +117,59 @@ function CommentThread(props: {
   };
 
   return (
-    <div class={styles.commentThread}>
-      <For each={props.comments}>
-        {(comment) => (
-          <div
-            class={
-              comment.role === "user"
-                ? styles.userComment
-                : styles.assistantComment
+    <Show when={!props.collapsed}>
+      <div class={styles.commentThread}>
+        <For each={props.comments}>
+          {(comment) => (
+            <div
+              class={
+                comment.role === "user"
+                  ? styles.userComment
+                  : styles.assistantComment
+              }
+            >
+              <span class={styles.commentRole}>
+                {comment.role === "user" ? "You" : "Claude"}
+              </span>
+              <p class={styles.commentText}>{comment.text}</p>
+            </div>
+          )}
+        </For>
+        <textarea
+          class={styles.commentInput}
+          placeholder="Add a note… (Enter to send, Shift+Enter for newline)"
+          rows={2}
+          value={draft()}
+          onInput={(e) => setDraft(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              submit();
             }
-          >
-            <span class={styles.commentRole}>
-              {comment.role === "user" ? "You" : "Claude"}
-            </span>
-            <p class={styles.commentText}>{comment.text}</p>
-          </div>
-        )}
-      </For>
-      <textarea
-        class={styles.commentInput}
-        placeholder="Add a note… (Enter to send, Shift+Enter for newline)"
-        rows={2}
-        value={draft()}
-        onInput={(e) => setDraft(e.currentTarget.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            submit();
-          }
-        }}
-      />
+          }}
+        />
+      </div>
+    </Show>
+  );
+}
+
+// ─── X diff badge ─────────────────────────────────────────────────────────────
+
+function XDiffBadge(props: { diff: XDiff }) {
+  return (
+    <div
+      class={props.diff.pass ? styles.diffPass : styles.diffFail}
+      title={
+        props.diff.pass
+          ? "All x-positions match"
+          : props.diff.mismatches
+              .map((m) => `${m.id}: expected ${m.expected}, got ${m.got}`)
+              .join("\n")
+      }
+    >
+      {props.diff.pass
+        ? "✓ x"
+        : `✗ x (${props.diff.mismatches.length})`}
     </div>
   );
 }
@@ -188,8 +231,6 @@ export function AutoformatRoute() {
   });
 
   // Autosave: debounced 1s after any state change.
-  // Using `on(snapshot, ...)` so ready() is read but not tracked —
-  // setReady(true) alone won't trigger a spurious save.
   createEffect(
     on(
       () => JSON.stringify(state.cases),
@@ -254,6 +295,10 @@ export function AutoformatRoute() {
     });
   };
 
+  const diffs = createMemo(() =>
+    state.cases.map((c) => compareX(c.expected, autoformat(c.initial))),
+  );
+
   return (
     <div class={styles.root}>
       <header class={styles.header}>
@@ -271,78 +316,118 @@ export function AutoformatRoute() {
           </button>
         </div>
       </header>
-      <div class={styles.cases}>
-        <For each={state.cases}>
-          {(c, i) => {
-            return (
-              <div class={styles.row}>
-                <div class={styles.rowHeader}>
-                  <span class={styles.caseNumber}>#{i() + 1}</span>
-                  <input
-                    class={styles.caseTitle}
-                    placeholder="untitled"
-                    value={c.title ?? ""}
-                    onInput={(e) =>
-                      setState("cases", i(), "title", e.currentTarget.value)
+      <div class={styles.body}>
+        {/* ── Sidebar ── */}
+        <nav class={styles.sidebar}>
+          <For each={state.cases}>
+            {(c, i) => (
+              <a
+                class={styles.sidebarLink}
+                href={`#case-${c.id}`}
+                data-pass={diffs()[i()]?.pass}
+              >
+                <span class={styles.sidebarNum}>#{i() + 1}</span>
+                <span class={styles.sidebarTitle}>{c.title || "untitled"}</span>
+              </a>
+            )}
+          </For>
+        </nav>
+
+        {/* ── Cases ── */}
+        <div class={styles.cases}>
+          <For each={state.cases}>
+            {(c, i) => {
+              const [collapsed, setCollapsed] = createSignal(true);
+              const result = createMemo(() => autoformat(state.cases[i()].initial));
+              const diff = createMemo(() => diffs()[i()]!);
+
+              return (
+                <div
+                id={`case-${c.id}`}
+                class={styles.row}
+                style={{
+                  "grid-template-rows": collapsed()
+                    ? "auto minmax(300px, 1fr)"
+                    : "auto auto minmax(300px, 1fr)",
+                }}
+              >
+                  <div class={styles.rowHeader}>
+                    <span class={styles.caseNumber}>#{i() + 1}</span>
+                    <XDiffBadge diff={diff()} />
+                    <input
+                      class={styles.caseTitle}
+                      placeholder="untitled"
+                      value={c.title ?? ""}
+                      onInput={(e) =>
+                        setState("cases", i(), "title", e.currentTarget.value)
+                      }
+                    />
+                    <span class={styles.caseId}>{c.id}.json</span>
+                    <div class={styles.rowActions}>
+                      <button
+                        class={styles.collapseBtn}
+                        onClick={() => setCollapsed((v) => !v)}
+                        title={collapsed() ? "Expand messages" : "Collapse messages"}
+                      >
+                        {collapsed() ? "▸ msg" : "▾ msg"}
+                      </button>
+                      <button
+                        class={styles.duplicateBtn}
+                        onClick={() => duplicateCase(i())}
+                      >
+                        ⧉
+                      </button>
+                      <button
+                        class={styles.deleteBtn}
+                        onClick={() => deleteCase(i())}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                  <CommentThread
+                    comments={state.cases[i()].comments}
+                    collapsed={collapsed()}
+                    onAdd={(text) =>
+                      setState("cases", i(), "comments", (prev) => [
+                        ...prev,
+                        { role: "user" as const, text },
+                      ])
                     }
                   />
-                  <span class={styles.caseId}>{c.id}.json</span>
-                  <div class={styles.rowActions}>
-                    <button
-                      class={styles.duplicateBtn}
-                      onClick={() => duplicateCase(i())}
-                    >
-                      ⧉
-                    </button>
-                    <button
-                      class={styles.deleteBtn}
-                      onClick={() => deleteCase(i())}
-                    >
-                      ✕
-                    </button>
+                  <div class={styles.panels}>
+                    <div class={styles.panelWrap}>
+                      <span class={styles.panelLabel}>Initial</span>
+                      <GraphPanel
+                        graphStore={state.cases[i()].initial}
+                        setGraphStore={(...args: any[]) =>
+                          (setState as any)("cases", i(), "initial", ...args)
+                        }
+                      />
+                    </div>
+                    <div class={styles.panelWrap}>
+                      <span class={styles.panelLabel}>Expected</span>
+                      <GraphPanel
+                        graphStore={state.cases[i()].expected}
+                        setGraphStore={(...args: any[]) =>
+                          (setState as any)("cases", i(), "expected", ...args)
+                        }
+                      />
+                    </div>
+                    <div class={styles.panelWrap}>
+                      <span class={styles.panelLabel}>Result</span>
+                      <GraphPanel
+                        graphStore={result()}
+                        setGraphStore={() => {}}
+                        readonly
+                      />
+                    </div>
                   </div>
                 </div>
-                <CommentThread
-                  comments={state.cases[i()].comments}
-                  onAdd={(text) =>
-                    setState("cases", i(), "comments", (prev) => [
-                      ...prev,
-                      { role: "user" as const, text },
-                    ])
-                  }
-                />
-                <div class={styles.panels}>
-                  <div class={styles.panelWrap}>
-                    <span class={styles.panelLabel}>Initial</span>
-                    <GraphPanel
-                      graphStore={state.cases[i()].initial}
-                      setGraphStore={(...args: any[]) =>
-                        (setState as any)("cases", i(), "initial", ...args)
-                      }
-                    />
-                  </div>
-                  <div class={styles.panelWrap}>
-                    <span class={styles.panelLabel}>Expected</span>
-                    <GraphPanel
-                      graphStore={state.cases[i()].expected}
-                      setGraphStore={(...args: any[]) =>
-                        (setState as any)("cases", i(), "expected", ...args)
-                      }
-                    />
-                  </div>
-                  <div class={styles.panelWrap}>
-                    <span class={styles.panelLabel}>Result</span>
-                    <GraphPanel
-                      graphStore={autoformat(state.cases[i()].initial)}
-                      setGraphStore={() => {}}
-                      readonly
-                    />
-                  </div>
-                </div>
-              </div>
-            );
-          }}
-        </For>
+              );
+            }}
+          </For>
+        </div>
       </div>
     </div>
   );

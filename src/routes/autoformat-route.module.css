@@ -28,6 +28,68 @@
   gap: 8px;
 }
 
+/* ─── Body (sidebar + cases) ──────────────────────── */
+
+.body {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  overflow: hidden;
+}
+
+/* ─── Sidebar ─────────────────────────────────────── */
+
+.sidebar {
+  display: grid;
+  align-content: start;
+  gap: 1px;
+  overflow-y: auto;
+  background: #eee;
+  border-right: 1px solid #ddd;
+  padding: 8px 0;
+}
+
+.sidebarLink {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px;
+  align-items: baseline;
+  padding: 5px 10px;
+  text-decoration: none;
+  color: #444;
+  font-size: 12px;
+  border-radius: 3px;
+  margin: 0 4px;
+
+  &:hover {
+    background: #e0e7ff;
+    color: #1a1a1a;
+  }
+
+  &[data-pass="true"] {
+    color: #276f3d;
+  }
+
+  &[data-pass="false"] {
+    color: #b91c1c;
+  }
+}
+
+.sidebarNum {
+  font-size: 10px;
+  font-weight: 700;
+  color: #aaa;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.sidebarTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Cases list ──────────────────────────────────── */
+
 .cases {
   overflow-y: auto;
   padding: 16px;
@@ -43,14 +105,13 @@
   border-radius: 6px;
   overflow: hidden;
   display: grid;
-  grid-template-rows: auto auto minmax(300px, 1fr);
   resize: vertical;
   flex-shrink: 0;
 }
 
 .rowHeader {
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto auto 1fr auto auto;
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
@@ -92,6 +153,28 @@
   font-weight: 700;
   color: #aaa;
   letter-spacing: 0.05em;
+}
+
+/* ─── X-diff badge ───────────────────────────────── */
+
+.diffPass,
+.diffFail {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.diffPass {
+  background: #d4edda;
+  color: #276f3d;
+}
+
+.diffFail {
+  background: #fde8e8;
+  color: #b91c1c;
 }
 
 /* ─── Comment thread ─────────────────────────────── */
@@ -199,7 +282,8 @@
 
 .addBtn,
 .duplicateBtn,
-.deleteBtn {
+.deleteBtn,
+.collapseBtn {
   padding: 6px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -217,13 +301,15 @@
 
 .rowActions {
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: auto auto auto;
   gap: 4px;
   justify-self: end;
 }
 
 .duplicateBtn,
-.deleteBtn {
+.deleteBtn,
+.collapseBtn {
   padding: 4px 8px;
   color: #999;
+  font-size: 11px;
 }
