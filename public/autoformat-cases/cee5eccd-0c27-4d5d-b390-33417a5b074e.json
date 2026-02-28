@@ -1,0 +1,411 @@
+{
+  "id": "cee5eccd-0c27-4d5d-b390-33417a5b074e",
+  "title": "Rule 3 test case",
+  "comments": [],
+  "initial": {
+    "nodes": {
+      "d8e70ffe-9641-4f46-aaa8-0f1efec6540b": {
+        "id": "d8e70ffe-9641-4f46-aaa8-0f1efec6540b",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "6ff92e0c-dec2-4436-b3fc-e0f558e3f0f9": {
+        "id": "6ff92e0c-dec2-4436-b3fc-e0f558e3f0f9",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "2fbf548e-7ea6-4ba6-8fbe-0d9a97f0fddf": {
+        "id": "2fbf548e-7ea6-4ba6-8fbe-0d9a97f0fddf",
+        "type": "node",
+        "x": 260,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "1674793f-66f1-4b2b-a139-852747f27d8a": {
+        "id": "1674793f-66f1-4b2b-a139-852747f27d8a",
+        "type": "node",
+        "x": 390,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      },
+      "c0b6bddf-b873-4eed-8952-d1598736f204": {
+        "id": "c0b6bddf-b873-4eed-8952-d1598736f204",
+        "type": "node",
+        "x": 0,
+        "y": 140,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "E"
+        }
+      },
+      "020b2b2f-1a45-4880-93d4-e789bea8d16d": {
+        "id": "020b2b2f-1a45-4880-93d4-e789bea8d16d",
+        "type": "node",
+        "x": 10,
+        "y": 260,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "F"
+        }
+      },
+      "d1076077-8b4a-467e-b18c-8869467454c5": {
+        "id": "d1076077-8b4a-467e-b18c-8869467454c5",
+        "type": "node",
+        "x": 140,
+        "y": 180,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "G"
+        }
+      },
+      "6e901c77-0b4c-47fd-8289-dcea4843c02d": {
+        "id": "6e901c77-0b4c-47fd-8289-dcea4843c02d",
+        "type": "node",
+        "x": 270,
+        "y": 190,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "H"
+        }
+      },
+      "e9082da6-41d1-4d26-a4a2-d479112a58ac": {
+        "id": "e9082da6-41d1-4d26-a4a2-d479112a58ac",
+        "type": "node",
+        "x": 520,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "I"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "d8e70ffe-9641-4f46-aaa8-0f1efec6540b",
+          "port": "out"
+        },
+        "input": {
+          "node": "6ff92e0c-dec2-4436-b3fc-e0f558e3f0f9",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "6ff92e0c-dec2-4436-b3fc-e0f558e3f0f9",
+          "port": "out"
+        },
+        "input": {
+          "node": "2fbf548e-7ea6-4ba6-8fbe-0d9a97f0fddf",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "c0b6bddf-b873-4eed-8952-d1598736f204",
+          "port": "out"
+        },
+        "input": {
+          "node": "d1076077-8b4a-467e-b18c-8869467454c5",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "020b2b2f-1a45-4880-93d4-e789bea8d16d",
+          "port": "out"
+        },
+        "input": {
+          "node": "d1076077-8b4a-467e-b18c-8869467454c5",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "d1076077-8b4a-467e-b18c-8869467454c5",
+          "port": "out"
+        },
+        "input": {
+          "node": "6e901c77-0b4c-47fd-8289-dcea4843c02d",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "2fbf548e-7ea6-4ba6-8fbe-0d9a97f0fddf",
+          "port": "out"
+        },
+        "input": {
+          "node": "1674793f-66f1-4b2b-a139-852747f27d8a",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "1674793f-66f1-4b2b-a139-852747f27d8a",
+          "port": "out"
+        },
+        "input": {
+          "node": "e9082da6-41d1-4d26-a4a2-d479112a58ac",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "6e901c77-0b4c-47fd-8289-dcea4843c02d",
+          "port": "out"
+        },
+        "input": {
+          "node": "e9082da6-41d1-4d26-a4a2-d479112a58ac",
+          "port": "in"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "nodes": {
+      "213793af-a8c5-4e07-95a9-5d0aa8d73fa9": {
+        "id": "213793af-a8c5-4e07-95a9-5d0aa8d73fa9",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "A"
+        }
+      },
+      "94679c12-100d-404a-a453-908ee5c07dae": {
+        "id": "94679c12-100d-404a-a453-908ee5c07dae",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "B"
+        }
+      },
+      "daaedb05-b2fe-40fb-9f35-41f151a2025a": {
+        "id": "daaedb05-b2fe-40fb-9f35-41f151a2025a",
+        "type": "node",
+        "x": 260,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "C"
+        }
+      },
+      "37a6f204-6ba2-4301-8d14-704cbc318a0a": {
+        "id": "37a6f204-6ba2-4301-8d14-704cbc318a0a",
+        "type": "node",
+        "x": 390,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "D"
+        }
+      },
+      "b7b483d7-a3b4-4be8-bfd4-39e511bece64": {
+        "id": "b7b483d7-a3b4-4be8-bfd4-39e511bece64",
+        "type": "node",
+        "x": 130,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "E"
+        }
+      },
+      "18d5c64b-2362-4f37-aeca-7d970de61c73": {
+        "id": "18d5c64b-2362-4f37-aeca-7d970de61c73",
+        "type": "node",
+        "x": 130,
+        "y": 220,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "F"
+        }
+      },
+      "7753671a-96af-48aa-a6a3-b964c64b6606": {
+        "id": "7753671a-96af-48aa-a6a3-b964c64b6606",
+        "type": "node",
+        "x": 260,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "G"
+        }
+      },
+      "dc26bd4b-8ec4-4172-8e65-c2010bcd3439": {
+        "id": "dc26bd4b-8ec4-4172-8e65-c2010bcd3439",
+        "type": "node",
+        "x": 390,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "H"
+        }
+      },
+      "7c70bd9f-aa04-47ae-92f5-3b81aee71a47": {
+        "id": "7c70bd9f-aa04-47ae-92f5-3b81aee71a47",
+        "type": "node",
+        "x": 520,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "I"
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "213793af-a8c5-4e07-95a9-5d0aa8d73fa9",
+          "port": "out"
+        },
+        "input": {
+          "node": "94679c12-100d-404a-a453-908ee5c07dae",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "94679c12-100d-404a-a453-908ee5c07dae",
+          "port": "out"
+        },
+        "input": {
+          "node": "daaedb05-b2fe-40fb-9f35-41f151a2025a",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "daaedb05-b2fe-40fb-9f35-41f151a2025a",
+          "port": "out"
+        },
+        "input": {
+          "node": "37a6f204-6ba2-4301-8d14-704cbc318a0a",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "b7b483d7-a3b4-4be8-bfd4-39e511bece64",
+          "port": "out"
+        },
+        "input": {
+          "node": "7753671a-96af-48aa-a6a3-b964c64b6606",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "18d5c64b-2362-4f37-aeca-7d970de61c73",
+          "port": "out"
+        },
+        "input": {
+          "node": "7753671a-96af-48aa-a6a3-b964c64b6606",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "7753671a-96af-48aa-a6a3-b964c64b6606",
+          "port": "out"
+        },
+        "input": {
+          "node": "dc26bd4b-8ec4-4172-8e65-c2010bcd3439",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "37a6f204-6ba2-4301-8d14-704cbc318a0a",
+          "port": "out"
+        },
+        "input": {
+          "node": "7c70bd9f-aa04-47ae-92f5-3b81aee71a47",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "dc26bd4b-8ec4-4172-8e65-c2010bcd3439",
+          "port": "out"
+        },
+        "input": {
+          "node": "7c70bd9f-aa04-47ae-92f5-3b81aee71a47",
+          "port": "in"
+        }
+      }
+    ]
+  }
+}

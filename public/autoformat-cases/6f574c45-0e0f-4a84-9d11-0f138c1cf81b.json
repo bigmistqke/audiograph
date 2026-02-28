@@ -54,7 +54,7 @@
       "0bbf34c5-7308-4c7a-85b3-5b8c42c9b747": {
         "id": "0bbf34c5-7308-4c7a-85b3-5b8c42c9b747",
         "type": "node",
-        "x": 380,
+        "x": 500,
         "y": 80,
         "dimensions": {
           "x": 100,
@@ -287,7 +287,7 @@
       "6f42c88f-7e1f-4e70-b0b6-1be33bdb04de": {
         "id": "6f42c88f-7e1f-4e70-b0b6-1be33bdb04de",
         "type": "node",
-        "x": 520,
+        "x": 650,
         "y": 0,
         "dimensions": {
           "x": 100,
