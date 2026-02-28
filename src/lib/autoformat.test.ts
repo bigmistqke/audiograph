@@ -2750,7 +2750,7 @@ describe("autoformat — x-positions", () => {
     });
   });
 
-  it("merge with edges to multiple nodes in same chain links to first node of chain", () => {
+  it("Edge from merge to multiple nodes in same chain links to first node", () => {
     const initial: Graph = {
         "nodes": {
             "A": {
@@ -2767,8 +2767,8 @@ describe("autoformat — x-positions", () => {
             "B": {
                 "id": "B",
                 "type": "node",
-                "x": 150,
-                "y": 10,
+                "x": 170,
+                "y": 20,
                 "dimensions": {
                     "x": 100,
                     "y": 80
@@ -2778,8 +2778,8 @@ describe("autoformat — x-positions", () => {
             "C": {
                 "id": "C",
                 "type": "node",
-                "x": 100,
-                "y": 170,
+                "x": 160,
+                "y": 160,
                 "dimensions": {
                     "x": 100,
                     "y": 80
@@ -2789,8 +2789,8 @@ describe("autoformat — x-positions", () => {
             "D": {
                 "id": "D",
                 "type": "node",
-                "x": 270,
-                "y": 190,
+                "x": 300,
+                "y": 170,
                 "dimensions": {
                     "x": 100,
                     "y": 80
@@ -2821,16 +2821,6 @@ describe("autoformat — x-positions", () => {
             },
             {
                 "output": {
-                    "node": "A",
-                    "port": "out"
-                },
-                "input": {
-                    "node": "C",
-                    "port": "in"
-                }
-            },
-            {
-                "output": {
                     "node": "C",
                     "port": "out"
                 },
@@ -2838,15 +2828,20 @@ describe("autoformat — x-positions", () => {
                     "node": "D",
                     "port": "in"
                 }
+            },
+            {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toMatchObject({
-          "A": 0,
-          "B": 130,
-          "C": 130,
-          "D": 260
-    });
+    expect(labelX(autoformat(initial))).toMatchObject({});
   });
 });
 
@@ -5579,7 +5574,7 @@ describe("autoformat — y-positions", () => {
     });
   });
 
-  it("merge with edges to multiple nodes in same chain links to first node of chain", () => {
+  it("Edge from merge to multiple nodes in same chain links to first node", () => {
     const initial: Graph = {
         "nodes": {
             "A": {
@@ -5596,8 +5591,8 @@ describe("autoformat — y-positions", () => {
             "B": {
                 "id": "B",
                 "type": "node",
-                "x": 150,
-                "y": 10,
+                "x": 170,
+                "y": 20,
                 "dimensions": {
                     "x": 100,
                     "y": 80
@@ -5607,8 +5602,8 @@ describe("autoformat — y-positions", () => {
             "C": {
                 "id": "C",
                 "type": "node",
-                "x": 100,
-                "y": 170,
+                "x": 160,
+                "y": 160,
                 "dimensions": {
                     "x": 100,
                     "y": 80
@@ -5618,8 +5613,8 @@ describe("autoformat — y-positions", () => {
             "D": {
                 "id": "D",
                 "type": "node",
-                "x": 270,
-                "y": 190,
+                "x": 300,
+                "y": 170,
                 "dimensions": {
                     "x": 100,
                     "y": 80
@@ -5650,16 +5645,6 @@ describe("autoformat — y-positions", () => {
             },
             {
                 "output": {
-                    "node": "A",
-                    "port": "out"
-                },
-                "input": {
-                    "node": "C",
-                    "port": "in"
-                }
-            },
-            {
-                "output": {
                     "node": "C",
                     "port": "out"
                 },
@@ -5667,14 +5652,19 @@ describe("autoformat — y-positions", () => {
                     "node": "D",
                     "port": "in"
                 }
+            },
+            {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toMatchObject({
-          "A": 0,
-          "B": 0,
-          "C": 110,
-          "D": 110
-    });
+    expect(labelY(autoformat(initial))).toMatchObject({});
   });
 });

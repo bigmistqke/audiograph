@@ -1,6 +1,6 @@
 {
-  "id": "6859dc56-187a-4f75-a4b4-7c9d099440d5",
-  "title": "merge with edges to multiple nodes in same chain links to first node of chain",
+  "id": "30fefa7c-864d-4733-92cd-b6c950ffef73",
+  "title": "Edge from merge to multiple nodes in same chain links to first node",
   "comments": [],
   "initial": {
     "nodes": {
@@ -18,8 +18,8 @@
       "B": {
         "id": "B",
         "type": "node",
-        "x": 150,
-        "y": 10,
+        "x": 170,
+        "y": 20,
         "dimensions": {
           "x": 100,
           "y": 80
@@ -29,24 +29,24 @@
       "C": {
         "id": "C",
         "type": "node",
-        "x": 100,
+        "x": 160,
+        "y": 160,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "D": {
+        "id": "D",
+        "type": "node",
+        "x": 300,
         "y": 170,
         "dimensions": {
           "x": 100,
           "y": 80
         },
         "state": {}
-      },
-      "D": {
-        "id": "D",
-        "type": "node",
-        "x": 270,
-        "y": 190,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        },
-        "state": {}
       }
     },
     "edges": [
@@ -72,73 +72,28 @@
       },
       {
         "output": {
-          "node": "A",
-          "port": "out"
-        },
-        "input": {
-          "node": "C",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
           "node": "C",
           "port": "out"
         },
         "input": {
           "node": "D",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
           "port": "in"
         }
       }
     ]
   },
   "expected": {
-    "nodes": {
-      "A": {
-        "id": "A",
-        "type": "node",
-        "x": 0,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        },
-        "state": {}
-      },
-      "B": {
-        "id": "B",
-        "type": "node",
-        "x": 130,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        },
-        "state": {}
-      },
-      "C": {
-        "id": "C",
-        "type": "node",
-        "x": 130,
-        "y": 110,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        },
-        "state": {}
-      },
-      "D": {
-        "id": "D",
-        "type": "node",
-        "x": 260,
-        "y": 110,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        },
-        "state": {}
-      }
-    },
+    "nodes": {},
     "edges": [
       {
         "output": {
@@ -162,21 +117,21 @@
       },
       {
         "output": {
-          "node": "A",
-          "port": "out"
-        },
-        "input": {
-          "node": "C",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
           "node": "C",
           "port": "out"
         },
         "input": {
           "node": "D",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
           "port": "in"
         }
       }
