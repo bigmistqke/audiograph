@@ -9,7 +9,7 @@ import {
   onMount,
   Show,
 } from "solid-js";
-import { produce, SetStoreFunction } from "solid-js/store";
+import { produce } from "solid-js/store";
 import { action } from "~/lib/action";
 import { autoformat } from "~/lib/autoformat";
 import { createWritableStore } from "~/lib/create-writable";
@@ -199,7 +199,7 @@ function AxisBadge(props: { diff: AxisDiff; axis: "x" | "y" }) {
 
 export function AutoformatRoute() {
   const [_cases] = createResource(fetchCases);
-  const [cases, _setCases] = createWritableStore(
+  const [cases, setCases] = createWritableStore(
     () => _cases() ?? ([] as Array<TestCase>),
   );
 
@@ -207,14 +207,6 @@ export function AutoformatRoute() {
     .phase("prepare save", () => wait())
     .phase("saving", () => saveCases(cases))
     .phase("saved", () => wait());
-
-  let timeout: ReturnType<typeof setTimeout>;
-  const setCases: SetStoreFunction<Array<TestCase>> = (...args: Array<any>) => {
-    // @ts-expect-error
-    _setCases(...args);
-    clearTimeout(timeout);
-    timeout = setTimeout(save, 1_000);
-  };
 
   onMount(() => {
     // WebSocket: receive comment updates from file edits (e.g. by Claude)
@@ -274,13 +266,17 @@ export function AutoformatRoute() {
       <header class={styles.header}>
         <h1 class={styles.title}>Autoformat Workshop</h1>
         <div class={styles.headerActions}>
-          <span class={styles.saveStatus}>
-            {save.phase() === "saving"
+          <button
+            class={styles.saveBtn}
+            onClick={save}
+            disabled={save.pending()}
+          >
+            {save.phase() === "saving" || save.phase() === "prepare save"
               ? "Saving…"
               : save.phase() === "saved"
                 ? "Saved!"
-                : ""}
-          </span>
+                : "Save"}
+          </button>
           <button class={styles.addBtn} onClick={addCase}>
             + Add case
           </button>
