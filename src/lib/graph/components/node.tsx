@@ -11,10 +11,7 @@ export function GraphNode(props: { node: NodeInstance }) {
   const graph = useGraph();
   const typeDef = () => graph.config[props.node.type];
 
-  const dimensions = () =>
-    typeDef()?.resizable
-      ? props.node.dimensions
-      : (typeDef()?.dimensions ?? props.node.dimensions);
+  const dimensions = () => props.node.dimensions ?? typeDef()?.dimensions;
 
   const borderColor = () => {
     const kind = (typeDef()?.ports?.out?.[0]?.kind as string) || "audio";
