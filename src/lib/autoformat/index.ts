@@ -746,25 +746,53 @@ function yPass(
   return yOut;
 }
 
-// ─── Main exports ─────────────────────────────────────────────────────────────
+// ─── Island Detection ─────────────────────────────────────────────────────────
+//
+// Find connected components (islands) via BFS over undirected adjacency.
+// Each island is an independent subgraph with no edges to any other.
 
-export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
-  if (Object.keys(graph.nodes).length === 0) return new Map();
+function findIslands(infos: Map<string, NodeInfo>): string[][] {
+  const visited = new Set<string>();
+  const islands: string[][] = [];
 
-  const infos = buildTopology(graph);
-  const order = topologicalSort(infos);
-  const chainMap = buildChainMap(infos);
-  const ancestorSets = buildAncestorSets(infos, order);
+  for (const id of infos.keys()) {
+    if (visited.has(id)) continue;
+    const component: string[] = [];
+    const queue = [id];
+    while (queue.length > 0) {
+      const curr = queue.shift()!;
+      if (visited.has(curr)) continue;
+      visited.add(curr);
+      component.push(curr);
+      const info = infos.get(curr)!;
+      for (const pid of info.parents) if (!visited.has(pid)) queue.push(pid);
+      for (const cid of info.children) if (!visited.has(cid)) queue.push(cid);
+    }
+    islands.push(component);
+  }
 
-  // Primary root: most top-left (smallest y, tie-break smallest x)
-  const primaryRoot = [...infos.values()]
+  return islands;
+}
+
+// ─── Per-Island Layout ────────────────────────────────────────────────────────
+
+function layoutIsland(islandInfos: Map<string, NodeInfo>): {
+  xFinal: Map<string, number>;
+  yFinal: Map<string, number>;
+  rowOf: Map<string, number>;
+} {
+  const order = topologicalSort(islandInfos);
+  const chainMap = buildChainMap(islandInfos);
+  const ancestorSets = buildAncestorSets(islandInfos, order);
+
+  const primaryRoot = [...islandInfos.values()]
     .filter((n) => n.role === "root")
     .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
 
-  const rowOf = assignRows(infos, order, chainMap);
-  const xFwd = forwardPass(infos, primaryRoot.id, order, rowOf);
+  const rowOf = assignRows(islandInfos, order, chainMap);
+  const xFwd = forwardPass(islandInfos, primaryRoot.id, order, rowOf);
   const xAfterRule4 = applyRule4(
-    infos,
+    islandInfos,
     primaryRoot.id,
     order,
     rowOf,
@@ -772,9 +800,9 @@ export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
     chainMap,
     ancestorSets,
   );
-  const rule3Map = computeRule3Map(infos, rowOf, chainMap);
+  const rule3Map = computeRule3Map(islandInfos, rowOf, chainMap);
   const xFinal = reconcilePass(
-    infos,
+    islandInfos,
     order,
     rowOf,
     primaryRoot.id,
@@ -782,19 +810,113 @@ export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
     rule3Map,
     ancestorSets,
   );
+  const yFinal = yPass(islandInfos, xFinal, rowOf, primaryRoot.id);
 
-  const yFinal = yPass(infos, xFinal, rowOf, primaryRoot.id);
+  return { xFinal, yFinal, rowOf };
+}
+
+// ─── Island Collision Resolution ──────────────────────────────────────────────
+//
+// Sort islands by their primary root y (ascending). For each island in order,
+// check if its bounding box x-overlaps and y-overlaps any already-placed island.
+// If so, shift the entire island downward until the gap is exactly GAP (30px).
+// Cascade naturally: placed islands never move, shifts only affect current island.
+
+interface IslandLayout {
+  nodeIds: string[];
+  infos: Map<string, NodeInfo>;
+  xFinal: Map<string, number>;
+  yFinal: Map<string, number>;
+  primaryRootY: number;
+}
+
+function resolveIslandCollisions(islands: IslandLayout[]): void {
+  islands.sort((a, b) => a.primaryRootY - b.primaryRootY);
+
+  const placedBBoxes: Array<{
+    xMin: number;
+    yMin: number;
+    xMax: number;
+    yMax: number;
+  }> = [];
+
+  for (const island of islands) {
+    let xMin = Infinity,
+      yMin = Infinity,
+      xMax = -Infinity,
+      yMax = -Infinity;
+
+    for (const id of island.nodeIds) {
+      const nx = island.xFinal.get(id)!;
+      const ny = island.yFinal.get(id)!;
+      const info = island.infos.get(id)!;
+      if (nx < xMin) xMin = nx;
+      if (ny < yMin) yMin = ny;
+      if (nx + info.width > xMax) xMax = nx + info.width;
+      if (ny + info.height > yMax) yMax = ny + info.height;
+    }
+
+    // Find max bottom-Y of placed islands that x-overlap AND y-overlap this one.
+    let maxBottomY = -Infinity;
+    for (const pb of placedBBoxes) {
+      if (pb.xMax <= xMin || pb.xMin >= xMax) continue; // no x-overlap
+      if (pb.yMax <= yMin) continue; // placed island fully above, no y-overlap
+      if (pb.yMax > maxBottomY) maxBottomY = pb.yMax;
+    }
+
+    if (maxBottomY !== -Infinity) {
+      const shift = maxBottomY + GAP - yMin;
+      if (shift > 0) {
+        for (const id of island.nodeIds) {
+          island.yFinal.set(id, island.yFinal.get(id)! + shift);
+        }
+        yMin += shift;
+        yMax += shift;
+      }
+    }
+
+    placedBBoxes.push({ xMin, yMin, xMax, yMax });
+  }
+}
+
+// ─── Main exports ─────────────────────────────────────────────────────────────
+
+export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
+  if (Object.keys(graph.nodes).length === 0) return new Map();
+
+  const infos = buildTopology(graph);
+  const islandGroups = findIslands(infos);
+
+  const islandLayouts: IslandLayout[] = islandGroups.map((nodeIds) => {
+    const islandInfos = new Map(nodeIds.map((id) => [id, infos.get(id)!]));
+    const { xFinal, yFinal } = layoutIsland(islandInfos);
+    const primaryRoot = [...islandInfos.values()]
+      .filter((n) => n.role === "root")
+      .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
+    return {
+      nodeIds,
+      infos: islandInfos,
+      xFinal,
+      yFinal,
+      primaryRootY: primaryRoot.initialY,
+    };
+  });
+
+  resolveIslandCollisions(islandLayouts);
 
   const result = new Map<string, LayoutNode>();
-  for (const info of infos.values()) {
-    result.set(info.id, {
-      id: info.id,
-      x: xFinal.get(info.id)!,
-      y: yFinal.get(info.id)!,
-      row: rowOf.get(info.id) ?? 0,
-      width: info.width,
-      height: info.height,
-    });
+  for (const { nodeIds, infos: islandInfos, xFinal, yFinal } of islandLayouts) {
+    for (const id of nodeIds) {
+      const info = islandInfos.get(id)!;
+      result.set(id, {
+        id,
+        x: xFinal.get(id)!,
+        y: yFinal.get(id)!,
+        row: 0,
+        width: info.width,
+        height: info.height,
+      });
+    }
   }
 
   return result;
