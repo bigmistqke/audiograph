@@ -50,11 +50,21 @@ Row assignment is per-chain, not per-node. A boundary node that starts multiple 
 
 ---
 
+## Graph Preprocessing
+
+Before topology analysis, the raw graph edges are normalized:
+
+**Edge deduplication:** All edges between the same pair of nodes are collapsed into a single logical parent/child relationship. Sub-port distinctions (which specific input/output port was used) are ignored — the algorithm only considers whether a connection exists between two nodes, not how many times or via which ports.
+
+This is a current design decision: the algorithm treats nodes as having a single logical input and output for the purpose of layout. Multi-port graphs where the same two nodes are connected via different port combinations are handled correctly as long as the layout only needs to know *that* a connection exists.
+
+---
+
 ## Algorithm
 
 ### Step 1: Topology Analysis
 
-Identify all boundary nodes (split / merge / merge-split / root / leaf), then trace all chains between them. Compute each chain's **minimum width**: `sum(node widths) + (n-1) × gap`.
+Identify all boundary nodes (split / merge / merge-split / root / leaf) and trace all chains between them.
 
 ### Step 2: Row Assignment + X-Positions
 

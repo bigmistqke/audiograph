@@ -195,8 +195,7 @@ function assignRows(
 // Walk nodes in topological order, placing each at its provisional x.
 //
 // Rule 1: primary root → anchored to current user position.
-// Rule 2: merge/merge-split → max(parent.right for parents in same or
-//         higher-priority rows) + gap.  (Higher priority = smaller row index.)
+// Rule 2: merge/merge-split → max(parent.right for ALL parents) + gap.
 // Rule 5: all others → prev.right + gap (secondary roots start at 0).
 
 function forwardPass(
