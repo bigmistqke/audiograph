@@ -1,11 +1,51 @@
 [
   {
-    "hash": "3b5442ee61132dc49d22c3efd4b74b61685776a8",
-    "short_hash": "3b5442e",
+    "hash": "3bbe77cff9f00df7534e96f356fd2eaeb86c2228",
+    "short_hash": "3bbe77c",
     "author": "bigmistqke",
-    "date": "2026-02-28T13:34:04+01:00",
-    "message": "docs: rewrite AUTOFORMAT.md with prettier thesis, DFS traversal, resolved Q2",
-    "files_changed": 3
+    "date": "2026-02-28T21:10:54+01:00",
+    "message": "perf: precompute ancestor sets, replace recursive isDescendantOf\n\nbuildAncestorSets() computes full ancestor sets for all nodes in one\nO(n) topological pass. computeXExcl now uses Set.has() lookups instead\nof recursive descent with a memoization cache. Removes isDescendantOf.",
+    "files_changed": 1
+  },
+  {
+    "hash": "152b285eb6ce1f482814a71e5904df70ca642b06",
+    "short_hash": "152b285",
+    "author": "bigmistqke",
+    "date": "2026-02-28T20:47:34+01:00",
+    "message": "feat: implement Y-pass for autoformat, add y-position tests\n\n- Add buildDFSRowOrder + yPass with per-node interval structure\n- Fix assignRows: cross-row chain interiors open own row (not end's row)\n- Fix assignRows: higher-priority chains override merge row claims\n- Fix findBestRule4Pull: same-row merges are valid fallback pull targets\n- Update generate-autoformat-tests.ts to emit x-positions and y-positions describe blocks\n- Fix test case data: correct node heights in several cases",
+    "files_changed": 10
+  },
+  {
+    "hash": "e42f9d2fc3d9eb40d8ff7e6693066382cd17e6f4",
+    "short_hash": "e42f9d2",
+    "author": "bigmistqke",
+    "date": "2026-02-28T18:09:54+01:00",
+    "message": "feat: autoformat-route QOL — collapsible comments, sidebar nav, x-diff badge",
+    "files_changed": 2
+  },
+  {
+    "hash": "dba3d772c361f3e9e04c721b2f51398799b972da",
+    "short_hash": "dba3d77",
+    "author": "bigmistqke",
+    "date": "2026-02-28T18:00:10+01:00",
+    "message": "fix: remove row filter from Rule 2 — include all parents for merge placement",
+    "files_changed": 1
+  },
+  {
+    "hash": "0af9e3e462c5d6c3643c491db83554a1b5a6148e",
+    "short_hash": "0af9e3e",
+    "author": "bigmistqke",
+    "date": "2026-02-28T16:53:30+01:00",
+    "message": "docs: overhaul spec — DFS two-phase, primary root, Rule 2/3/4 clarifications\n\n- DFS starts from primary root (most top-left); secondary roots processed after in top-left order\n- Split traversal is two-phase: forward into branches, then post-order pull\n- Merges settled on first visit; cross-row arrivals from lower-priority rows don't reposition\n- Rule 2: only same-or-higher-priority parents contribute (cross-row parents excluded)\n- Rule 3: clarify \"lower row\" as higher-priority row (smaller row index)\n- Rule 4: target = nearest strictly higher-priority merge via multi-hop path through same-row boundaries; min_path_width includes intermediate boundary nodes; independence uses merge.x_excl (M's x excluding S's subtree)",
+    "files_changed": 1
+  },
+  {
+    "hash": "f6afbddbbb2c5108a45e292a613823ae43bc80e9",
+    "short_hash": "f6afbdd",
+    "author": "bigmistqke",
+    "date": "2026-02-28T15:09:12+01:00",
+    "message": "feat: add autoformat algorithm, test generator, and case titles",
+    "files_changed": 22
   },
   {
     "hash": "293d48a0e304a1a89ec8d779d129246df64a5e2f",
