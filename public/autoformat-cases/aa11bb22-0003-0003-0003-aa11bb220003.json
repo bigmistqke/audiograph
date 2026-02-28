@@ -1,0 +1,242 @@
+{
+  "id": "aa11bb22-0003-0003-0003-aa11bb220003",
+  "title": "Merge row reassignment: high-priority chain lowers merge row",
+  "comments": [
+    {
+      "role": "assistant",
+      "text": "Graph: R1 (primary root, y=0) → S1 (split). R2 (secondary root, y=200) → M (merge). S1 → A (y=0) → M; S1 → B (y=200, leaf).\n\nTopological order: [R1, R2, S1, A, B, M].\n\nRow assignment:\n- R1: row 0. Chain R1→S1 claims S1=row 0.\n- R2: row 1. Chain R2→M claims M=row 1 (first claim).\n- S1 (currentRow=0): children sorted by y: A(y=0), B(y=200).\n  - Chain S1→A→M: endId=M, already claimed at row 1! chainRow=0 (spine). 0 < 1 → REASSIGN M to row 0. Interior A: row 0.\n  - Chain S1→B: endId=B (leaf), not claimed → chainRow=nextRow++=2, B=row 2.\n\nFinal rowOf: R1=0, S1=0, A=0, M=0, R2=1, B=2.\n\nForward pass: R1.x=0 (primary), R2.x=0 (secondary default), S1.x=130, A.x=260, B.x=260, M.x=max(A.right, R2.right)+gap = max(360,100)+30=390.\n\nRule 4: S1 is a split. findBestRule4Pull(S1): M is same-row (row 0 == splitRow 0) → fallback. xExcl(M, S1): external parents of M (not descendants of S1) = [R2] → R2.right+gap=130. pathWidth=S1.width+gap + A.width+gap=130+130=260. pull=130-260=-130. max(S1.prevRight+gap, pull) = max(130,-130)=130. No change.\nR2 secondary root: findBestRule4Pull(R2): M.row=0 < R2.row=1 → PRIMARY. xExcl(M, R2)=A.right+gap=360+30=390. pathWidth=130. pull=390-130=260. R2.x=260. Propagate: R2 has child M (merge), stops.\n\nReconcile: M.x = max(A.right=360, R2.right=260+100=360)+30 = 390.\n\nY pass (DFS row order starting R1): row 0 (R1,S1,A,M), then via B row 2, then secondary R2 row 1.\nRow 0 → y=0. Row 2 → queryMaxBottomY(260,360)=A.bottom=80 → y=110. Row 1 → queryMaxBottomY(260,360) after B inserted = max(80,190) wait...\n\nLet me recompute: after row 0 intervals: R1{0,100,80}, S1{130,230,80}, A{260,360,80}, M{390,490,80}. Row 2 (B, x=260..360): max=80, y=110, insert B{260,360,190}. Row 1 (R2, x=260..360): max=190, y=220.\n\nFinal: R1(0,0), S1(130,0), A(260,0), M(390,0), B(260,110), R2(260,220).\n\nRule tested: merge row reassignment — M is first claimed at row 1 via R2, then reassigned to row 0 when S1's spine chain visits it with chainRow=0 < rowOf(M)=1."
+    }
+  ],
+  "initial": {
+    "nodes": {
+      "R1": {
+        "id": "R1",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "R2": {
+        "id": "R2",
+        "type": "node",
+        "x": 50,
+        "y": 400,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "S1": {
+        "id": "S1",
+        "type": "node",
+        "x": 300,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": 500,
+        "y": -100,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": 450,
+        "y": 200,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "M": {
+        "id": "M",
+        "type": "node",
+        "x": 700,
+        "y": -50,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "R1",
+          "port": "out"
+        },
+        "input": {
+          "node": "S1",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "R2",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "S1",
+          "port": "out"
+        },
+        "input": {
+          "node": "A",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "S1",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "nodes": {
+      "R1": {
+        "id": "R1",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "R2": {
+        "id": "R2",
+        "type": "node",
+        "x": 260,
+        "y": 220,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "S1": {
+        "id": "S1",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": 260,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": 260,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "M": {
+        "id": "M",
+        "type": "node",
+        "x": 390,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "R1",
+          "port": "out"
+        },
+        "input": {
+          "node": "S1",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "R2",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "S1",
+          "port": "out"
+        },
+        "input": {
+          "node": "A",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "S1",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      }
+    ]
+  }
+}

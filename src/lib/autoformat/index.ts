@@ -379,7 +379,11 @@ function findBestRule4Pull(
 
       const endInfo = infos.get(endId)!;
       if (!isMergeLike(endInfo.role)) {
-        // Leaf or other: no target, don't continue.
+        // Split: no pull target here, but continue traversal to find deeper merges.
+        if (endInfo.role === "split") {
+          visitedBoundaries.add(endId);
+          traverse(endId, pathWidthToEnd + endInfo.width + GAP);
+        }
         continue;
       }
 
@@ -441,7 +445,33 @@ function applyRule4(
 ): Map<string, number> {
   const x = new Map(xFwd);
 
-  // Splits: reverse topological order ≈ post-order DFS
+  // Secondary roots: process first (y-order) so their splits see the updated x
+  // when processed below. Each uses the current x map so it sees positions set
+  // by earlier secondary roots.
+  const secondaryRoots = [...infos.values()]
+    .filter((info) => info.role === "root" && info.id !== primaryRootId)
+    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX);
+
+  for (const rootInfo of secondaryRoots) {
+    const id = rootInfo.id;
+
+    const pull = findBestRule4Pull(id, infos, rowOf, x, ancestorSets, chainMap);
+    if (pull === -Infinity) continue;
+
+    // Secondary roots have no prev — pull alone determines x (can be negative).
+    const finalX = pull;
+    if (finalX === x.get(id)) continue;
+    x.set(id, finalX);
+
+    const rootRight = finalX + rootInfo.width;
+    for (const childId of rootInfo.children) {
+      propagateSequential(childId, rootRight, x, infos);
+    }
+  }
+
+  // Splits: reverse topological order ≈ post-order DFS.
+  // Processed after secondary roots so single-parent splits use their parent's
+  // updated x (set above) as the lower bound.
   for (const id of [...order].reverse()) {
     const info = infos.get(id)!;
     if (info.role !== "split") continue;
@@ -461,29 +491,6 @@ function applyRule4(
     const splitRight = finalX + info.width;
     for (const childId of info.children) {
       propagateSequential(childId, splitRight, x, infos);
-    }
-  }
-
-  // Secondary roots: process in y-order (smallest y, tie-break smallest x).
-  // Each uses the current x map so it sees positions set by earlier secondary roots.
-  const secondaryRoots = [...infos.values()]
-    .filter((info) => info.role === "root" && info.id !== primaryRootId)
-    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX);
-
-  for (const rootInfo of secondaryRoots) {
-    const id = rootInfo.id;
-
-    const pull = findBestRule4Pull(id, infos, rowOf, x, ancestorSets, chainMap);
-    if (pull === -Infinity) continue;
-
-    // Secondary roots have no prev — pull alone determines x (can be negative).
-    const finalX = pull;
-    if (finalX === x.get(id)) continue;
-    x.set(id, finalX);
-
-    const rootRight = finalX + rootInfo.width;
-    for (const childId of rootInfo.children) {
-      propagateSequential(childId, rootRight, x, infos);
     }
   }
 

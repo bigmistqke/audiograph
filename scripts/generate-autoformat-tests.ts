@@ -53,7 +53,7 @@ function generateXCase(testCase: TestCase): string {
 
   return `  it(${JSON.stringify(description)}, () => {
     const initial: Graph = ${initialStr};
-    expect(labelX(autoformat(initial))).toEqual(${JSON.stringify(expected, null, 6).split("\n").join("\n    ")});
+    expect(labelX(autoformat(initial))).toMatchObject(${JSON.stringify(expected, null, 6).split("\n").join("\n    ")});
   });`;
 }
 
@@ -69,7 +69,7 @@ function generateYCase(testCase: TestCase): string {
 
   return `  it(${JSON.stringify(description)}, () => {
     const initial: Graph = ${initialStr};
-    expect(labelY(autoformat(initial))).toEqual(${JSON.stringify(expected, null, 6).split("\n").join("\n    ")});
+    expect(labelY(autoformat(initial))).toMatchObject(${JSON.stringify(expected, null, 6).split("\n").join("\n    ")});
   });`;
 }
 

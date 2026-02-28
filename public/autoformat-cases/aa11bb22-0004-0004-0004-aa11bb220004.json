@@ -1,0 +1,242 @@
+{
+  "id": "aa11bb22-0004-0004-0004-aa11bb220004",
+  "title": "Four branches from a single split (row ordering with 4 leaves)",
+  "comments": [
+    {
+      "role": "assistant",
+      "text": "R (root) → S (split) → B1, B2, B3, B4 (all leaves).\n\nB1.initialY < B2.initialY < B3.initialY < B4.initialY, so row assignment sorts them in that order.\n\nRow assignment: R=row 0 (first root). Chain R→S claims S=row 0. S (currentRow=0) iterates children sorted by initialY: [B1,B2,B3,B4]. B1: spine → row 0. B2: nextRow++=1. B3: nextRow++=2. B4: nextRow++=3.\n\nForward pass: R.x=0 (primary anchor). S.x=R.right+gap=130. B1..B4: each = S.right+gap=260.\n\nRule 4: S is a split, but all children are leaves (no merge targets) → pull=-Infinity, no movement.\n\nY pass (DFS order): row 0 (R, S, B1), then row 1 (B2), then row 2 (B3), then row 3 (B4).\nAll B_i share x-column [260,360]. Each row's y = prev.bottom+gap.\nRow 0 → y=0 (base). Row 1 → B1.bottom=80 → y=110. Row 2 → B2.bottom=190 → y=220. Row 3 → B3.bottom=300 → y=330.\n\nRule tested: 4+ branches from one split; row indices extend beyond 3; DFS row order visits sibling leaves in y-sorted sequence."
+    }
+  ],
+  "initial": {
+    "nodes": {
+      "R": {
+        "id": "R",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "S": {
+        "id": "S",
+        "type": "node",
+        "x": 200,
+        "y": 10,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "B1": {
+        "id": "B1",
+        "type": "node",
+        "x": 400,
+        "y": -60,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "B2": {
+        "id": "B2",
+        "type": "node",
+        "x": 350,
+        "y": 80,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "B3": {
+        "id": "B3",
+        "type": "node",
+        "x": 420,
+        "y": 200,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "B4": {
+        "id": "B4",
+        "type": "node",
+        "x": 380,
+        "y": 330,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "R",
+          "port": "out"
+        },
+        "input": {
+          "node": "S",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "B1",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "B2",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "B3",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "B4",
+          "port": "in"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "nodes": {
+      "R": {
+        "id": "R",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "S": {
+        "id": "S",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "B1": {
+        "id": "B1",
+        "type": "node",
+        "x": 260,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "B2": {
+        "id": "B2",
+        "type": "node",
+        "x": 260,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "B3": {
+        "id": "B3",
+        "type": "node",
+        "x": 260,
+        "y": 220,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      },
+      "B4": {
+        "id": "B4",
+        "type": "node",
+        "x": 260,
+        "y": 330,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        }
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "R",
+          "port": "out"
+        },
+        "input": {
+          "node": "S",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "B1",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "B2",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "B3",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "B4",
+          "port": "in"
+        }
+      }
+    ]
+  }
+}
