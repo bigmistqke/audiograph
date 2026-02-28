@@ -106,6 +106,28 @@ function traceChain(
   return chain;
 }
 
+// ─── Chain Precomputation ─────────────────────────────────────────────────────
+//
+// Trace all chains once after topology analysis. Stores chains as:
+//   chainMap: startBoundaryId → (firstChildId → chain[])
+// All later passes use chainMap.get(startId)!.get(firstChildId)! instead of
+// calling traceChain() on every traversal.
+
+function buildChainMap(
+  infos: Map<string, NodeInfo>,
+): Map<string, Map<string, string[]>> {
+  const chainMap = new Map<string, Map<string, string[]>>();
+  for (const info of infos.values()) {
+    if (!isBoundary(info.role)) continue;
+    const byFirstChild = new Map<string, string[]>();
+    for (const firstChildId of info.children) {
+      byFirstChild.set(firstChildId, traceChain(info.id, firstChildId, infos));
+    }
+    chainMap.set(info.id, byFirstChild);
+  }
+  return chainMap;
+}
+
 // ─── Topological sort (Kahn's) ────────────────────────────────────────────────
 
 function topologicalSort(infos: Map<string, NodeInfo>): string[] {
@@ -141,6 +163,7 @@ function topologicalSort(infos: Map<string, NodeInfo>): string[] {
 function assignRows(
   infos: Map<string, NodeInfo>,
   order: string[],
+  chainMap: Map<string, Map<string, string[]>>,
 ): Map<string, number> {
   const rowOf = new Map<string, number>();
   let nextRow = 0;
@@ -159,7 +182,7 @@ function assignRows(
     let spineAssigned = false;
 
     for (const firstChildId of sortedChildren) {
-      const chain = traceChain(id, firstChildId, infos);
+      const chain = chainMap.get(id)!.get(firstChildId)!;
       const endId = chain[chain.length - 1];
 
       if (rowOf.has(endId)) {
@@ -315,6 +338,7 @@ function findBestRule4Pull(
   rowOf: Map<string, number>,
   x: Map<string, number>,
   descCache: Map<string, boolean>,
+  chainMap: Map<string, Map<string, string[]>>,
 ): number {
   const splitRow = rowOf.get(splitId) ?? 0;
   const splitWidth = infos.get(splitId)!.width;
@@ -329,7 +353,7 @@ function findBestRule4Pull(
 
   function traverse(currentBoundaryId: string, pathWidthSoFar: number) {
     for (const firstChildId of infos.get(currentBoundaryId)!.children) {
-      const chain = traceChain(currentBoundaryId, firstChildId, infos);
+      const chain = chainMap.get(currentBoundaryId)!.get(firstChildId)!;
       const endId = chain[chain.length - 1];
 
       if (visitedBoundaries.has(endId)) continue;
@@ -402,6 +426,7 @@ function applyRule4(
   order: string[],
   rowOf: Map<string, number>,
   xFwd: Map<string, number>,
+  chainMap: Map<string, Map<string, string[]>>,
 ): Map<string, number> {
   const x = new Map(xFwd);
   const descCache = new Map<string, boolean>();
@@ -411,7 +436,7 @@ function applyRule4(
     const info = infos.get(id)!;
     if (info.role !== "split") continue;
 
-    const pull = findBestRule4Pull(id, infos, rowOf, x, descCache);
+    const pull = findBestRule4Pull(id, infos, rowOf, x, descCache, chainMap);
     if (pull === -Infinity) continue;
 
     const prevId = info.parents[0];
@@ -438,7 +463,7 @@ function applyRule4(
   for (const rootInfo of secondaryRoots) {
     const id = rootInfo.id;
 
-    const pull = findBestRule4Pull(id, infos, rowOf, x, descCache);
+    const pull = findBestRule4Pull(id, infos, rowOf, x, descCache, chainMap);
     if (pull === -Infinity) continue;
 
     // Secondary roots have no prev — pull alone determines x (can be negative).
@@ -466,6 +491,7 @@ function applyRule4(
 function computeRule3Map(
   infos: Map<string, NodeInfo>,
   rowOf: Map<string, number>,
+  chainMap: Map<string, Map<string, string[]>>,
 ): Map<string, { endId: string; prevId: string; startId: string }> {
   const rule3Map = new Map<string, { endId: string; prevId: string; startId: string }>();
 
@@ -474,7 +500,7 @@ function computeRule3Map(
     const startRow = rowOf.get(info.id) ?? 0;
 
     for (const firstChildId of info.children) {
-      const chain = traceChain(info.id, firstChildId, infos);
+      const chain = chainMap.get(info.id)!.get(firstChildId)!;
       if (chain.length < 3) continue; // need at least 1 internal node
 
       const endId = chain[chain.length - 1];
@@ -691,16 +717,17 @@ export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
 
   const infos = buildTopology(graph);
   const order = topologicalSort(infos);
+  const chainMap = buildChainMap(infos);
 
   // Primary root: most top-left (smallest y, tie-break smallest x)
   const primaryRoot = [...infos.values()]
     .filter((n) => n.role === "root")
     .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
 
-  const rowOf = assignRows(infos, order);
+  const rowOf = assignRows(infos, order, chainMap);
   const xFwd = forwardPass(infos, primaryRoot.id, order, rowOf);
-  const xAfterRule4 = applyRule4(infos, primaryRoot.id, order, rowOf, xFwd);
-  const rule3Map = computeRule3Map(infos, rowOf);
+  const xAfterRule4 = applyRule4(infos, primaryRoot.id, order, rowOf, xFwd, chainMap);
+  const rule3Map = computeRule3Map(infos, rowOf, chainMap);
   const xFinal = reconcilePass(
     infos,
     order,
