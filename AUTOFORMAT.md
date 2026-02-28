@@ -58,14 +58,20 @@ Identify all boundary nodes (split / merge / merge-split / root / leaf), then tr
 
 Row assignment and x-computation happen in a **single DFS traversal**. They are not separate phases.
 
-**At each split node**, sort its outgoing branches by the **current y-position of each branch's first node** (ascending). Traverse branches in that order:
+**Starting point:** DFS begins from the **primary root** — the root node with the smallest y, with x as tiebreaker (most top-left). After the primary DFS completes, any remaining roots (secondary roots) are processed in top-left order (smallest y, then smallest x).
+
+**At each split node**, sort its outgoing branches by the **current y-position of each branch's first node** (ascending). Traverse branches in that order — this is the **forward phase**:
 
 - The branch with the **lowest initial y** continues in the **current row** (spine continuation).
 - Each subsequent branch **opens a new row** below — unless its first node is already row-assigned (claimed by a prior branch in the traversal). Already-claimed nodes represent cross-row edges; no new row is opened for them.
 
 Row-claiming is **first-come-first-served in y-order** across the whole DFS. A node gets the row of whichever branch reaches it first — always the branch whose start had the lowest initial y, since that branch is traversed first.
 
-**X-position** at each node is determined by the placement rules (see *X-Position Rules*). The key principle: at a **merge**, take the max of all parent right-edges (critical path). At a **split**, position to align with the most constraining independent downstream merge — the one that, if the split were placed just in time for its chain to fit, would push the split furthest right.
+After all branches are fully explored, the split computes its **pull** in a **post-order phase** (see Rule 4).
+
+**Merges are settled on first visit.** When a merge is first reached in the DFS, its x-position is computed from the parents already visited (same or higher-priority rows). If the merge is reached again later via a cross-row edge from a lower-priority row, it is not repositioned — that arrival produces a longer diagonal edge accepted as-is.
+
+**X-position** at each node is determined by the placement rules (see *X-Position Rules*).
 
 ### Step 3: Build Spatial Data Structure
 
@@ -100,22 +106,22 @@ Every node's x-position is determined by exactly one rule. The rules form a prio
 | Priority | Role | Rule |
 |----------|------|------|
 | 1 | **Primary root** | Anchored to current user position — not moved |
-| 2 | Merge / merge-split | `x = max(parent.right for all parents) + gap` |
-| 3 | Last internal before a **merge** end boundary **in a lower row** | `x = max(prev.right + gap, end.x - width - gap)` |
-| 4 | Split or secondary root with an **independent** downstream merge | `x = merge.x_fwd - min_direct_path_width` — or `x = max(prev.right + gap, merge.x_fwd - min_direct_path_width)` if a prev exists |
+| 2 | Merge / merge-split | `x = max(parent.right for parents in same or higher-priority rows) + gap` |
+| 3 | Last internal before a **merge** end boundary **in a higher-priority row** (smaller row index) | `x = max(prev.right + gap, end.x - width - gap)` |
+| 4 | Split or secondary root with a reachable **independent** merge in the same or higher-priority row | `x = merge.x_excl - min_path_width` — or `x = max(prev.right + gap, merge.x_excl - min_path_width)` if a prev exists |
 | 5 | All other nodes | `x = prev.right + gap` (sequential) |
 
-**Rule 3:** If the end boundary is not a merge, is in the same row, or is in a higher row, the condition is not met and the node falls through to rule 5. No special-casing needed.
+**Rule 3:** "Higher-priority row" means smaller row index (closer to the top of the layout). If the end boundary is not a merge, is in the same row, or is in a lower-priority row (larger row index), the condition is not met and the node falls through to rule 5.
 
 **Rule 4:**
 
-- `min_direct_path_width` = `this.width + sum(internal.widths) + (n+1) × gap`, where n = number of internals on the direct chain between this node and the target merge. Does not cross chain boundaries.
-- **Independence:** merge M is independent of split S if S is not the dominant input to M — i.e., increasing S.right would not increase M.x_fwd. Some other path (not going through S) drives M further right. To verify, compute M.x without S's contribution by traversing alternative paths to M, **explicitly skipping S** to avoid cycles. (Example: if S→E→M and S→M directly, skip S when evaluating E's contribution to M.)
-- **Independence guarantees convergence.** If M is independent of S, its dominant path starts from a node not downstream of S — a root or something positioned earlier in the DFS. By the time the traversal returns to position S, all branches have been explored and M.x_fwd is already settled. No circular dependency arises. If M were dependent on S, rule 4 would not fire and S falls through to rule 5, where no merge position is needed. A single DFS pass always converges.
-- **Target merge selection:** among all independent downstream merges, pick the one that results in the **largest x for the split** (most constraining). Prefer same-row merges among equally-constraining candidates.
+- **Target merge:** Follow paths forward from S through any intermediate boundaries. Skip same-priority intermediate merges (same row as S) and continue through them. Stop at the **first merge M with a strictly smaller row index** (higher-priority row) encountered along the path. If multiple paths lead to different first higher-priority merges, pick the one that gives the **largest x for S** (most constraining). For splits and secondary roots whose branches stay in the same or lower-priority rows, the target may also be a same-row merge reached via a direct chain — same-row merges are valid targets when no higher-priority merge is reachable.
+- `min_path_width` = `sum of widths of all nodes on the path from S to M (excluding M) + (number of those nodes) × gap`. This includes any intermediate boundary nodes (merges, splits) traversed along the path — not just simple internals.
+- **Independence:** compute `merge.x_excl` — M's x-position excluding S's subtree entirely. For each of M's parents: if the parent is downstream of S, skip it; otherwise include its right-edge. `merge.x_excl = max(non-S-subtree parent right-edges) + gap`. M is independent of S if `merge.x_excl` is finite (M has at least one parent not downstream of S). Use `merge.x_excl` as the pull target — not M's full forward-pass x.
+- **Independence guarantees convergence.** If M is independent of S, its dominant path comes from outside S's subtree — settled before S is positioned in the post-order phase. A single DFS pass always converges.
 - **Secondary roots** (no prev): the pull alone determines x and can be negative — no `max(prev.right + gap, …)` guard.
 
-Rule 4 unifies split-pull and secondary-root placement: both place a chain start so its direct path fits exactly between itself and a downstream merge.
+Rule 4 unifies split-pull and secondary-root placement: both place a chain start so its full path fits exactly between itself and a downstream merge.
 
 Adding an edge can **promote** a node from simple → merge, making it a new chain boundary and splitting the chain it previously belonged to.
 
@@ -123,9 +129,9 @@ Adding an edge can **promote** a node from simple → merge, making it a new cha
 
 ## Root Anchoring
 
-The **primary root** (the root with the smallest current y) is anchored to its current user position — x and y are not recomputed. All other nodes are placed relative to it.
+The **primary root** is the root node with the smallest y, with x as tiebreaker (most top-left). It is anchored to its current user position — x and y are not recomputed. All other nodes are placed relative to it.
 
-**Secondary roots** follow rule 4 and can land at negative x if needed to fit their chain before a shared downstream merge.
+**Secondary roots** follow rule 4 and can land at negative x if needed to fit their path before a shared downstream merge. They are processed after the primary DFS completes, in top-left order (smallest y, then smallest x).
 
 ---
 
