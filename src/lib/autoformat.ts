@@ -206,20 +206,12 @@ function forwardPass(
     if (id === primaryRootId) {
       x.set(id, info.initialX); // Rule 1: anchored
     } else if (isMergeLike(info.role)) {
-      // Rule 2: only consider parents in same or higher-priority rows
-      const myRow = rowOf.get(id) ?? 0;
-      const validParents = info.parents.filter(
-        (pid) => (rowOf.get(pid) ?? 0) <= myRow,
+      // Rule 2: max of all parents' right edges + gap
+      x.set(
+        id,
+        Math.max(...info.parents.map((pid) => x.get(pid)! + infos.get(pid)!.width)) +
+          GAP,
       );
-      if (validParents.length > 0) {
-        x.set(
-          id,
-          Math.max(...validParents.map((pid) => x.get(pid)! + infos.get(pid)!.width)) +
-            GAP,
-        );
-      } else {
-        x.set(id, 0);
-      }
     } else if (info.parents.length === 0) {
       x.set(id, 0); // secondary root: provisional, adjusted by Rule 4
     } else {
@@ -533,20 +525,14 @@ function reconcilePass(
       continue;
     }
 
-    // Rule 2: merge/merge-split — only same or higher-priority parents
+    // Rule 2: merge/merge-split — max of all parents' right edges + gap
     if (isMergeLike(info.role)) {
-      const myRow = rowOf.get(id) ?? 0;
-      const validParents = info.parents.filter(
-        (pid) => (rowOf.get(pid) ?? 0) <= myRow,
+      result.set(
+        id,
+        Math.max(
+          ...info.parents.map((pid) => result.get(pid)! + infos.get(pid)!.width),
+        ) + GAP,
       );
-      if (validParents.length > 0) {
-        result.set(
-          id,
-          Math.max(
-            ...validParents.map((pid) => result.get(pid)! + infos.get(pid)!.width),
-          ) + GAP,
-        );
-      }
       continue;
     }
 
