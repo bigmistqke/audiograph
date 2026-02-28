@@ -1,4 +1,4 @@
-import type { Graph } from "./graph/create-graph-api";
+import type { Graph } from "../graph/create-graph-api";
 
 const GAP = 30;
 
@@ -192,7 +192,10 @@ function assignRows(
         // boundary's current row, prefer it — the higher-priority row wins.
         const chainRow = !spineAssigned ? currentRow : nextRow++;
         if (!spineAssigned) spineAssigned = true;
-        if (isMergeLike(infos.get(endId)!.role) && chainRow < rowOf.get(endId)!) {
+        if (
+          isMergeLike(infos.get(endId)!.role) &&
+          chainRow < rowOf.get(endId)!
+        ) {
           rowOf.set(endId, chainRow);
         }
         for (let i = 1; i < chain.length - 1; i++) {
@@ -314,7 +317,8 @@ function propagateSequential(
 ) {
   const info = infos.get(id)!;
   // Stop at true boundary types that have their own rules
-  if (isMergeLike(info.role) || info.role === "split" || info.role === "root") return;
+  if (isMergeLike(info.role) || info.role === "split" || info.role === "root")
+    return;
 
   x.set(id, prevRight + GAP);
   for (const childId of info.children) {
@@ -499,7 +503,10 @@ function computeRule3Map(
   rowOf: Map<string, number>,
   chainMap: Map<string, Map<string, string[]>>,
 ): Map<string, { endId: string; prevId: string; startId: string }> {
-  const rule3Map = new Map<string, { endId: string; prevId: string; startId: string }>();
+  const rule3Map = new Map<
+    string,
+    { endId: string; prevId: string; startId: string }
+  >();
 
   for (const info of infos.values()) {
     if (!isBoundary(info.role)) continue;
@@ -518,8 +525,7 @@ function computeRule3Map(
       const lastInternalId = chain[chain.length - 2];
       if (!rule3Map.has(lastInternalId)) {
         // prev = node just before lastInternal in the chain
-        const prevId =
-          chain.length >= 4 ? chain[chain.length - 3] : info.id;
+        const prevId = chain.length >= 4 ? chain[chain.length - 3] : info.id;
         rule3Map.set(lastInternalId, { endId, prevId, startId: info.id });
       }
     }
@@ -565,8 +571,14 @@ function reconcilePass(
       const prevInfo = infos.get(prevId)!;
       const prevRight = result.get(prevId)! + prevInfo.width;
       const xExcl = computeXExcl(endId, startId, infos, result, ancestorSets);
-      const pullTarget = xExcl !== -Infinity ? xExcl - info.width - GAP : -Infinity;
-      result.set(id, pullTarget !== -Infinity ? Math.max(prevRight + GAP, pullTarget) : prevRight + GAP);
+      const pullTarget =
+        xExcl !== -Infinity ? xExcl - info.width - GAP : -Infinity;
+      result.set(
+        id,
+        pullTarget !== -Infinity
+          ? Math.max(prevRight + GAP, pullTarget)
+          : prevRight + GAP,
+      );
       continue;
     }
 
@@ -669,7 +681,8 @@ function yPass(
   const baseBottomY = infos.get(primaryRootId)!.initialY - GAP;
 
   // Interval structure: sorted by xStart for early-exit queries.
-  const intervals: Array<{ xStart: number; xEnd: number; bottomY: number }> = [];
+  const intervals: Array<{ xStart: number; xEnd: number; bottomY: number }> =
+    [];
 
   function insertInterval(xStart: number, xEnd: number, bottomY: number) {
     const iv = { xStart, xEnd, bottomY };
@@ -743,7 +756,15 @@ export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
 
   const rowOf = assignRows(infos, order, chainMap);
   const xFwd = forwardPass(infos, primaryRoot.id, order, rowOf);
-  const xAfterRule4 = applyRule4(infos, primaryRoot.id, order, rowOf, xFwd, chainMap, ancestorSets);
+  const xAfterRule4 = applyRule4(
+    infos,
+    primaryRoot.id,
+    order,
+    rowOf,
+    xFwd,
+    chainMap,
+    ancestorSets,
+  );
   const rule3Map = computeRule3Map(infos, rowOf, chainMap);
   const xFinal = reconcilePass(
     infos,

@@ -22,7 +22,9 @@ import styles from "./autoformat-route.module.css";
 
 // ─── Workshop node types ──────────────────────────────────────────────────────
 
-function makeNodeDef(resizable: boolean): NodeTypeDef<Record<string, never>, null> {
+function makeNodeDef(
+  resizable: boolean,
+): NodeTypeDef<Record<string, never>, null> {
   return {
     title: "node",
     dimensions: { x: 100, y: GRID * 8 },
@@ -102,13 +104,21 @@ interface Diff {
   y: AxisDiff;
 }
 
-function compareAxis(expected: Graph, result: Graph, axis: "x" | "y"): AxisDiff {
+function compareAxis(
+  expected: Graph,
+  result: Graph,
+  axis: "x" | "y",
+): AxisDiff {
   const mismatches: AxisDiff["mismatches"] = [];
   for (const [id, node] of Object.entries(expected.nodes)) {
     const got = result.nodes[id]?.[axis];
     if (got === undefined) continue;
     if (Math.round(got) !== Math.round(node[axis])) {
-      mismatches.push({ id, expected: Math.round(node[axis]), got: Math.round(got) });
+      mismatches.push({
+        id,
+        expected: Math.round(node[axis]),
+        got: Math.round(got),
+      });
     }
   }
   return { pass: mismatches.length === 0, mismatches };
@@ -351,12 +361,16 @@ export function AutoformatRoute() {
           <For each={state.cases}>
             {(c, i) => {
               const [collapsed, setCollapsed] = createSignal(true);
-              const result = createMemo(() => autoformat(state.cases[i()].initial));
+              const result = createMemo(() =>
+                autoformat(state.cases[i()].initial),
+              );
               const diff = createMemo(() => diffs()[i()]!);
 
               // Sync edges from Initial to Expected
               createEffect(() => {
-                setState("cases", i(), "expected", "edges", [...state.cases[i()].initial.edges]);
+                setState("cases", i(), "expected", "edges", [
+                  ...state.cases[i()].initial.edges,
+                ]);
               });
 
               // Per-node sync: seed on add, track dimensions, remove on cleanup
@@ -366,23 +380,47 @@ export function AutoformatRoute() {
                   (key) => {
                     // Seed node in Expected if not yet present
                     if (untrack(() => !state.cases[i()].expected.nodes[key])) {
-                      const node = untrack(() => state.cases[i()].initial.nodes[key]!);
-                      setState("cases", i(), "expected", "nodes", key, structuredClone(node));
+                      const node = untrack(
+                        () => state.cases[i()].initial.nodes[key]!,
+                      );
+                      setState(
+                        "cases",
+                        i(),
+                        "expected",
+                        "nodes",
+                        key,
+                        structuredClone(node),
+                      );
                     }
 
                     // Track dimension changes for this node
                     createEffect(() => {
-                      const dims = state.cases[i()].initial.nodes[key]?.dimensions;
+                      const dims =
+                        state.cases[i()].initial.nodes[key]?.dimensions;
                       if (dims) {
-                        setState("cases", i(), "expected", "nodes", key, "dimensions", { x: dims.x, y: dims.y });
+                        setState(
+                          "cases",
+                          i(),
+                          "expected",
+                          "nodes",
+                          key,
+                          "dimensions",
+                          { x: dims.x, y: dims.y },
+                        );
                       }
                     });
 
                     // Remove from Expected when node is removed from Initial
                     onCleanup(() => {
-                      setState("cases", i(), "expected", "nodes", produce((nodes) => {
-                        delete nodes[key];
-                      }));
+                      setState(
+                        "cases",
+                        i(),
+                        "expected",
+                        "nodes",
+                        produce((nodes) => {
+                          delete nodes[key];
+                        }),
+                      );
                     });
                   },
                 ),
@@ -414,7 +452,9 @@ export function AutoformatRoute() {
                       <button
                         class={styles.collapseBtn}
                         onClick={() => setCollapsed((v) => !v)}
-                        title={collapsed() ? "Expand messages" : "Collapse messages"}
+                        title={
+                          collapsed() ? "Expand messages" : "Collapse messages"
+                        }
                       >
                         {collapsed() ? "▸ msg" : "▾ msg"}
                       </button>

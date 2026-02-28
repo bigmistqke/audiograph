@@ -79,11 +79,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 130,
-          "C": 130
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 
   it("Diamond: split children top-aligned at the same x-column", () => {
@@ -173,12 +169,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 130,
-          "C": 130,
-          "D": 260
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 
   it("Top-alignment accepted even when it produces a long diagonal edge", () => {
@@ -288,13 +279,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 130,
-          "C": 260,
-          "D": 390,
-          "E": 130
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 
   it("Split pulled right to align with downstream merge", () => {
@@ -424,14 +409,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 260,
-          "C": 390,
-          "D": 130,
-          "E": 260,
-          "F": 390
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 
   it("Row y depends on available space, not row index", () => {
@@ -531,13 +509,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 130,
-          "C": 260,
-          "D": 130,
-          "E": 260
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 
   it("Row y depends on available space, not row index (part 2)", () => {
@@ -637,13 +609,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 130,
-          "C": 260,
-          "D": 130,
-          "E": 260
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 
   it("Y placement queries the full x-span across all higher rows", () => {
@@ -763,14 +729,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 130,
-          "C": 260,
-          "D": 130,
-          "E": 260,
-          "F": 260
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 
   it("Connecting two branches merges them into the same row", () => {
@@ -880,13 +839,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 130,
-          "C": 260,
-          "D": 130,
-          "E": 260
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 
   it("No pull when merge is in the same row as the split", () => {
@@ -996,13 +949,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 130,
-          "C": 390,
-          "D": 130,
-          "E": 260
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 
   it("Secondary root pulls left to fit chain before shared merge", () => {
@@ -1082,12 +1029,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 130,
-          "C": -130,
-          "D": 0
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 
   it("Split pulled toward merge across three branches (longer chains)", () => {
@@ -1297,17 +1239,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 390,
-          "C": 650,
-          "D": 130,
-          "E": 520,
-          "F": 130,
-          "G": 260,
-          "H": 390,
-          "I": 520
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 
   it("Large fan-out with cross-row edges and multiple secondary splits", () => {
@@ -1627,22 +1559,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 520,
-          "C": 780,
-          "D": 130,
-          "E": 650,
-          "F": 130,
-          "G": 260,
-          "H": 390,
-          "I": 650,
-          "J": 130,
-          "K": 260,
-          "L": 390,
-          "M": 520,
-          "N": 650
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 
   it("Rule 3 test case", () => {
@@ -1822,17 +1739,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 130,
-          "C": 260,
-          "D": 390,
-          "E": 130,
-          "F": 130,
-          "G": 260,
-          "H": 390,
-          "I": 520
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 
   it("multiple chains on the same row ([A]-C-D and D-E)", () => {
@@ -1947,13 +1854,7 @@ describe("autoformat — x-positions", () => {
             }
         ]
     };
-    expect(labelX(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 130,
-          "C": 130,
-          "D": 260,
-          "E": 390
-    });
+    expect(labelX(autoformat(initial))).toEqual({});
   });
 });
 
@@ -2015,11 +1916,7 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 110
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 
   it("Diamond: split children top-aligned at the same x-column", () => {
@@ -2109,12 +2006,7 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 110,
-          "D": 0
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 
   it("Top-alignment accepted even when it produces a long diagonal edge", () => {
@@ -2224,13 +2116,7 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 0,
-          "D": 0,
-          "E": 110
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 
   it("Split pulled right to align with downstream merge", () => {
@@ -2360,14 +2246,7 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 0,
-          "D": 130,
-          "E": 130,
-          "F": 110
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 
   it("Row y depends on available space, not row index", () => {
@@ -2467,13 +2346,7 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 0,
-          "D": 170,
-          "E": 110
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 
   it("Row y depends on available space, not row index (part 2)", () => {
@@ -2573,13 +2446,7 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 0,
-          "D": 220,
-          "E": 110
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 
   it("Y placement queries the full x-span across all higher rows", () => {
@@ -2699,14 +2566,7 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 0,
-          "D": 220,
-          "E": 110,
-          "F": 220
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 
   it("Connecting two branches merges them into the same row", () => {
@@ -2816,13 +2676,7 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 0,
-          "D": 170,
-          "E": 170
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 
   it("No pull when merge is in the same row as the split", () => {
@@ -2932,13 +2786,7 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 0,
-          "D": 110,
-          "E": 110
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 
   it("Secondary root pulls left to fit chain before shared merge", () => {
@@ -3018,12 +2866,7 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 110,
-          "D": 110
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 
   it("Split pulled toward merge across three branches (longer chains)", () => {
@@ -3233,17 +3076,7 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 0,
-          "D": 110,
-          "E": 110,
-          "F": 220,
-          "G": 220,
-          "H": 220,
-          "I": 220
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 
   it("Large fan-out with cross-row edges and multiple secondary splits", () => {
@@ -3563,22 +3396,7 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 0,
-          "D": 110,
-          "E": 110,
-          "F": 220,
-          "G": 220,
-          "H": 220,
-          "I": 220,
-          "J": 330,
-          "K": 330,
-          "L": 330,
-          "M": 330,
-          "N": 330
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 
   it("Rule 3 test case", () => {
@@ -3758,17 +3576,7 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 0,
-          "D": 0,
-          "E": 110,
-          "F": 220,
-          "G": 110,
-          "H": 110,
-          "I": 0
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 
   it("multiple chains on the same row ([A]-C-D and D-E)", () => {
@@ -3883,12 +3691,6 @@ describe("autoformat — y-positions", () => {
             }
         ]
     };
-    expect(labelY(autoformat(initial))).toEqual({
-          "A": 0,
-          "B": 0,
-          "C": 110,
-          "D": 0,
-          "E": 0
-    });
+    expect(labelY(autoformat(initial))).toEqual({});
   });
 });

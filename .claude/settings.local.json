@@ -16,7 +16,9 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(deciduous commands)",
       "Bash(find:*)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(pnpm add -D vitest 2>&1 | tail -5)",
+      "Bash(pnpm test src/lib/autoformat.test.ts 2>&1 | tail -40)"
     ]
   }
 }
