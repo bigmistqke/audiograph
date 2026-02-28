@@ -63,8 +63,6 @@ function buildTopology(graph: Graph): Map<string, NodeInfo> {
     const nIn = info.parents.length;
     const nOut = info.children.length;
 
-    // Check multi-input before checking leaf — a node with multiple parents
-    // is always a merge (possibly with no outputs, i.e. a merge-leaf).
     if (nIn === 0) info.role = "root";
     else if (nIn > 1 && nOut > 1) info.role = "merge-split";
     else if (nIn > 1) info.role = "merge";
@@ -76,12 +74,18 @@ function buildTopology(graph: Graph): Map<string, NodeInfo> {
   return infos;
 }
 
+function isMergeLike(role: NodeRole): boolean {
+  return role === "merge" || role === "merge-split";
+}
+
+// A "boundary" node is any non-simple node (root, leaf, split, merge, merge-split).
+// Chains run between boundary nodes; simple nodes are interior to chains.
 function isBoundary(role: NodeRole): boolean {
   return role !== "simple";
 }
 
 // Trace a chain from a boundary node through one of its output children.
-// Returns [startId, ...simples, endId] where endId is the next boundary node.
+// Returns [startId, ...simpleInteriors, endBoundaryId].
 function traceChain(
   startId: string,
   firstChildId: string,
@@ -94,7 +98,8 @@ function traceChain(
     chain.push(currentId);
     const current = infos.get(currentId)!;
     if (isBoundary(current.role)) break;
-    currentId = current.children[0]; // simple: exactly one child
+    if (current.children.length === 0) break; // safety guard
+    currentId = current.children[0];
   }
 
   return chain;
@@ -126,7 +131,7 @@ function topologicalSort(infos: Map<string, NodeInfo>): string[] {
 
 // ─── Step 2a: Row Assignment ──────────────────────────────────────────────────
 //
-// Process boundary nodes in topological order. At each split, sort output chains
+// Process boundary nodes in topological order. At each node, sort output chains
 // by the initial y of their first child (ascending). The first unclaimed chain
 // continues in the current row (spine); subsequent unclaimed chains open new rows.
 // Already-claimed chain ends represent cross-row edges — no new row is opened.
@@ -141,13 +146,11 @@ function assignRows(
 
   for (const id of order) {
     const info = infos.get(id)!;
-    if (info.role === "simple") continue; // simple nodes are assigned via their chain
+    if (info.role === "simple" || info.role === "leaf") continue;
 
-    // Assign a row to this boundary node if it hasn't been claimed yet
     if (!rowOf.has(id)) rowOf.set(id, nextRow++);
     const currentRow = rowOf.get(id)!;
 
-    // Sort output chains by the initial y of their first child
     const sortedChildren = [...info.children].sort(
       (a, b) => infos.get(a)!.initialY - infos.get(b)!.initialY,
     );
@@ -168,7 +171,6 @@ function assignRows(
         continue;
       }
 
-      // Assign a row to this chain
       const chainRow = !spineAssigned ? currentRow : nextRow++;
       if (!spineAssigned) spineAssigned = true;
 
@@ -181,166 +183,381 @@ function assignRows(
   return rowOf;
 }
 
-// ─── Step 2b: Forward Pass (minimum x positions) ─────────────────────────────
+// ─── Step 2b: Forward Pass ────────────────────────────────────────────────────
 //
-// Walk nodes in topological order, placing each at its minimum x.
-// Rules applied: 1 (primary root anchored), 2 (merge: max parent right), 5 (sequential).
-// Rules 3 and 4 are applied in the backward pass.
+// Walk nodes in topological order, placing each at its provisional x.
+//
+// Rule 1: primary root → anchored to current user position.
+// Rule 2: merge/merge-split → max(parent.right for parents in same or
+//         higher-priority rows) + gap.  (Higher priority = smaller row index.)
+// Rule 5: all others → prev.right + gap (secondary roots start at 0).
 
 function forwardPass(
   infos: Map<string, NodeInfo>,
   primaryRootId: string,
   order: string[],
+  rowOf: Map<string, number>,
 ): Map<string, number> {
-  const xFwd = new Map<string, number>();
+  const x = new Map<string, number>();
 
   for (const id of order) {
     const info = infos.get(id)!;
-    let x: number;
 
     if (id === primaryRootId) {
-      x = info.initialX; // Rule 1: anchored
-    } else if (info.role === "merge" || info.role === "merge-split") {
-      // Rule 2: x = max(parent.right) + gap
-      x =
-        Math.max(
-          ...info.parents.map((pid) => xFwd.get(pid)! + infos.get(pid)!.width),
-        ) + GAP;
-    } else if (info.parents.length === 0) {
-      x = 0; // secondary root: provisional, adjusted by rule 4
-    } else {
-      // Rule 5: sequential
-      const prevId = info.parents[0];
-      x = xFwd.get(prevId)! + infos.get(prevId)!.width + GAP;
-    }
-
-    xFwd.set(id, x);
-  }
-
-  return xFwd;
-}
-
-// ─── Step 2c: Rule 4 — Split Pulls ───────────────────────────────────────────
-
-// Check whether splitId is an ancestor of nodeId (i.e. there is a forward path
-// from splitId to nodeId). Walks backward through parents.
-function isAncestor(
-  nodeId: string,
-  splitId: string,
-  infos: Map<string, NodeInfo>,
-  visited: Set<string> = new Set(),
-): boolean {
-  if (nodeId === splitId) return true;
-  if (visited.has(nodeId)) return false;
-  visited.add(nodeId);
-  return infos
-    .get(nodeId)!
-    .parents.some((pid) => isAncestor(pid, splitId, infos, visited));
-}
-
-// For merge M and split S: M is independent of S if the external parents of M
-// (those not downstream of S) STRICTLY dominate its internal parents (those
-// downstream of S, including S itself). A tie means increasing S.right would
-// break the tie and raise M.x_fwd — so M is NOT independent.
-function isIndependent(
-  mergeId: string,
-  splitId: string,
-  infos: Map<string, NodeInfo>,
-  xFwd: Map<string, number>,
-): boolean {
-  const mergeInfo = infos.get(mergeId)!;
-
-  let maxExternal = -Infinity; // max right of parents NOT downstream of S
-  let maxInternal = -Infinity; // max right of parents downstream of S (incl. S itself)
-
-  for (const pid of mergeInfo.parents) {
-    const right = xFwd.get(pid)! + infos.get(pid)!.width;
-    if (isAncestor(pid, splitId, infos)) {
-      maxInternal = Math.max(maxInternal, right);
-    } else {
-      maxExternal = Math.max(maxExternal, right);
-    }
-  }
-
-  return maxExternal > maxInternal; // strictly greater: external path dominates
-}
-
-// Apply rule 4 in reverse topological order.
-// For each split (or secondary root), find the most constraining independent
-// downstream merge reachable via a direct chain, and pull the split toward it.
-function applyRule4(
-  infos: Map<string, NodeInfo>,
-  xFwd: Map<string, number>,
-  order: string[],
-  primaryRootId: string,
-): Map<string, number> {
-  const x = new Map(xFwd);
-
-  for (const id of [...order].reverse()) {
-    const info = infos.get(id)!;
-
-    const isSplit = info.role === "split";
-    const isSecondaryRoot = info.role === "root" && id !== primaryRootId;
-    if (!isSplit && !isSecondaryRoot) continue;
-
-    // Find the most constraining independent merge reachable via a direct chain
-    let bestPull = -Infinity;
-
-    for (const firstChildId of info.children) {
-      const chain = traceChain(id, firstChildId, infos);
-      const endId = chain[chain.length - 1];
-      const endInfo = infos.get(endId)!;
-
-      if (endInfo.role !== "merge" && endInfo.role !== "merge-split") continue;
-      if (!isIndependent(endId, id, infos, xFwd)) continue;
-
-      // min_direct_path_width = this.width + sum(internal widths) + (n+1) * gap
-      let internalsWidth = 0;
-      for (let i = 1; i < chain.length - 1; i++) {
-        internalsWidth += infos.get(chain[i])!.width;
+      x.set(id, info.initialX); // Rule 1: anchored
+    } else if (isMergeLike(info.role)) {
+      // Rule 2: only consider parents in same or higher-priority rows
+      const myRow = rowOf.get(id) ?? 0;
+      const validParents = info.parents.filter(
+        (pid) => (rowOf.get(pid) ?? 0) <= myRow,
+      );
+      if (validParents.length > 0) {
+        x.set(
+          id,
+          Math.max(...validParents.map((pid) => x.get(pid)! + infos.get(pid)!.width)) +
+            GAP,
+        );
+      } else {
+        x.set(id, 0);
       }
-      const nInternals = chain.length - 2;
-      const minPathWidth = info.width + internalsWidth + (nInternals + 1) * GAP;
-
-      const pull = xFwd.get(endId)! - minPathWidth;
-      if (pull > bestPull) bestPull = pull;
-    }
-
-    if (bestPull === -Infinity) continue; // no valid independent merge
-
-    const prevId = info.parents[0];
-    const finalX = prevId
-      ? Math.max(x.get(prevId)! + infos.get(prevId)!.width + GAP, bestPull)
-      : bestPull; // secondary root: pull alone (can be negative)
-
-    if (finalX === x.get(id)) continue;
-    x.set(id, finalX);
-
-    // Propagate updated x through sequential (simple) chain nodes; stop at boundaries
-    const startRight = finalX + info.width;
-    for (const childId of info.children) {
-      propagateSimple(childId, startRight, x, infos);
+    } else if (info.parents.length === 0) {
+      x.set(id, 0); // secondary root: provisional, adjusted by Rule 4
+    } else {
+      // Rule 5: sequential from single parent
+      const prevId = info.parents[0];
+      x.set(id, x.get(prevId)! + infos.get(prevId)!.width + GAP);
     }
   }
 
   return x;
 }
 
-function propagateSimple(
+// ─── Descendant Check ─────────────────────────────────────────────────────────
+
+function isDescendantOf(
+  nodeId: string,
+  ancestorId: string,
+  infos: Map<string, NodeInfo>,
+  cache: Map<string, boolean>,
+): boolean {
+  if (nodeId === ancestorId) return true;
+  const key = `${nodeId}|${ancestorId}`;
+  if (cache.has(key)) return cache.get(key)!;
+  const result = infos
+    .get(nodeId)!
+    .parents.some((p) => isDescendantOf(p, ancestorId, infos, cache));
+  cache.set(key, result);
+  return result;
+}
+
+// ─── x_excl Computation ───────────────────────────────────────────────────────
+//
+// For merge M and split S: compute M's x-position excluding S's subtree entirely.
+// x_excl = max(right-edges of M's parents NOT downstream of S) + GAP.
+// Returns -Infinity if M has no external parents (M is not independent of S).
+
+function computeXExcl(
+  mergeId: string,
+  splitId: string,
+  infos: Map<string, NodeInfo>,
+  x: Map<string, number>,
+  descCache: Map<string, boolean>,
+): number {
+  let maxExternal = -Infinity;
+  for (const pid of infos.get(mergeId)!.parents) {
+    if (isDescendantOf(pid, splitId, infos, descCache)) continue;
+    const right = x.get(pid)! + infos.get(pid)!.width;
+    if (right > maxExternal) maxExternal = right;
+  }
+  if (maxExternal === -Infinity) return -Infinity; // not independent
+  return maxExternal + GAP;
+}
+
+// ─── Propagate Sequential ────────────────────────────────────────────────────
+//
+// After a split is pulled, propagate the new x through simple and leaf nodes
+// downstream. Stop at merge/split/merge-split boundaries (they have their own
+// placement rules). Leaves ARE updated (they use Rule 5 like simple nodes).
+
+function propagateSequential(
   id: string,
   prevRight: number,
   x: Map<string, number>,
   infos: Map<string, NodeInfo>,
 ) {
   const info = infos.get(id)!;
-  if (isBoundary(info.role)) return; // boundary nodes keep their x
+  // Stop at true boundary types that have their own rules
+  if (isMergeLike(info.role) || info.role === "split" || info.role === "root") return;
 
-  const newX = prevRight + GAP;
-  x.set(id, newX);
-
+  x.set(id, prevRight + GAP);
   for (const childId of info.children) {
-    propagateSimple(childId, newX + info.width, x, infos);
+    propagateSequential(childId, prevRight + GAP + info.width, x, infos);
   }
+}
+
+// ─── Step 2c: Find Best Rule 4 Pull ──────────────────────────────────────────
+//
+// Multi-hop path traversal from splitId to find the most constraining
+// independent merge target.
+//
+// Priority:
+//   - PRIMARY: first merge with strictly smaller row index (higher priority)
+//     encountered along each path. Stop traversal at primary targets.
+//   - FALLBACK: merges in same or lower-priority rows. Continue traversal
+//     through them to look for deeper primary targets.
+//   - Same-priority merges: skip as target, continue traversal through them.
+//
+// pathWidthSoFar tracks: sum(widths of [splitId..currentBoundary]) + count×GAP.
+// This equals the minimum horizontal span from S's left edge to place the next
+// node right after currentBoundary.
+
+function findBestRule4Pull(
+  splitId: string,
+  infos: Map<string, NodeInfo>,
+  rowOf: Map<string, number>,
+  x: Map<string, number>,
+): number {
+  const splitRow = rowOf.get(splitId) ?? 0;
+  const splitWidth = infos.get(splitId)!.width;
+  const descCache = new Map<string, boolean>();
+
+  let bestPrimaryPull = -Infinity;
+  let bestFallbackPull = -Infinity;
+
+  // Prevent revisiting boundaries (handles DAG diamonds and same-priority
+  // merges that we pass through).
+  const visitedBoundaries = new Set<string>();
+  visitedBoundaries.add(splitId);
+
+  function traverse(currentBoundaryId: string, pathWidthSoFar: number) {
+    for (const firstChildId of infos.get(currentBoundaryId)!.children) {
+      const chain = traceChain(currentBoundaryId, firstChildId, infos);
+      const endId = chain[chain.length - 1];
+
+      if (visitedBoundaries.has(endId)) continue;
+
+      // Accumulate path width: internals contribute width + gap each.
+      // pathWidthSoFar already includes currentBoundary width + 1 gap.
+      let internalsWidth = 0;
+      for (let i = 1; i < chain.length - 1; i++) {
+        internalsWidth += infos.get(chain[i])!.width;
+      }
+      const nInternals = chain.length - 2;
+      const pathWidthToEnd = pathWidthSoFar + internalsWidth + nInternals * GAP;
+
+      const endInfo = infos.get(endId)!;
+      if (!isMergeLike(endInfo.role)) {
+        // Leaf or other: no target, don't continue.
+        continue;
+      }
+
+      const endRow = rowOf.get(endId) ?? 0;
+      const xExcl = computeXExcl(endId, splitId, infos, x, descCache);
+
+      if (endRow < splitRow) {
+        // PRIMARY target: strictly higher-priority row.
+        if (xExcl !== -Infinity) {
+          const pull = xExcl - pathWidthToEnd;
+          if (pull > bestPrimaryPull) bestPrimaryPull = pull;
+        }
+        // Stop this path here (don't traverse past a primary target).
+      } else if (endRow === splitRow) {
+        // Same priority: skip as target, continue traversal through it.
+        visitedBoundaries.add(endId);
+        traverse(endId, pathWidthToEnd + endInfo.width + GAP);
+      } else {
+        // FALLBACK target: lower-priority row.
+        if (xExcl !== -Infinity) {
+          const pull = xExcl - pathWidthToEnd;
+          if (pull > bestFallbackPull) bestFallbackPull = pull;
+        }
+        // Continue through fallback to look for primary targets deeper.
+        visitedBoundaries.add(endId);
+        traverse(endId, pathWidthToEnd + endInfo.width + GAP);
+      }
+    }
+  }
+
+  // Initial path width: splitId's width + 1 gap (ready for the next node).
+  traverse(splitId, splitWidth + GAP);
+
+  // Primary targets take precedence over fallback targets.
+  if (bestPrimaryPull !== -Infinity) return bestPrimaryPull;
+  if (bestFallbackPull !== -Infinity) return bestFallbackPull;
+  return -Infinity;
+}
+
+// ─── Step 2c: Apply All Rule 4 Pulls ─────────────────────────────────────────
+//
+// 1. Process splits in reverse topological order (post-order approximation).
+// 2. Process secondary roots in y-order (smallest y first), using current
+//    positions — this ensures later secondary roots see updated x_excl values
+//    from already-placed earlier ones.
+
+function applyRule4(
+  infos: Map<string, NodeInfo>,
+  primaryRootId: string,
+  order: string[],
+  rowOf: Map<string, number>,
+  xFwd: Map<string, number>,
+): Map<string, number> {
+  const x = new Map(xFwd);
+
+  // Splits: reverse topological order ≈ post-order DFS
+  for (const id of [...order].reverse()) {
+    const info = infos.get(id)!;
+    if (info.role !== "split") continue;
+
+    const pull = findBestRule4Pull(id, infos, rowOf, x);
+    if (pull === -Infinity) continue;
+
+    const prevId = info.parents[0];
+    const finalX = prevId
+      ? Math.max(x.get(prevId)! + infos.get(prevId)!.width + GAP, pull)
+      : pull;
+
+    if (finalX === x.get(id)) continue;
+    x.set(id, finalX);
+
+    // Propagate updated x through sequential nodes in this split's chains.
+    const splitRight = finalX + info.width;
+    for (const childId of info.children) {
+      propagateSequential(childId, splitRight, x, infos);
+    }
+  }
+
+  // Secondary roots: process in y-order (smallest y, tie-break smallest x).
+  // Each uses the current x map so it sees positions set by earlier secondary roots.
+  const secondaryRoots = [...infos.values()]
+    .filter((info) => info.role === "root" && info.id !== primaryRootId)
+    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX);
+
+  for (const rootInfo of secondaryRoots) {
+    const id = rootInfo.id;
+
+    const pull = findBestRule4Pull(id, infos, rowOf, x);
+    if (pull === -Infinity) continue;
+
+    // Secondary roots have no prev — pull alone determines x (can be negative).
+    const finalX = pull;
+    if (finalX === x.get(id)) continue;
+    x.set(id, finalX);
+
+    const rootRight = finalX + rootInfo.width;
+    for (const childId of rootInfo.children) {
+      propagateSequential(childId, rootRight, x, infos);
+    }
+  }
+
+  return x;
+}
+
+// ─── Rule 3: Node Identification ─────────────────────────────────────────────
+//
+// Rule 3 applies to the LAST INTERNAL node in a chain where the end boundary is
+// a merge/merge-split in a strictly HIGHER-PRIORITY row than the chain's start.
+//
+// For such a node: x = max(prev.right + gap, end.x - width - gap)
+// where "prev" is the node immediately before it in the chain.
+
+function computeRule3Map(
+  infos: Map<string, NodeInfo>,
+  rowOf: Map<string, number>,
+): Map<string, { endId: string; prevId: string; startId: string }> {
+  const rule3Map = new Map<string, { endId: string; prevId: string; startId: string }>();
+
+  for (const info of infos.values()) {
+    if (!isBoundary(info.role)) continue;
+    const startRow = rowOf.get(info.id) ?? 0;
+
+    for (const firstChildId of info.children) {
+      const chain = traceChain(info.id, firstChildId, infos);
+      if (chain.length < 3) continue; // need at least 1 internal node
+
+      const endId = chain[chain.length - 1];
+      if (!isMergeLike(infos.get(endId)!.role)) continue;
+
+      const endRow = rowOf.get(endId) ?? 0;
+      if (endRow >= startRow) continue; // end must be strictly higher priority
+
+      const lastInternalId = chain[chain.length - 2];
+      if (!rule3Map.has(lastInternalId)) {
+        // prev = node just before lastInternal in the chain
+        const prevId =
+          chain.length >= 4 ? chain[chain.length - 3] : info.id;
+        rule3Map.set(lastInternalId, { endId, prevId, startId: info.id });
+      }
+    }
+  }
+
+  return rule3Map;
+}
+
+// ─── Step 3: Reconcile Pass ───────────────────────────────────────────────────
+//
+// After all Rule 4 pulls, recompute all non-fixed nodes in topological order:
+//   - Rule 3: last internal before higher-priority merge
+//   - Rule 2 (row-filtered): merge/merge-split
+//   - Rule 5: simple and leaf nodes
+//
+// Fixed nodes (keep as-is): primary root, splits, secondary roots.
+// Topological order guarantees parents are computed before children.
+
+function reconcilePass(
+  infos: Map<string, NodeInfo>,
+  order: string[],
+  rowOf: Map<string, number>,
+  primaryRootId: string,
+  x: Map<string, number>,
+  rule3Map: Map<string, { endId: string; prevId: string; startId: string }>,
+): Map<string, number> {
+  const result = new Map(x);
+
+  for (const id of order) {
+    const info = infos.get(id)!;
+
+    // Fixed: primary root, splits, and secondary roots (all placed by Rules 1/4)
+    if (id === primaryRootId) continue;
+    if (info.role === "root") continue; // secondary roots
+    if (info.role === "split") continue;
+
+    // Rule 3: last internal before a higher-priority merge.
+    // Use x_excl to avoid circular dependency: endId's Rule 2 position may
+    // include this node as a parent, so we exclude the chain's startId subtree.
+    if (rule3Map.has(id)) {
+      const { endId, prevId, startId } = rule3Map.get(id)!;
+      const prevRight = result.get(prevId)! + infos.get(prevId)!.width;
+      const xExcl = computeXExcl(endId, startId, infos, result, new Map());
+      const pullTarget = xExcl !== -Infinity ? xExcl - info.width - GAP : -Infinity;
+      result.set(id, pullTarget !== -Infinity ? Math.max(prevRight + GAP, pullTarget) : prevRight + GAP);
+      continue;
+    }
+
+    // Rule 2: merge/merge-split — only same or higher-priority parents
+    if (isMergeLike(info.role)) {
+      const myRow = rowOf.get(id) ?? 0;
+      const validParents = info.parents.filter(
+        (pid) => (rowOf.get(pid) ?? 0) <= myRow,
+      );
+      if (validParents.length > 0) {
+        result.set(
+          id,
+          Math.max(
+            ...validParents.map((pid) => result.get(pid)! + infos.get(pid)!.width),
+          ) + GAP,
+        );
+      }
+      continue;
+    }
+
+    // Rule 5: simple and leaf — sequential from single parent
+    if (info.parents.length === 1) {
+      const prevId = info.parents[0];
+      result.set(id, result.get(prevId)! + infos.get(prevId)!.width + GAP);
+    }
+  }
+
+  return result;
 }
 
 // ─── Main exports ─────────────────────────────────────────────────────────────
@@ -351,26 +568,23 @@ export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
   const infos = buildTopology(graph);
   const order = topologicalSort(infos);
 
+  // Primary root: most top-left (smallest y, tie-break smallest x)
   const primaryRoot = [...infos.values()]
     .filter((n) => n.role === "root")
-    .sort((a, b) => a.initialY - b.initialY)[0];
+    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
 
   const rowOf = assignRows(infos, order);
-  const xFwd = forwardPass(infos, primaryRoot.id, order);
-  const xFinal = applyRule4(infos, xFwd, order, primaryRoot.id);
-
-  // After rule 4 pulls splits, re-run rule 2 in topological order so that
-  // merges which depend on the moved splits get their x updated.
-  for (const id of order) {
-    const info = infos.get(id)!;
-    if (info.role !== "merge" && info.role !== "merge-split") continue;
-    xFinal.set(
-      id,
-      Math.max(
-        ...info.parents.map((pid) => xFinal.get(pid)! + infos.get(pid)!.width),
-      ) + GAP,
-    );
-  }
+  const xFwd = forwardPass(infos, primaryRoot.id, order, rowOf);
+  const xAfterRule4 = applyRule4(infos, primaryRoot.id, order, rowOf, xFwd);
+  const rule3Map = computeRule3Map(infos, rowOf);
+  const xFinal = reconcilePass(
+    infos,
+    order,
+    rowOf,
+    primaryRoot.id,
+    xAfterRule4,
+    rule3Map,
+  );
 
   const result = new Map<string, LayoutNode>();
   for (const info of infos.values()) {
