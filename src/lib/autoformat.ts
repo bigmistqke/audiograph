@@ -660,13 +660,21 @@ function yPass(
   // Seed baseBottomY so that row 0 lands at primaryRoot.initialY
   const baseBottomY = infos.get(primaryRootId)!.initialY - GAP;
 
-  // Interval structure: list of {xStart, xEnd, bottomY}
+  // Interval structure: sorted by xStart for early-exit queries.
   const intervals: Array<{ xStart: number; xEnd: number; bottomY: number }> = [];
+
+  function insertInterval(xStart: number, xEnd: number, bottomY: number) {
+    const iv = { xStart, xEnd, bottomY };
+    let i = intervals.length;
+    while (i > 0 && intervals[i - 1].xStart > xStart) i--;
+    intervals.splice(i, 0, iv);
+  }
 
   function queryMaxBottomY(xStart: number, xEnd: number): number {
     let max = baseBottomY;
     for (const iv of intervals) {
-      if (iv.xEnd > xStart && iv.xStart < xEnd) {
+      if (iv.xStart >= xEnd) break; // sorted — no further overlaps possible
+      if (iv.xEnd > xStart) {
         if (iv.bottomY > max) max = iv.bottomY;
       }
     }
@@ -703,7 +711,7 @@ function yPass(
     for (const id of nodeIds) {
       const nodeX = xFinal.get(id)!;
       const info = infos.get(id)!;
-      intervals.push({ xStart: nodeX, xEnd: nodeX + info.width, bottomY: y + info.height });
+      insertInterval(nodeX, nodeX + info.width, y + info.height);
     }
   }
 
