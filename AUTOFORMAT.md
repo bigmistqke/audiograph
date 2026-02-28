@@ -67,9 +67,9 @@ X-computation happens in **four sequential phases**. All phases use topological 
 Process boundary nodes in topological order. At each node, sort its outgoing branches by the **current y-position of each branch's first node** (ascending):
 
 - The branch with the **lowest initial y** continues in the **current row** (spine continuation).
-- Each subsequent branch **opens a new row** below — unless its end boundary is already row-assigned (claimed by a prior branch). Already-claimed nodes represent cross-row edges; no new row is opened for them.
+- Each subsequent branch **opens a new row** below. If the end boundary is already row-assigned, the interior nodes of the chain still open their own row — only the end boundary keeps its existing row assignment.
 
-Row-claiming is **first-come-first-served in y-order** across the whole traversal. A node gets the row of whichever branch reaches it first.
+Row-claiming is **first-come-first-served in y-order** across the whole traversal, with one exception: **merge and merge-split end boundaries prefer the highest-priority (lowest-index) row**. If a later chain reaches a merge that was previously assigned to a lower-priority row, the merge is updated to the higher-priority row.
 
 #### Step 2b: Forward Pass
 
@@ -109,7 +109,9 @@ For each row in DFS order:
 1. Collect all chains in the row. Determine the row's **full x-span** — the union of all nodes' x-ranges across every chain in the row.
 2. Query the interval structure for the **maximum occupied bottom-Y** across the full x-span.
 3. Place all nodes in the row at `y = max_bottom_y + gap`.
-4. Update the interval structure for each chain in the row with `bottom_Y = y + row_height`.
+4. Update the interval structure with one entry **per node**: `{ xStart: node.x, xEnd: node.x + node.width, bottomY: y + node.height }`.
+
+Using per-node intervals (rather than one interval spanning the full row) allows nodes in non-overlapping x-columns to avoid being blocked by the tallest node elsewhere in the row. The query in step 2 still uses the full row x-span to ensure correct placement, but the updates record each node's actual footprint individually.
 
 **Row height** = `max(node heights across all chains in the row)`. **Gap** = 30px uniformly — same between rows as between nodes within a chain.
 
