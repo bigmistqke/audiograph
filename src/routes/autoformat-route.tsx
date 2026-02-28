@@ -244,6 +244,7 @@ export function AutoformatRoute() {
   const duplicateCase = (index: number) => {
     setState("cases", (prev) => {
       const copy = structuredClone(prev[index]!);
+      copy.comments = [];
       copy.id = crypto.randomUUID();
       return [...prev.slice(0, index + 1), copy, ...prev.slice(index + 1)];
     });

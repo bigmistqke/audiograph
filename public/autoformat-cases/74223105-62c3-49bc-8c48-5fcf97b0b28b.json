@@ -8,6 +8,10 @@
     {
       "role": "assistant",
       "text": "Two paths from A to D (merge): top path A→B→C→D (3 nodes) and bottom path A→E→D (1 node).\n\nForward pass: D.x = max(C.right, E.right) + gap = max(360, 230) + 30 = 390 — driven entirely by the longer top chain. E goes to row 1 (y=110) because it can't fit alongside [A,B,C,D] in row 0.\n\nThe E→D edge spans x=230 to x=390 across two rows — a long diagonal. The algorithm accepts this as a trade-off of preferring top-alignment.\n\nRule tested: forward pass places merge at the longest incoming chain; top-alignment preference can produce long cross-row diagonal edges."
+    },
+    {
+      "role": "user",
+      "text": "E is not pulled towards D -> the pull of split-child (A-E) is stronger then the pull of parent-merge (E-D)"
     }
   ],
   "initial": {
