@@ -1,5 +1,133 @@
 [
   {
+    "hash": "51d854d92c31b88884ee40c986f4b815e8f9e65e",
+    "short_hash": "51d854d",
+    "author": "bigmistqke",
+    "date": "2026-02-28T12:43:46+01:00",
+    "message": "docs/feat: clarify traversal still needed for split candidates; show filename in case header\n\n- Q16: traversal is needed to identify candidate merges and check independence,\n  even though the ref itself is just merge.x_fwd (no traversal to find the ref node)\n- Show case JSON filename in autoformat workshop row header",
+    "files_changed": 3
+  },
+  {
+    "hash": "293d48a0e304a1a89ec8d779d129246df64a5e2f",
+    "short_hash": "293d48a",
+    "author": "bigmistqke",
+    "date": "2026-02-26T02:49:35+01:00",
+    "message": "docs: update spec with pull rule refinements, add case #10 with analysis",
+    "files_changed": 4
+  },
+  {
+    "hash": "bd0f5ada2eca05aa9a22092e1bcada28f0c444eb",
+    "short_hash": "bd0f5ad",
+    "author": "bigmistqke",
+    "date": "2026-02-26T01:59:55+01:00",
+    "message": "feat: per-case files, chat comment thread, row numbers, min SVG height",
+    "files_changed": 15
+  },
+  {
+    "hash": "fef5d36262a3dc71c5abf28a13238841af45a4cc",
+    "short_hash": "fef5d36",
+    "author": "bigmistqke",
+    "date": "2026-02-26T01:27:39+01:00",
+    "message": "fix: default port color fallback to \"audio\", comment out metadata cleanup",
+    "files_changed": 2
+  },
+  {
+    "hash": "e385e289b0f53e024396914027768a2e246411bf",
+    "short_hash": "e385e28",
+    "author": "bigmistqke",
+    "date": "2026-02-26T00:18:08+01:00",
+    "message": "docs: add autoformat algorithm spec",
+    "files_changed": 1
+  },
+  {
+    "hash": "439ba55d49143c021cb4516df58395ab6a0fac0b",
+    "short_hash": "439ba55",
+    "author": "bigmistqke",
+    "date": "2026-02-23T22:12:14+01:00",
+    "message": "fix: resolve same-column overlap between branches from different fan-out groups",
+    "files_changed": 2
+  },
+  {
+    "hash": "e943f27323c2cc9ad490276b547ca1d84112292e",
+    "short_hash": "e943f27",
+    "author": "bigmistqke",
+    "date": "2026-02-23T21:43:55+01:00",
+    "message": "fix: tidy fan-in recursion preserves diamond topology positions",
+    "files_changed": 3
+  },
+  {
+    "hash": "e24302ca87f8506731d0f59fb479e0768edc7af8",
+    "short_hash": "e24302c",
+    "author": "bigmistqke",
+    "date": "2026-02-23T21:15:09+01:00",
+    "message": "fix: fan-in chain Y re-aligns to topmost upstream after fan-out re-alignment",
+    "files_changed": 3
+  },
+  {
+    "hash": "6a226e23da874d4832dc5fb6f3a26757b22b0e3b",
+    "short_hash": "6a226e2",
+    "author": "bigmistqke",
+    "date": "2026-02-23T21:07:43+01:00",
+    "message": "fix: fan-out right-alignment skips exclusive children, adds forward X re-propagation",
+    "files_changed": 3
+  },
+  {
+    "hash": "334f2049b3f0aafeeb503eac707ead8076bd2269",
+    "short_hash": "334f204",
+    "author": "bigmistqke",
+    "date": "2026-02-23T20:52:00+01:00",
+    "message": "fix: contour-based fan-out spacing, fan-in sibling realignment, anchor-based multi-island layout",
+    "files_changed": 2
+  },
+  {
+    "hash": "ee45b773295113e685ee0794304cf5d918d2c0ec",
+    "short_hash": "ee45b77",
+    "author": "bigmistqke",
+    "date": "2026-02-23T19:36:04+01:00",
+    "message": "fix: make autolayout idempotent with anchor-based island offsetting",
+    "files_changed": 2
+  },
+  {
+    "hash": "1e7d212fc6c63edcc23714e03c280e228604a785",
+    "short_hash": "1e7d212",
+    "author": "bigmistqke",
+    "date": "2026-02-23T18:52:24+01:00",
+    "message": "fix: fan-in upstream chains top-align with fan-in node and propagate recursively",
+    "files_changed": 2
+  },
+  {
+    "hash": "f42b9d214c6145dc77a1072377a586d142b62f55",
+    "short_hash": "f42b9d2",
+    "author": "bigmistqke",
+    "date": "2026-02-23T18:43:44+01:00",
+    "message": "fix: tightly stack fan-in upstream chains using subtree bounding box",
+    "files_changed": 2
+  },
+  {
+    "hash": "8bfc9ddaaf707e9c5343c7c04f49eebad2488627",
+    "short_hash": "8bfc9dd",
+    "author": "bigmistqke",
+    "date": "2026-02-23T18:37:32+01:00",
+    "message": "fix: autolayout right-aligns short chains toward fan-in, resolves overlaps",
+    "files_changed": 2
+  },
+  {
+    "hash": "2051e5a7f0823b79633a816a9462c8e345e9b2ea",
+    "short_hash": "2051e5a",
+    "author": "bigmistqke",
+    "date": "2026-02-23T18:28:06+01:00",
+    "message": "style: reduce spliceable edge hover opacity",
+    "files_changed": 1
+  },
+  {
+    "hash": "d70f827b8f5450be9454f9855488542f04e0349f",
+    "short_hash": "d70f827",
+    "author": "bigmistqke",
+    "date": "2026-02-23T18:28:00+01:00",
+    "message": "feat: add autolayout algorithm with tidy up button",
+    "files_changed": 6
+  },
+  {
     "hash": "cc27200d746d49131c9a793dd0f22e349e664287",
     "short_hash": "cc27200",
     "author": "bigmistqke",
@@ -328,19 +456,19 @@
     "files_changed": 10
   },
   {
-    "hash": "ce2cd469724a633d76f3c14d2448558e2aef6fdf",
-    "short_hash": "ce2cd46",
-    "author": "bigmistqke",
-    "date": "2026-02-22T13:40:25+01:00",
-    "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Move graph components into src/graph/ (editor, nodes, edges, ports, context, constants)\n- Split GraphRoute into src/routes/graph-route.tsx\n- Lowercase all filenames (Select→select, HorizontalSlider→horizontal-slider, etc.)\n- Move GraphNodeContent to src/ui/node-content.tsx\n- Delete unused lib/minni.ts and old GraphEditor.tsx",
-    "files_changed": 41
-  },
-  {
     "hash": "95daa5143cc8cb5e24891f3fd5b37d91f4916593",
     "short_hash": "95daa51",
     "author": "bigmistqke",
     "date": "2026-02-22T13:40:25+01:00",
     "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Make GraphEditor generic and domain-agnostic: takes config, store,\n  context, and onClick as props with no audio/worklet knowledge\n- Extract GraphRoute (src/routes/graph-route.tsx) as the application\n  layer: sidebar, worklet setup, save callbacks, node placement\n- Move graph internals into src/graph/ (editor, nodes, edges, ports,\n  context, constants, create-graph)\n- Add graph/setGraph to ConstructProps so constructs can access the\n  store directly (e.g. audioworklet reads its own node type)\n- Move saveType/saveAsNewType from SolidJS GraphContext to\n  AudioGraphContext (construct context), keeping GraphContext pure UI\n- Extract GraphAPI type for typed references in component props\n- Rename props.ctx to props.context, audio to audioContext\n- Lowercase all filenames, simplify App.tsx to just routing",
+    "files_changed": 41
+  },
+  {
+    "hash": "ce2cd469724a633d76f3c14d2448558e2aef6fdf",
+    "short_hash": "ce2cd46",
+    "author": "bigmistqke",
+    "date": "2026-02-22T13:40:25+01:00",
+    "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Move graph components into src/graph/ (editor, nodes, edges, ports, context, constants)\n- Split GraphRoute into src/routes/graph-route.tsx\n- Lowercase all filenames (Select→select, HorizontalSlider→horizontal-slider, etc.)\n- Move GraphNodeContent to src/ui/node-content.tsx\n- Delete unused lib/minni.ts and old GraphEditor.tsx",
     "files_changed": 41
   },
   {

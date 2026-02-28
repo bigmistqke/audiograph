@@ -1,5 +1,19 @@
 # Autoformat Algorithm Spec
 
+## Thesis
+
+This algorithm is **prettier for audio graphs**.
+
+Prettier takes messy code and reformats it into a clean, consistent structure — but it isn't purely mechanical. It respects some of your intent: if you put arguments on separate lines, prettier keeps them on separate lines. It's opinionated about *structure*, deferential about *ordering*.
+
+This algorithm does the same thing for graphs:
+- **Opinionated about structure**: nodes snap to a clean grid, x-positions follow strict alignment rules (CPM-based), y-positions are computed from a spatial interval structure.
+- **Deferential about ordering**: the user's current y-positions of branch-start nodes determine which row each branch lands in. If you put one branch below another, the algorithm keeps it there.
+
+The result is a layout that is always tidy, but still feels like *yours*.
+
+---
+
 ## Terminology
 
 ### Node Types
@@ -24,57 +38,48 @@ A chain runs from one boundary node to the next. Every simple node belongs to ex
 **Zero-internal chains** like `[A, B]` are valid — two boundary nodes directly connected with no internals between them. They participate in row assignment with x-range `[start.x, end.right]`.
 
 ### Row
-A **row** is a sequence of chains that are **top-aligned** (share the same top-Y coordinate).
+A **row** is a set of chains that share the same top-Y coordinate.
 
 Two chains cannot share a row if their x-ranges overlap — they form separate rows instead.
 
-Row ordering is determined by:
-1. The **user's current node positions** (primary — preserves user intent): the chain's start boundary node's current y-coordinate. Lower y = higher priority = assigned to an earlier row.
-2. **Topology** (tiebreaker when positions are equal)
+Row ordering is determined by the **user's current y-positions of the branch-start nodes** at each split — lower y = earlier row. This is the mechanism by which user intent is preserved: the relative vertical ordering of branches is respected, not recomputed from topology.
 
 Row assignment is per-chain, not per-node. A boundary node that starts multiple chains is not "in" a single row; each chain it starts may land in a different row.
 
 ---
 
-## Algorithm Phases
+## Algorithm
 
-### Phase 1: Analysis
-Performed on the graph structure using current node positions. No positions are computed yet.
+### Step 1: Topology Analysis
 
-1. **Identify chains** — find all boundary nodes (split/merge/merge-split/root/leaf), then trace linear paths between them
-2. **Compute minimal widths** — for each chain: `min_width = sum(node widths) + (n-1) * gap`
-3. **Assign chains to rows** — sort chains by priority (user position → topology), assign each chain to the **highest existing row** where its x-range does not conflict with any chain already in that row. If no existing row fits, open a new row below. This cascades: prioritizing top-alignment means chains pack upward as tightly as possible.
+Identify boundary nodes (split / merge / merge-split / root / leaf), then trace all chains between them. Compute each chain's **minimum width**: `sum(node widths) + (n-1) × gap`.
 
-   Row assignment uses **minimum widths** (from step 2) to determine x-ranges for overlap detection, since actual x-positions are not yet computed.
+### Step 2: DFS Traversal — X-positions + Row Assignment
 
-### Phase 2: X Pass
+Row assignment and x-computation happen in a **single DFS traversal**. They are not separate phases. This is the key step.
 
-X-positions are resolved in two sub-passes, modelled after the **Critical Path Method (CPM)** used in project scheduling.
+**At each split node**, sort its outgoing branches by the **current y-position of each branch's first node** (ascending). Traverse branches in that order:
 
-#### Forward pass (left → right)
-Walk nodes in topological order (Kahn's algorithm; all roots start simultaneously). Place every node at its **minimum x** using only sequential and merge rules — no pulls yet:
+- The branch with the **lowest initial y** continues in the **current row** (spine continuation).
+- Each subsequent branch **opens a new row** below — unless its first node is already row-assigned (claimed by a prior branch in the traversal). Already-claimed nodes represent cross-row edges; no new row is opened for them.
 
-```
-merge / merge-split:  x = max(parent.right for all parents) + gap
-all others:           x = prev.right + gap
-```
+Row-claiming is **first-come-first-served in y-order** across the whole DFS. A node gets the row of whichever branch reaches it first (always the branch whose start had the lowest initial y, since that branch is traversed first).
 
-After the forward pass, all merge positions reflect the minimum x determined by the longest sequential chain reaching them.
+**X-position** at each node is determined by the placement rules below. The key principle: at a **merge**, take the max of all parent right-edges (critical path). At a **split**, position to align with the most constraining independent downstream merge (the one that, if the split were placed just in time for its chain to fit, would push the split furthest right).
 
-#### Backward pass (right → left)
-Walk nodes in reverse topological order. For each node, evaluate the placement rules (see *Placement Rules* below) and apply whichever rule matches. Because rules have conditions baked in, no edge cases need separate treatment — a node that doesn't satisfy rule 3's or 4's conditions simply falls through to rule 5 (sequential).
+### Step 3: Build Spatial Data Structure
 
-After a split is pulled (rule 4), any merges that take it as input may need their positions updated (rule 2). This propagation may require more than two passes in some topologies. See Open Questions.
+After x-positions are computed, build an **interval structure** indexed by x-range that tracks the maximum occupied bottom-Y for any x-span. Supports range queries: given an x-interval `[x1, x2]`, return the maximum bottom-Y across that span.
 
-### Phase 3: Y Pass
+### Step 4: Y Pass
+
 Process rows top-to-bottom. For each chain:
-1. Determine the chain's x-range `[x1, x2]`
-2. Query the **maximum occupied bottom-Y** across the entire chain x-span (not just the leftmost node's column — the whole span)
+1. Determine the chain's x-span `[x1, x2]`
+2. Query the interval structure for the **maximum occupied bottom-Y** across the full span
 3. Place the chain at `max_bottom_y + gap`
+4. Update the interval structure with the chain's new x-span and bottom-Y
 
-Row height = `max(node heights in row)`.
-
-The Y pass requires a spatial data structure that tracks occupied y-space per x-range (an interval query). The gap constant (30px) is uniform — same between rows as between nodes within a chain.
+Row height = `max(node heights in row)`. Gap = 30px uniformly — same between rows as between nodes within a chain.
 
 ---
 
@@ -106,7 +111,7 @@ Every node's x-position is determined by exactly one rule. The rules form a hier
 
 - `min_direct_path_width` = the minimum horizontal space needed from this node's left edge to the target merge's left edge along the direct chain: `this.width + sum(internal.widths) + (n+1) × gap` where n = number of internals between this node and the merge.
 - **Independence**: merge M is independent of node N if N is not the dominant input to M in the forward pass — i.e., increasing N.right would not increase M.x_fwd (some other parent already drives M further right).
-- **Target merge selection**: among all independent downstream merges, prefer **same-row** merges (largest pull among same-row candidates); fall back to largest pull among cross-row candidates if none are same-row.
+- **Target merge selection**: among all independent downstream merges, pick the one that results in the **largest x for the split** (most constraining). Same-row merges are preferred among equally-constraining candidates.
 - **Secondary roots** (no prev): rule 4 applies without the `max(prev.right + gap, …)` guard — the pull alone determines x, and it can be negative.
 
 Rule 4 unifies the split pull and the secondary-root placement: both are expressions of the same operation — place a chain start so its chain fits exactly between itself and a fixed downstream merge.
@@ -119,7 +124,7 @@ Adding an edge can **promote** a node from simple → merge, which changes its r
 
 The **primary root** (topmost root — smallest y in current layout) is **anchored to its current user position**. Its x and y are not recomputed; all other nodes are placed relative to it.
 
-**Secondary roots** (other roots in a multi-root graph) are placed by the backward pass like any other chain start — they follow rule 4 and can end up at negative x if needed to fit their chain before a shared downstream merge.
+**Secondary roots** (other roots in a multi-root graph) are placed by the traversal like any other chain start — they follow rule 4 and can end up at negative x if needed to fit their chain before a shared downstream merge.
 
 ## Islands
 
@@ -136,34 +141,34 @@ Each island is laid out independently. Islands are then arranged to avoid collis
 
 ## Open Questions
 
-1. **Pass count / convergence** — The rule hierarchy is correct, but execution order matters. Pulling a split (rule 4) can update its position, which may invalidate a downstream merge (rule 2), which may in turn affect another split, etc. The "two forward/backward passes" framing of CPM may not capture all propagation chains. Open question: what execution order minimises passes, and is a fixed-point iteration needed in the worst case?
+1. **Pass count / convergence** — Rule 4 (split pull) positions a split based on the x_fwd of a downstream merge. But x_fwd is itself computed from the forward pass, which doesn't yet know the split's final position. In most topologies a single DFS pass suffices, but deeply nested fan-in/fan-out structures may require iteration. Open question: does a single DFS always converge, or is fixed-point iteration needed in the worst case?
 
-2. **Chicken-and-egg: row assignment vs x-positions** — Row assignment uses minimum widths to detect x-range overlap, but actual x-positions (after pulls) may be wider. Do we need to re-assign rows after the X pass? If row assignment changes, pull eligibility (same-row vs cross-row) also changes, making this circular.
+2. ~~**Chicken-and-egg: row assignment vs x-positions**~~ — **Resolved**: the DFS traversal uses the user's initial y-positions of branch-start nodes to determine row order — not computed x-ranges. Rows are assigned stably during the traversal before x-positions are finalised.
 
 3. ~~**Boundary nodes in multiple chains**~~ — **Resolved**: row assignment is per-chain, not per-node. A boundary node starting multiple chains may have those chains land in different rows. The node's x is its single computed position; it has no "home row."
 
 4. **Multiple roots / Islands** — Fully disconnected subgraphs (islands) are laid out independently. Inter-island collision resolution (shifting lower islands downward) is deferred. See *Islands* section.
 
-5. ~~**Reconcile memoized recursion with CPM**~~ — **Resolved**: the memoized recursion framing is superseded by the CPM forward/backward pass description. Remove any remaining references to it.
+5. ~~**Reconcile memoized recursion with CPM**~~ — **Resolved**: the memoized recursion framing is superseded by the DFS traversal description.
 
-6. ~~**Forward pass topological order**~~ — **Resolved**: standard Kahn's algorithm (BFS-based topological sort). All roots are initial nodes and are processed simultaneously.
+6. ~~**Forward pass topological order**~~ — **Resolved**: DFS from roots, branches sorted by initial y of first node.
 
-7. ~~**Y pass details**~~ — **Resolved**: row height = `max(node heights in row)`. Gap = 30px uniformly. Chain y = max occupied bottom-Y across the full chain x-span + gap (not just the leftmost node's column — the widest node in the chain can push the whole chain down).
+7. ~~**Y pass details**~~ — **Resolved**: row height = `max(node heights in row)`. Gap = 30px uniformly. Chain y = max occupied bottom-Y across the full chain x-span + gap.
 
-8. ~~**Cross-row edge alignment in CPM**~~ — **Resolved**: falls out of the rule conditions. Rule 3 requires the end boundary to be in a lower row; rule 4 requires the target merge's x to be independent of the split. Neither rule has a same-row exclusion baked in for splits — a split is pulled toward a same-row merge whenever the merge's x is stable. Only the first node in each downstream chain gets x-aligned; deeper connections accept longer diagonals.
+8. ~~**Cross-row edge alignment**~~ — **Resolved**: falls out of the rule conditions. Rule 3 requires the end boundary to be in a lower row; rule 4 targets the most constraining independent merge. Only the first node in each downstream chain gets x-aligned; deeper connections accept longer diagonals.
 
-9. ~~**Root x-position**~~ — **Resolved**: roots are anchored to their current user position. See *Root Anchoring* section.
+9. ~~**Root x-position**~~ — **Resolved**: primary root is anchored to its current user position. See *Root Anchoring* section.
 
-10. ~~**Zero-internal-node chains**~~ — **Resolved**: zero-internal chains `[A, B]` are valid. They participate in row assignment with x-range `[start.x, end.right]`. End boundary x comes from forward pass (merge rule); start boundary x comes from backward pass (split pull rule).
+10. ~~**Zero-internal-node chains**~~ — **Resolved**: zero-internal chains `[A, B]` are valid. They participate in row assignment with x-range `[start.x, end.right]`.
 
-11. ~~**End boundary is a split**~~ — **Resolved**: falls out of rule 3's condition ("last internal before a **merge** end boundary, **in a lower row**"). Same-row, upward, and non-merge end boundaries all simply fail to match rule 3 and fall through to rule 5 (sequential). No special cases needed.
+11. ~~**End boundary is a split**~~ — **Resolved**: falls out of rule 3's condition. Non-merge and same-row end boundaries simply fail to match and fall through to rule 5.
 
-12. ~~**Definition of "longest child path"**~~ — **Partially resolved**: the reference point for rule 4 is the **target merge's forward-pass x** — no traversal needed to compute the ref itself. However, identifying which merge to target *and* verifying its independence from the split requires traversing alternative paths (see Q16).
+12. ~~**Definition of "longest child path"**~~ — **Resolved**: rule 4 targets the independent downstream merge that produces the **largest x for the split** (most constraining). Independence checking requires traversing alternative paths, skipping the split itself to avoid cycles.
 
 13. ~~**Row height**~~ — **Resolved**: `max(node heights in row)`.
 
-14. ~~**Chain priority from user position**~~ — **Resolved**: the chain's start boundary node's current y-coordinate determines priority. Lower y = higher priority = assigned to an earlier row.
+14. ~~**Chain priority from user position**~~ — **Resolved**: at each split, branches are sorted by the initial y of their first node. Lower y = traversed first = earlier row.
 
 15. **Audio graph cycles** — The algorithm assumes a DAG. The Web Audio API does support cycles (a delay node is required to avoid infinite feedback), so this is a real concern. Deferred for now.
 
-16. ~~**`minChildPathWidth` across chain boundaries**~~ — **Partially resolved**: `min_direct_path_width` is the width of this node + all internals on the direct chain to the merge + gaps, and does not cross chain boundaries. The target merge's x is its forward-pass value (no traversal to compute the ref itself). However, **independence checking does require traversal**: to verify that merge M is truly independent of split S, you must compute M.x without S's contribution — which may require traversing through intermediate merges (e.g. S→E→M where E is also an input of S). This traversal must explicitly skip S to avoid cycles.
+16. ~~**`minChildPathWidth` across chain boundaries**~~ — **Resolved**: `min_direct_path_width` is the width of this node + all internals on the direct chain to the merge + gaps, and does not cross chain boundaries. Independence checking requires traversal: to verify that merge M is truly independent of split S, compute M.x without S's contribution, traversing through intermediate merges while explicitly skipping S to avoid cycles.
