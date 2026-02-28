@@ -1,5 +1,13 @@
-import { For, Show, createEffect, createMemo, createSignal, on } from "solid-js";
-import { createStore } from "solid-js/store";
+import {
+  For,
+  Show,
+  createEffect,
+  createMemo,
+  createSignal,
+  on,
+  untrack,
+} from "solid-js";
+import { createStore, produce } from "solid-js/store";
 import { autoformat } from "~/lib/autoformat";
 import { GRID } from "~/lib/graph/constants";
 import type {
@@ -10,10 +18,10 @@ import type {
 import { GraphEditor } from "~/lib/graph/graph-editor";
 import styles from "./autoformat-route.module.css";
 
-// ─── Workshop node type ───────────────────────────────────────────────────────
+// ─── Workshop node types ──────────────────────────────────────────────────────
 
-const workshopConfig: GraphConfig<null> = {
-  node: {
+function makeNodeDef(resizable: boolean): NodeTypeDef<Record<string, never>, null> {
+  return {
     title: "node",
     dimensions: { x: 100, y: GRID * 8 },
     ports: {
@@ -21,14 +29,15 @@ const workshopConfig: GraphConfig<null> = {
       out: [{ name: "out" }],
     },
     state: {},
-    resizable: true,
+    resizable,
     construct: ({ id }) => ({
-      render: () => (
-        <div class={styles.nodeLabel}>{id}</div>
-      ),
+      render: () => <div class={styles.nodeLabel}>{id}</div>,
     }),
-  } satisfies NodeTypeDef<Record<string, never>, null>,
-};
+  };
+}
+
+const initialConfig: GraphConfig<null> = { node: makeNodeDef(true) };
+const expectedConfig: GraphConfig<null> = { node: makeNodeDef(false) };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -175,36 +184,20 @@ function XDiffBadge(props: { diff: XDiff }) {
 // ─── Graph panel ─────────────────────────────────────────────────────────────
 
 function GraphPanel(props: {
+  config: GraphConfig<null>;
   graphStore: Graph;
   setGraphStore: (...args: any[]) => void;
-  readonly?: boolean;
+  onEdgeClick?: ({ edge, graph }: any) => void;
 }) {
-  const nextId = () => {
-    const count = Object.keys(props.graphStore.nodes).length;
-    return String.fromCharCode(65 + (count % 26));
-  };
-
   return (
     <GraphEditor
-      config={workshopConfig}
+      config={props.config}
       context={null}
       graphStore={props.graphStore}
       setGraphStore={props.setGraphStore}
       class={styles.graphPanel}
-      onClick={
-        props.readonly
-          ? () => {}
-          : ({ x, y, graph }) => {
-              graph.addNode("node", { x, y, id: nextId() });
-            }
-      }
-      onEdgeClick={
-        props.readonly
-          ? undefined
-          : ({ edge, graph }) => {
-              graph.unlink(edge.output, edge.input);
-            }
-      }
+      onClick={() => {}}
+      onEdgeClick={props.onEdgeClick}
     />
   );
 }
@@ -338,16 +331,50 @@ export function AutoformatRoute() {
               const result = createMemo(() => autoformat(state.cases[i()].initial));
               const diff = createMemo(() => diffs()[i()]!);
 
+              // Sync Expected topology + dimensions from Initial.
+              // Positions in Expected are user-controlled; only structure/dims follow Initial.
+              createEffect(() => {
+                const initial = state.cases[i()].initial;
+                const initialIds = new Set(Object.keys(initial.nodes));
+
+                // Read expected state without creating a reactive dependency on it
+                const expectedNodes = untrack(() => state.cases[i()].expected.nodes);
+                const expectedIds = new Set(Object.keys(expectedNodes));
+
+                // Sync edges
+                setState("cases", i(), "expected", "edges", structuredClone(initial.edges));
+
+                // Remove nodes no longer in Initial
+                for (const id of expectedIds) {
+                  if (!initialIds.has(id)) {
+                    setState("cases", i(), "expected", "nodes", produce((nodes) => {
+                      delete nodes[id];
+                    }));
+                  }
+                }
+
+                // Add new nodes / sync dimensions
+                for (const [id, node] of Object.entries(initial.nodes)) {
+                  if (!expectedIds.has(id)) {
+                    // New node: seed at same position as Initial
+                    setState("cases", i(), "expected", "nodes", id, structuredClone(node));
+                  } else {
+                    // Existing node: only sync dimensions
+                    setState("cases", i(), "expected", "nodes", id, "dimensions", structuredClone(node.dimensions));
+                  }
+                }
+              });
+
               return (
                 <div
-                id={`case-${c.id}`}
-                class={styles.row}
-                style={{
-                  "grid-template-rows": collapsed()
-                    ? "auto minmax(300px, 1fr)"
-                    : "auto auto minmax(300px, 1fr)",
-                }}
-              >
+                  id={`case-${c.id}`}
+                  class={styles.row}
+                  style={{
+                    "grid-template-rows": collapsed()
+                      ? "auto minmax(300px, 1fr)"
+                      : "auto auto minmax(300px, 1fr)",
+                  }}
+                >
                   <div class={styles.rowHeader}>
                     <span class={styles.caseNumber}>#{i() + 1}</span>
                     <XDiffBadge diff={diff()} />
@@ -396,15 +423,20 @@ export function AutoformatRoute() {
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Initial</span>
                       <GraphPanel
+                        config={initialConfig}
                         graphStore={state.cases[i()].initial}
                         setGraphStore={(...args: any[]) =>
                           (setState as any)("cases", i(), "initial", ...args)
+                        }
+                        onEdgeClick={({ edge, graph }) =>
+                          graph.unlink(edge.output, edge.input)
                         }
                       />
                     </div>
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Expected</span>
                       <GraphPanel
+                        config={expectedConfig}
                         graphStore={state.cases[i()].expected}
                         setGraphStore={(...args: any[]) =>
                           (setState as any)("cases", i(), "expected", ...args)
@@ -414,9 +446,9 @@ export function AutoformatRoute() {
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Result</span>
                       <GraphPanel
+                        config={expectedConfig}
                         graphStore={result()}
                         setGraphStore={() => {}}
-                        readonly
                       />
                     </div>
                   </div>
