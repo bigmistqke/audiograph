@@ -236,17 +236,19 @@ function forwardPass(
       x.set(id, info.initialX); // Rule 1: anchored
     } else if (isMergeLike(info.role)) {
       // Rule 2: max of all parents' right edges + gap
-      x.set(
-        id,
-        Math.max(...info.parents.map((pid) => x.get(pid)! + infos.get(pid)!.width)) +
-          GAP,
-      );
+      let maxRight = -Infinity;
+      for (const pid of info.parents) {
+        const right = x.get(pid)! + infos.get(pid)!.width;
+        if (right > maxRight) maxRight = right;
+      }
+      x.set(id, maxRight + GAP);
     } else if (info.parents.length === 0) {
       x.set(id, 0); // secondary root: provisional, adjusted by Rule 4
     } else {
       // Rule 5: sequential from single parent
       const prevId = info.parents[0];
-      x.set(id, x.get(prevId)! + infos.get(prevId)!.width + GAP);
+      const prevInfo = infos.get(prevId)!;
+      x.set(id, x.get(prevId)! + prevInfo.width + GAP);
     }
   }
 
@@ -560,7 +562,8 @@ function reconcilePass(
     // include this node as a parent, so we exclude the chain's startId subtree.
     if (rule3Map.has(id)) {
       const { endId, prevId, startId } = rule3Map.get(id)!;
-      const prevRight = result.get(prevId)! + infos.get(prevId)!.width;
+      const prevInfo = infos.get(prevId)!;
+      const prevRight = result.get(prevId)! + prevInfo.width;
       const xExcl = computeXExcl(endId, startId, infos, result, ancestorSets);
       const pullTarget = xExcl !== -Infinity ? xExcl - info.width - GAP : -Infinity;
       result.set(id, pullTarget !== -Infinity ? Math.max(prevRight + GAP, pullTarget) : prevRight + GAP);
@@ -569,19 +572,20 @@ function reconcilePass(
 
     // Rule 2: merge/merge-split — max of all parents' right edges + gap
     if (isMergeLike(info.role)) {
-      result.set(
-        id,
-        Math.max(
-          ...info.parents.map((pid) => result.get(pid)! + infos.get(pid)!.width),
-        ) + GAP,
-      );
+      let maxRight = -Infinity;
+      for (const pid of info.parents) {
+        const right = result.get(pid)! + infos.get(pid)!.width;
+        if (right > maxRight) maxRight = right;
+      }
+      result.set(id, maxRight + GAP);
       continue;
     }
 
     // Rule 5: simple and leaf — sequential from single parent
     if (info.parents.length === 1) {
       const prevId = info.parents[0];
-      result.set(id, result.get(prevId)! + infos.get(prevId)!.width + GAP);
+      const prevInfo = infos.get(prevId)!;
+      result.set(id, result.get(prevId)! + prevInfo.width + GAP);
     }
   }
 
