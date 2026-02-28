@@ -90,23 +90,35 @@ async function saveCases(cases: TestCase[]) {
   });
 }
 
-// ─── X-position comparison ────────────────────────────────────────────────────
+// ─── Position comparison ──────────────────────────────────────────────────────
 
-interface XDiff {
+interface AxisDiff {
   pass: boolean;
   mismatches: { id: string; expected: number; got: number }[];
 }
 
-function compareX(expected: Graph, result: Graph): XDiff {
-  const mismatches: XDiff["mismatches"] = [];
+interface Diff {
+  x: AxisDiff;
+  y: AxisDiff;
+}
+
+function compareAxis(expected: Graph, result: Graph, axis: "x" | "y"): AxisDiff {
+  const mismatches: AxisDiff["mismatches"] = [];
   for (const [id, node] of Object.entries(expected.nodes)) {
-    const got = result.nodes[id]?.x;
+    const got = result.nodes[id]?.[axis];
     if (got === undefined) continue;
-    if (Math.round(got) !== Math.round(node.x)) {
-      mismatches.push({ id, expected: Math.round(node.x), got: Math.round(got) });
+    if (Math.round(got) !== Math.round(node[axis])) {
+      mismatches.push({ id, expected: Math.round(node[axis]), got: Math.round(got) });
     }
   }
   return { pass: mismatches.length === 0, mismatches };
+}
+
+function compare(expected: Graph, result: Graph): Diff {
+  return {
+    x: compareAxis(expected, result, "x"),
+    y: compareAxis(expected, result, "y"),
+  };
 }
 
 // ─── Comment thread ───────────────────────────────────────────────────────────
@@ -162,24 +174,33 @@ function CommentThread(props: {
   );
 }
 
-// ─── X diff badge ─────────────────────────────────────────────────────────────
+// ─── Diff badges ─────────────────────────────────────────────────────────────
 
-function XDiffBadge(props: { diff: XDiff }) {
+function AxisBadge(props: { diff: AxisDiff; axis: "x" | "y" }) {
   return (
     <div
       class={props.diff.pass ? styles.diffPass : styles.diffFail}
       title={
         props.diff.pass
-          ? "All x-positions match"
+          ? `All ${props.axis}-positions match`
           : props.diff.mismatches
               .map((m) => `${m.id}: expected ${m.expected}, got ${m.got}`)
               .join("\n")
       }
     >
       {props.diff.pass
-        ? "✓ x"
-        : `✗ x (${props.diff.mismatches.length})`}
+        ? `✓ ${props.axis}`
+        : `✗ ${props.axis} (${props.diff.mismatches.length})`}
     </div>
+  );
+}
+
+function DiffBadges(props: { diff: Diff }) {
+  return (
+    <>
+      <AxisBadge diff={props.diff.x} axis="x" />
+      <AxisBadge diff={props.diff.y} axis="y" />
+    </>
   );
 }
 
@@ -288,7 +309,7 @@ export function AutoformatRoute() {
   };
 
   const diffs = createMemo(() =>
-    state.cases.map((c) => compareX(c.expected, autoformat(c.initial))),
+    state.cases.map((c) => compare(c.expected, autoformat(c.initial))),
   );
 
   return (
@@ -316,7 +337,7 @@ export function AutoformatRoute() {
               <a
                 class={styles.sidebarLink}
                 href={`#case-${c.id}`}
-                data-pass={diffs()[i()]?.pass}
+                data-pass={diffs()[i()]?.x.pass && diffs()[i()]?.y.pass}
               >
                 <span class={styles.sidebarNum}>#{i() + 1}</span>
                 <span class={styles.sidebarTitle}>{c.title || "untitled"}</span>
@@ -379,7 +400,7 @@ export function AutoformatRoute() {
                 >
                   <div class={styles.rowHeader}>
                     <span class={styles.caseNumber}>#{i() + 1}</span>
-                    <XDiffBadge diff={diff()} />
+                    <DiffBadges diff={diff()} />
                     <input
                       class={styles.caseTitle}
                       placeholder="untitled"
