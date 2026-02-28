@@ -101,13 +101,17 @@ After x-positions are finalized (Steps 2a–2d), build an **interval structure**
 
 ### Step 4: Y Pass
 
-Process rows top-to-bottom. For each chain:
-1. Determine the chain's x-span `[x1, x2]`
-2. Query the interval structure for the **maximum occupied bottom-Y** across the full span
-3. Place the chain at `max_bottom_y + gap`
-4. Update the interval structure with the chain's new x-span and bottom-Y
+Chains are placed using the same DFS traversal order as Step 2a — children visited in ascending initial-y order, each subtree fully exhausted before moving to the next sibling. This ordering is critical: it ensures that by the time a chain is placed, all chains whose x-ranges might overlap with it have already been inserted into the interval structure.
 
-**Row height** = `max(node heights in row)`. **Gap** = 30px uniformly — same between rows as between nodes within a chain.
+**Do not process chains in row-index order.** A chain branching directly from the root (low row index) may need to be placed *after* a deeper chain (higher row index) if the deeper chain's subtree occupies an x-range that overlaps with the shallow branch. The DFS traversal handles this automatically — shallower branches that come later in the y-sorted sibling order are always processed after the earlier siblings' full subtrees.
+
+For each chain in DFS order:
+1. Determine the chain's **full x-span** `[x1, x2]` — the union of all nodes' x-ranges in the chain
+2. Query the interval structure for the **maximum occupied bottom-Y** across the full span
+3. Place all nodes in the chain at `y = max_bottom_y + gap`
+4. Update the interval structure with the chain's x-span and `bottom_Y = y + chain_height`
+
+**Chain height** = `max(node heights in chain)`. **Gap** = 30px uniformly — same between chains as between nodes within a chain.
 
 ---
 
