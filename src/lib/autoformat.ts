@@ -253,22 +253,26 @@ function forwardPass(
   return x;
 }
 
-// ─── Descendant Check ─────────────────────────────────────────────────────────
+// ─── Ancestor Sets ────────────────────────────────────────────────────────────
+//
+// Precompute the full ancestor set for every node in one O(n) pass (topological
+// order guarantees all parents are processed before their children).
+// Replaces the recursive isDescendantOf + descCache pattern.
 
-function isDescendantOf(
-  nodeId: string,
-  ancestorId: string,
+function buildAncestorSets(
   infos: Map<string, NodeInfo>,
-  cache: Map<string, boolean>,
-): boolean {
-  if (nodeId === ancestorId) return true;
-  const key = `${nodeId}|${ancestorId}`;
-  if (cache.has(key)) return cache.get(key)!;
-  const result = infos
-    .get(nodeId)!
-    .parents.some((p) => isDescendantOf(p, ancestorId, infos, cache));
-  cache.set(key, result);
-  return result;
+  order: string[],
+): Map<string, Set<string>> {
+  const ancestors = new Map<string, Set<string>>();
+  for (const id of order) {
+    const anc = new Set<string>();
+    for (const pid of infos.get(id)!.parents) {
+      anc.add(pid);
+      for (const a of ancestors.get(pid)!) anc.add(a);
+    }
+    ancestors.set(id, anc);
+  }
+  return ancestors;
 }
 
 // ─── x_excl Computation ───────────────────────────────────────────────────────
@@ -282,11 +286,11 @@ function computeXExcl(
   splitId: string,
   infos: Map<string, NodeInfo>,
   x: Map<string, number>,
-  descCache: Map<string, boolean>,
+  ancestorSets: Map<string, Set<string>>,
 ): number {
   let maxExternal = -Infinity;
   for (const pid of infos.get(mergeId)!.parents) {
-    if (isDescendantOf(pid, splitId, infos, descCache)) continue;
+    if (pid === splitId || ancestorSets.get(pid)!.has(splitId)) continue;
     const right = x.get(pid)! + infos.get(pid)!.width;
     if (right > maxExternal) maxExternal = right;
   }
@@ -337,7 +341,7 @@ function findBestRule4Pull(
   infos: Map<string, NodeInfo>,
   rowOf: Map<string, number>,
   x: Map<string, number>,
-  descCache: Map<string, boolean>,
+  ancestorSets: Map<string, Set<string>>,
   chainMap: Map<string, Map<string, string[]>>,
 ): number {
   const splitRow = rowOf.get(splitId) ?? 0;
@@ -374,7 +378,7 @@ function findBestRule4Pull(
       }
 
       const endRow = rowOf.get(endId) ?? 0;
-      const xExcl = computeXExcl(endId, splitId, infos, x, descCache);
+      const xExcl = computeXExcl(endId, splitId, infos, x, ancestorSets);
 
       if (endRow < splitRow) {
         // PRIMARY target: strictly higher-priority row.
@@ -427,16 +431,16 @@ function applyRule4(
   rowOf: Map<string, number>,
   xFwd: Map<string, number>,
   chainMap: Map<string, Map<string, string[]>>,
+  ancestorSets: Map<string, Set<string>>,
 ): Map<string, number> {
   const x = new Map(xFwd);
-  const descCache = new Map<string, boolean>();
 
   // Splits: reverse topological order ≈ post-order DFS
   for (const id of [...order].reverse()) {
     const info = infos.get(id)!;
     if (info.role !== "split") continue;
 
-    const pull = findBestRule4Pull(id, infos, rowOf, x, descCache, chainMap);
+    const pull = findBestRule4Pull(id, infos, rowOf, x, ancestorSets, chainMap);
     if (pull === -Infinity) continue;
 
     const prevId = info.parents[0];
@@ -463,7 +467,7 @@ function applyRule4(
   for (const rootInfo of secondaryRoots) {
     const id = rootInfo.id;
 
-    const pull = findBestRule4Pull(id, infos, rowOf, x, descCache, chainMap);
+    const pull = findBestRule4Pull(id, infos, rowOf, x, ancestorSets, chainMap);
     if (pull === -Infinity) continue;
 
     // Secondary roots have no prev — pull alone determines x (can be negative).
@@ -539,9 +543,9 @@ function reconcilePass(
   primaryRootId: string,
   x: Map<string, number>,
   rule3Map: Map<string, { endId: string; prevId: string; startId: string }>,
+  ancestorSets: Map<string, Set<string>>,
 ): Map<string, number> {
   const result = new Map(x);
-  const descCache = new Map<string, boolean>();
 
   for (const id of order) {
     const info = infos.get(id)!;
@@ -557,7 +561,7 @@ function reconcilePass(
     if (rule3Map.has(id)) {
       const { endId, prevId, startId } = rule3Map.get(id)!;
       const prevRight = result.get(prevId)! + infos.get(prevId)!.width;
-      const xExcl = computeXExcl(endId, startId, infos, result, descCache);
+      const xExcl = computeXExcl(endId, startId, infos, result, ancestorSets);
       const pullTarget = xExcl !== -Infinity ? xExcl - info.width - GAP : -Infinity;
       result.set(id, pullTarget !== -Infinity ? Math.max(prevRight + GAP, pullTarget) : prevRight + GAP);
       continue;
@@ -726,6 +730,7 @@ export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
   const infos = buildTopology(graph);
   const order = topologicalSort(infos);
   const chainMap = buildChainMap(infos);
+  const ancestorSets = buildAncestorSets(infos, order);
 
   // Primary root: most top-left (smallest y, tie-break smallest x)
   const primaryRoot = [...infos.values()]
@@ -734,7 +739,7 @@ export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
 
   const rowOf = assignRows(infos, order, chainMap);
   const xFwd = forwardPass(infos, primaryRoot.id, order, rowOf);
-  const xAfterRule4 = applyRule4(infos, primaryRoot.id, order, rowOf, xFwd, chainMap);
+  const xAfterRule4 = applyRule4(infos, primaryRoot.id, order, rowOf, xFwd, chainMap, ancestorSets);
   const rule3Map = computeRule3Map(infos, rowOf, chainMap);
   const xFinal = reconcilePass(
     infos,
@@ -743,6 +748,7 @@ export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
     primaryRoot.id,
     xAfterRule4,
     rule3Map,
+    ancestorSets,
   );
 
   const yFinal = yPass(infos, xFinal, rowOf, primaryRoot.id);
