@@ -273,6 +273,7 @@ export function AutoformatRoute() {
             <div class={styles.row}>
               <div class={styles.rowHeader}>
                 <span class={styles.caseNumber}>#{i() + 1}</span>
+                <span class={styles.caseId}>{c.id}.json</span>
                 <div class={styles.rowActions}>
                   <button
                     class={styles.duplicateBtn}
