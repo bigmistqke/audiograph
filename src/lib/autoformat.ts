@@ -314,10 +314,10 @@ function findBestRule4Pull(
   infos: Map<string, NodeInfo>,
   rowOf: Map<string, number>,
   x: Map<string, number>,
+  descCache: Map<string, boolean>,
 ): number {
   const splitRow = rowOf.get(splitId) ?? 0;
   const splitWidth = infos.get(splitId)!.width;
-  const descCache = new Map<string, boolean>();
 
   let bestPrimaryPull = -Infinity;
   let bestFallbackPull = -Infinity;
@@ -404,13 +404,14 @@ function applyRule4(
   xFwd: Map<string, number>,
 ): Map<string, number> {
   const x = new Map(xFwd);
+  const descCache = new Map<string, boolean>();
 
   // Splits: reverse topological order ≈ post-order DFS
   for (const id of [...order].reverse()) {
     const info = infos.get(id)!;
     if (info.role !== "split") continue;
 
-    const pull = findBestRule4Pull(id, infos, rowOf, x);
+    const pull = findBestRule4Pull(id, infos, rowOf, x, descCache);
     if (pull === -Infinity) continue;
 
     const prevId = info.parents[0];
@@ -437,7 +438,7 @@ function applyRule4(
   for (const rootInfo of secondaryRoots) {
     const id = rootInfo.id;
 
-    const pull = findBestRule4Pull(id, infos, rowOf, x);
+    const pull = findBestRule4Pull(id, infos, rowOf, x, descCache);
     if (pull === -Infinity) continue;
 
     // Secondary roots have no prev — pull alone determines x (can be negative).
@@ -514,6 +515,7 @@ function reconcilePass(
   rule3Map: Map<string, { endId: string; prevId: string; startId: string }>,
 ): Map<string, number> {
   const result = new Map(x);
+  const descCache = new Map<string, boolean>();
 
   for (const id of order) {
     const info = infos.get(id)!;
@@ -529,7 +531,7 @@ function reconcilePass(
     if (rule3Map.has(id)) {
       const { endId, prevId, startId } = rule3Map.get(id)!;
       const prevRight = result.get(prevId)! + infos.get(prevId)!.width;
-      const xExcl = computeXExcl(endId, startId, infos, result, new Map());
+      const xExcl = computeXExcl(endId, startId, infos, result, descCache);
       const pullTarget = xExcl !== -Infinity ? xExcl - info.width - GAP : -Infinity;
       result.set(id, pullTarget !== -Infinity ? Math.max(prevRight + GAP, pullTarget) : prevRight + GAP);
       continue;
