@@ -4,7 +4,9 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  mapArray,
   on,
+  onCleanup,
   untrack,
 } from "solid-js";
 import { createStore, produce } from "solid-js/store";
@@ -331,39 +333,39 @@ export function AutoformatRoute() {
               const result = createMemo(() => autoformat(state.cases[i()].initial));
               const diff = createMemo(() => diffs()[i()]!);
 
-              // Sync Expected topology + dimensions from Initial.
-              // Positions in Expected are user-controlled; only structure/dims follow Initial.
+              // Sync edges from Initial to Expected
               createEffect(() => {
-                const initial = state.cases[i()].initial;
-                const initialIds = new Set(Object.keys(initial.nodes));
-
-                // Read expected state without creating a reactive dependency on it
-                const expectedNodes = untrack(() => state.cases[i()].expected.nodes);
-                const expectedIds = new Set(Object.keys(expectedNodes));
-
-                // Sync edges
-                setState("cases", i(), "expected", "edges", structuredClone(initial.edges));
-
-                // Remove nodes no longer in Initial
-                for (const id of expectedIds) {
-                  if (!initialIds.has(id)) {
-                    setState("cases", i(), "expected", "nodes", produce((nodes) => {
-                      delete nodes[id];
-                    }));
-                  }
-                }
-
-                // Add new nodes / sync dimensions
-                for (const [id, node] of Object.entries(initial.nodes)) {
-                  if (!expectedIds.has(id)) {
-                    // New node: seed at same position as Initial
-                    setState("cases", i(), "expected", "nodes", id, structuredClone(node));
-                  } else {
-                    // Existing node: only sync dimensions
-                    setState("cases", i(), "expected", "nodes", id, "dimensions", structuredClone(node.dimensions));
-                  }
-                }
+                setState("cases", i(), "expected", "edges", [...state.cases[i()].initial.edges]);
               });
+
+              // Per-node sync: seed on add, track dimensions, remove on cleanup
+              createEffect(
+                mapArray(
+                  () => Object.keys(state.cases[i()].initial.nodes),
+                  (key) => {
+                    // Seed node in Expected if not yet present
+                    if (untrack(() => !state.cases[i()].expected.nodes[key])) {
+                      const node = untrack(() => state.cases[i()].initial.nodes[key]!);
+                      setState("cases", i(), "expected", "nodes", key, structuredClone(node));
+                    }
+
+                    // Track dimension changes for this node
+                    createEffect(() => {
+                      const dims = state.cases[i()].initial.nodes[key]?.dimensions;
+                      if (dims) {
+                        setState("cases", i(), "expected", "nodes", key, "dimensions", { x: dims.x, y: dims.y });
+                      }
+                    });
+
+                    // Remove from Expected when node is removed from Initial
+                    onCleanup(() => {
+                      setState("cases", i(), "expected", "nodes", produce((nodes) => {
+                        delete nodes[key];
+                      }));
+                    });
+                  },
+                ),
+              );
 
               return (
                 <div
