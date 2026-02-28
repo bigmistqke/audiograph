@@ -158,7 +158,7 @@ Each island is laid out independently. Islands are then arranged to avoid collis
 
 11. ~~**End boundary is a split**~~ — **Resolved**: falls out of rule 3's condition ("last internal before a **merge** end boundary, **in a lower row**"). Same-row, upward, and non-merge end boundaries all simply fail to match rule 3 and fall through to rule 5 (sequential). No special cases needed.
 
-12. ~~**Definition of "longest child path"**~~ — **Resolved**: the reference point for rule 4 is the **target merge's forward-pass x** directly — no need to find the "last node of an alternative path." The formula is `x = merge.x_fwd - min_direct_path_width`. The merge's x_fwd is already computed in the forward pass; no additional traversal is needed beyond identifying which merge to target (see target merge selection in rule 4).
+12. ~~**Definition of "longest child path"**~~ — **Partially resolved**: the reference point for rule 4 is the **target merge's forward-pass x** — no traversal needed to compute the ref itself. However, identifying which merge to target *and* verifying its independence from the split requires traversing alternative paths (see Q16).
 
 13. ~~**Row height**~~ — **Resolved**: `max(node heights in row)`.
 
@@ -166,4 +166,4 @@ Each island is laid out independently. Islands are then arranged to avoid collis
 
 15. **Audio graph cycles** — The algorithm assumes a DAG. The Web Audio API does support cycles (a delay node is required to avoid infinite feedback), so this is a real concern. Deferred for now.
 
-16. ~~**`minChildPathWidth` across chain boundaries**~~ — **Resolved**: see Q12 and rule 4. `min_direct_path_width` is the width of this node + all internals on the direct chain to the merge + gaps between them. It does not cross chain boundaries — it is the width of the direct path only. The target merge's x is its forward-pass value (already computed); no traversal is needed to compute the reference. Traversal is still needed to *identify* candidate merges and check independence (whether the split dominates a merge's forward-pass x).
+16. ~~**`minChildPathWidth` across chain boundaries**~~ — **Partially resolved**: `min_direct_path_width` is the width of this node + all internals on the direct chain to the merge + gaps, and does not cross chain boundaries. The target merge's x is its forward-pass value (no traversal to compute the ref itself). However, **independence checking does require traversal**: to verify that merge M is truly independent of split S, you must compute M.x without S's contribution — which may require traversing through intermediate merges (e.g. S→E→M where E is also an input of S). This traversal must explicitly skip S to avoid cycles.
