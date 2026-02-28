@@ -9,87 +9,75 @@
   ],
   "initial": {
     "nodes": {
-      "9be5fbe3-7251-44f3-87f5-79bb6870bbba": {
-        "id": "9be5fbe3-7251-44f3-87f5-79bb6870bbba",
+      "A": {
+        "id": "A",
         "type": "node",
         "x": 0,
         "y": 0,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "A"
         }
       },
-      "ce7ae20a-63fd-438a-820a-4394076236aa": {
-        "id": "ce7ae20a-63fd-438a-820a-4394076236aa",
+      "B": {
+        "id": "B",
         "type": "node",
         "x": 280,
         "y": 20,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "B"
         }
       },
-      "c8f3200b-8646-489d-b8d5-0a3832f16a9f": {
-        "id": "c8f3200b-8646-489d-b8d5-0a3832f16a9f",
+      "C": {
+        "id": "C",
         "type": "node",
         "x": 30,
         "y": 130,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "C"
         }
       },
-      "df7572c0-fb95-4303-852b-cc1ccf3db529": {
-        "id": "df7572c0-fb95-4303-852b-cc1ccf3db529",
+      "D": {
+        "id": "D",
         "type": "node",
         "x": 170,
         "y": 150,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "D"
         }
       }
     },
     "edges": [
       {
         "output": {
-          "node": "9be5fbe3-7251-44f3-87f5-79bb6870bbba",
+          "node": "A",
           "port": "out"
         },
         "input": {
-          "node": "ce7ae20a-63fd-438a-820a-4394076236aa",
+          "node": "B",
           "port": "in"
         }
       },
       {
         "output": {
-          "node": "df7572c0-fb95-4303-852b-cc1ccf3db529",
+          "node": "D",
           "port": "out"
         },
         "input": {
-          "node": "ce7ae20a-63fd-438a-820a-4394076236aa",
+          "node": "B",
           "port": "in"
         }
       },
       {
         "output": {
-          "node": "c8f3200b-8646-489d-b8d5-0a3832f16a9f",
+          "node": "C",
           "port": "out"
         },
         "input": {
-          "node": "df7572c0-fb95-4303-852b-cc1ccf3db529",
+          "node": "D",
           "port": "in"
         }
       }
@@ -97,87 +85,75 @@
   },
   "expected": {
     "nodes": {
-      "3956d6f9-3378-413e-825b-32c8a8c59f5e": {
-        "id": "3956d6f9-3378-413e-825b-32c8a8c59f5e",
+      "A": {
+        "id": "A",
         "type": "node",
         "x": 0,
         "y": 0,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "A"
         }
       },
-      "e60be423-3e36-46e9-807e-ec4e3a9d5c80": {
-        "id": "e60be423-3e36-46e9-807e-ec4e3a9d5c80",
+      "B": {
+        "id": "B",
         "type": "node",
         "x": 130,
         "y": 0,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "B"
         }
       },
-      "9d198be9-500c-42c2-9209-c273e148dd29": {
-        "id": "9d198be9-500c-42c2-9209-c273e148dd29",
+      "C": {
+        "id": "C",
         "type": "node",
         "x": -130,
         "y": 110,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "C"
         }
       },
-      "39aab42c-8557-4978-9852-381612f7b3af": {
-        "id": "39aab42c-8557-4978-9852-381612f7b3af",
+      "D": {
+        "id": "D",
         "type": "node",
         "x": 0,
         "y": 110,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "D"
         }
       }
     },
     "edges": [
       {
         "output": {
-          "node": "9d198be9-500c-42c2-9209-c273e148dd29",
+          "node": "C",
           "port": "out"
         },
         "input": {
-          "node": "39aab42c-8557-4978-9852-381612f7b3af",
+          "node": "D",
           "port": "in"
         }
       },
       {
         "output": {
-          "node": "39aab42c-8557-4978-9852-381612f7b3af",
+          "node": "D",
           "port": "out"
         },
         "input": {
-          "node": "e60be423-3e36-46e9-807e-ec4e3a9d5c80",
+          "node": "B",
           "port": "in"
         }
       },
       {
         "output": {
-          "node": "3956d6f9-3378-413e-825b-32c8a8c59f5e",
+          "node": "A",
           "port": "out"
         },
         "input": {
-          "node": "e60be423-3e36-46e9-807e-ec4e3a9d5c80",
+          "node": "B",
           "port": "in"
         }
       }

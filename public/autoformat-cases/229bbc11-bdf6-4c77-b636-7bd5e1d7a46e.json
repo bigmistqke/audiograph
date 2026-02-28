@@ -13,64 +13,55 @@
   ],
   "initial": {
     "nodes": {
-      "900d9756-c33a-46a9-b9a8-e533cfc07f06": {
-        "id": "900d9756-c33a-46a9-b9a8-e533cfc07f06",
+      "A": {
+        "id": "A",
         "type": "node",
         "x": 0,
         "y": 0,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "A"
         }
       },
-      "37f5ab92-6c34-465b-9eb7-8d6a298834f9": {
-        "id": "37f5ab92-6c34-465b-9eb7-8d6a298834f9",
+      "B": {
+        "id": "B",
         "type": "node",
         "x": 200,
         "y": -80,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "B"
         }
       },
-      "d4613b2f-e8b3-4371-ba4a-0dd6183871f9": {
-        "id": "d4613b2f-e8b3-4371-ba4a-0dd6183871f9",
+      "C": {
+        "id": "C",
         "type": "node",
         "x": 140,
         "y": 70,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "C"
         }
       }
     },
     "edges": [
       {
         "output": {
-          "node": "900d9756-c33a-46a9-b9a8-e533cfc07f06",
+          "node": "A",
           "port": "out"
         },
         "input": {
-          "node": "37f5ab92-6c34-465b-9eb7-8d6a298834f9",
+          "node": "B",
           "port": "in"
         }
       },
       {
         "output": {
-          "node": "900d9756-c33a-46a9-b9a8-e533cfc07f06",
+          "node": "A",
           "port": "out"
         },
         "input": {
-          "node": "d4613b2f-e8b3-4371-ba4a-0dd6183871f9",
+          "node": "C",
           "port": "in"
         }
       }
@@ -78,64 +69,55 @@
   },
   "expected": {
     "nodes": {
-      "de8fef4c-f390-46d9-aff1-91149d112dd1": {
-        "id": "de8fef4c-f390-46d9-aff1-91149d112dd1",
+      "A": {
+        "id": "A",
         "type": "node",
         "x": 0,
         "y": 0,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "A"
         }
       },
-      "8a37dcda-593b-4829-8dca-f9a763f621a2": {
-        "id": "8a37dcda-593b-4829-8dca-f9a763f621a2",
+      "B": {
+        "id": "B",
         "type": "node",
         "x": 130,
         "y": 0,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "B"
         }
       },
-      "92272696-0319-4814-8543-05f7d3fe4200": {
-        "id": "92272696-0319-4814-8543-05f7d3fe4200",
+      "C": {
+        "id": "C",
         "type": "node",
         "x": 130,
         "y": 110,
         "dimensions": {
           "x": 100,
           "y": 80
-        },
-        "state": {
-          "label": "C"
         }
       }
     },
     "edges": [
       {
         "output": {
-          "node": "de8fef4c-f390-46d9-aff1-91149d112dd1",
+          "node": "A",
           "port": "out"
         },
         "input": {
-          "node": "8a37dcda-593b-4829-8dca-f9a763f621a2",
+          "node": "B",
           "port": "in"
         }
       },
       {
         "output": {
-          "node": "de8fef4c-f390-46d9-aff1-91149d112dd1",
+          "node": "A",
           "port": "out"
         },
         "input": {
-          "node": "92272696-0319-4814-8543-05f7d3fe4200",
+          "node": "C",
           "port": "in"
         }
       }

@@ -12,8 +12,6 @@ import styles from "./autoformat-route.module.css";
 
 // ─── Workshop node type ───────────────────────────────────────────────────────
 
-type WorkshopState = { label: string };
-
 const workshopConfig: GraphConfig<null> = {
   node: {
     title: "node",
@@ -22,14 +20,14 @@ const workshopConfig: GraphConfig<null> = {
       in: [{ name: "in" }],
       out: [{ name: "out" }],
     },
-    state: { label: "" } as WorkshopState,
+    state: {},
     resizable: "y",
-    construct: ({ state }) => ({
+    construct: ({ id }) => ({
       render: () => (
-        <div class={styles.nodeLabel}>{(state as WorkshopState).label}</div>
+        <div class={styles.nodeLabel}>{id}</div>
       ),
     }),
-  } satisfies NodeTypeDef<WorkshopState, null>,
+  } satisfies NodeTypeDef<Record<string, never>, null>,
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -181,8 +179,8 @@ function GraphPanel(props: {
   setGraphStore: (...args: any[]) => void;
   readonly?: boolean;
 }) {
-  const nextLabel = () => {
-    const count = Object.keys(props.graphStore.nodes).length - 1;
+  const nextId = () => {
+    const count = Object.keys(props.graphStore.nodes).length;
     return String.fromCharCode(65 + (count % 26));
   };
 
@@ -197,8 +195,7 @@ function GraphPanel(props: {
         props.readonly
           ? () => {}
           : ({ x, y, graph }) => {
-              const id = graph.addNode("node", { x, y });
-              props.setGraphStore("nodes", id, "state", "label", nextLabel());
+              graph.addNode("node", { x, y, id: nextId() });
             }
       }
       onEdgeClick={

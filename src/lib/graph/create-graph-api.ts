@@ -93,9 +93,10 @@ export type GraphAPI<
   getPortDef: (nodeId: string, portName: string) => PortDef | undefined;
   addNode(
     type: keyof TConfig & string,
-    position: {
+    options: {
       x: number;
       y: number;
+      id?: string;
     },
   ): string;
   deleteNode(id: string): void;
@@ -230,8 +231,8 @@ export function createGraphAPI<
     graphStore,
     nodes,
     getPortDef,
-    addNode(type: keyof TConfig & string, position: { x: number; y: number }) {
-      const id = crypto.randomUUID();
+    addNode(type: keyof TConfig & string, options: { x: number; y: number; id?: string }) {
+      const id = options.id ?? crypto.randomUUID();
       const typeDef = config[type];
 
       setGraphStore(
@@ -240,8 +241,8 @@ export function createGraphAPI<
           nodes[id] = {
             id,
             type,
-            x: snapToGrid(position.x),
-            y: snapToGrid(position.y),
+            x: snapToGrid(options.x),
+            y: snapToGrid(options.y),
             dimensions: { ...typeDef.dimensions },
             state: { ...config[type]?.state },
           };
