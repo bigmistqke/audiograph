@@ -1,16 +1,7 @@
 {
-  "id": "b7318fb9-d8d0-4b10-bb65-99567e1c7c1a",
-  "title": "Row y depends on available space, not row index",
-  "comments": [
-    {
-      "role": "user",
-      "text": "an example to clarify that the y-position of a row is dependent on the available space underneath it. D and E are both 1 row below the main branch, but this does not necessarily mean they are the same row or share the same y"
-    },
-    {
-      "role": "assistant",
-      "text": "Main row (row 0): A→B (h=140)→C at y=0. B is taller than the rest.\n\nD is a leaf child of A. D.x = A.right + gap = 130. In the x-range 130–230, the occupied bottom comes from B (bottom = 0 + 140 = 140). So D.y = 140 + 30 = 170.\n\nE is a leaf child of B. E.x = B.right + gap = 260. In the x-range 260–360, the occupied bottom comes from C (bottom = 0 + 80 = 80). So E.y = 80 + 30 = 110.\n\nSame topological depth, different y — because each chain queries the occupied bottom only in its own x-range, and B's extra height only affects the segment it occupies.\n\nRule tested: Y-pass interval query — each chain's y is determined by the max occupied bottom in its specific x-range, not a global row height."
-    }
-  ],
+  "id": "4299303f-a29a-4e1c-a175-c34e5b41e688",
+  "title": "Row y depends on available space, not row index (part 2)",
+  "comments": [],
   "initial": {
     "nodes": {
       "A": {
@@ -46,10 +37,10 @@
       "D": {
         "id": "D",
         "type": "node",
-        "x": 100,
-        "y": 220,
+        "x": 140,
+        "y": 290,
         "dimensions": {
-          "x": 100,
+          "x": 150,
           "y": 80
         }
       },
@@ -143,9 +134,9 @@
         "id": "D",
         "type": "node",
         "x": 130,
-        "y": 170,
+        "y": 220,
         "dimensions": {
-          "x": 100,
+          "x": 150,
           "y": 80
         }
       },
