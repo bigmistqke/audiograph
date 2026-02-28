@@ -1,6 +1,6 @@
 {
-  "id": "4299303f-a29a-4e1c-a175-c34e5b41e688",
-  "title": "Row y depends on available space, not row index (part 2)",
+  "id": "69941ad1-efb7-4e82-abfe-cc7a73adeb09",
+  "title": "multiple chains on the same row ([A]-C-D and D-E)",
   "comments": [],
   "initial": {
     "nodes": {
@@ -12,47 +12,52 @@
         "dimensions": {
           "x": 100,
           "y": 80
-        }
+        },
+        "state": {}
       },
       "B": {
         "id": "B",
         "type": "node",
-        "x": 140,
-        "y": 0,
+        "x": 200,
+        "y": -20,
         "dimensions": {
           "x": 100,
-          "y": 140
-        }
+          "y": 80
+        },
+        "state": {}
       },
       "C": {
         "id": "C",
         "type": "node",
-        "x": 260,
-        "y": 20,
+        "x": 80,
+        "y": 160,
         "dimensions": {
           "x": 100,
           "y": 80
-        }
+        },
+        "state": {}
       },
       "D": {
         "id": "D",
         "type": "node",
-        "x": 140,
-        "y": 290,
+        "x": 260,
+        "y": 140,
         "dimensions": {
-          "x": 150,
+          "x": 100,
           "y": 80
-        }
+        },
+        "state": {}
       },
       "E": {
         "id": "E",
         "type": "node",
-        "x": 280,
-        "y": 190,
+        "x": 390,
+        "y": 80,
         "dimensions": {
           "x": 100,
           "y": 80
-        }
+        },
+        "state": {}
       }
     },
     "edges": [
@@ -68,7 +73,7 @@
       },
       {
         "output": {
-          "node": "B",
+          "node": "A",
           "port": "out"
         },
         "input": {
@@ -78,7 +83,7 @@
       },
       {
         "output": {
-          "node": "A",
+          "node": "B",
           "port": "out"
         },
         "input": {
@@ -88,7 +93,17 @@
       },
       {
         "output": {
-          "node": "B",
+          "node": "C",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "D",
           "port": "out"
         },
         "input": {
@@ -108,7 +123,8 @@
         "dimensions": {
           "x": 100,
           "y": 80
-        }
+        },
+        "state": {}
       },
       "B": {
         "id": "B",
@@ -117,38 +133,42 @@
         "y": 0,
         "dimensions": {
           "x": 100,
-          "y": 140
-        }
+          "y": 80
+        },
+        "state": {}
       },
       "C": {
         "id": "C",
+        "type": "node",
+        "x": 130,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "D": {
+        "id": "D",
         "type": "node",
         "x": 260,
         "y": 0,
         "dimensions": {
           "x": 100,
           "y": 80
-        }
-      },
-      "D": {
-        "id": "D",
-        "type": "node",
-        "x": 130,
-        "y": 220,
-        "dimensions": {
-          "x": 150,
-          "y": 80
-        }
+        },
+        "state": {}
       },
       "E": {
         "id": "E",
         "type": "node",
-        "x": 260,
-        "y": 110,
+        "x": 390,
+        "y": 0,
         "dimensions": {
           "x": 100,
           "y": 80
-        }
+        },
+        "state": {}
       }
     },
     "edges": [
@@ -158,23 +178,13 @@
           "port": "out"
         },
         "input": {
-          "node": "D",
+          "node": "B",
           "port": "in"
         }
       },
       {
         "output": {
           "node": "A",
-          "port": "out"
-        },
-        "input": {
-          "node": "B",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "B",
           "port": "out"
         },
         "input": {
@@ -185,6 +195,26 @@
       {
         "output": {
           "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "C",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "D",
           "port": "out"
         },
         "input": {

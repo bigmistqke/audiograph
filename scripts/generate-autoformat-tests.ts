@@ -33,7 +33,15 @@ function labelX(graph: Graph): Record<string, number> {
   return result;
 }
 
-function generateCase(testCase: TestCase): string {
+function labelY(graph: Graph): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const [id, node] of Object.entries(graph.nodes)) {
+    result[id] = node.y;
+  }
+  return result;
+}
+
+function generateXCase(testCase: TestCase): string {
   const description =
     testCase.title ||
     testCase.comments.find((c) => c.role === "user")?.text ||
@@ -49,12 +57,31 @@ function generateCase(testCase: TestCase): string {
   });`;
 }
 
-const cases = ids.map((id) => {
+function generateYCase(testCase: TestCase): string {
+  const description =
+    testCase.title ||
+    testCase.comments.find((c) => c.role === "user")?.text ||
+    testCase.id;
+  const expected = labelY(testCase.expected);
+  const initialStr = JSON.stringify(testCase.initial, null, 4)
+    .split("\n")
+    .join("\n    ");
+
+  return `  it(${JSON.stringify(description)}, () => {
+    const initial: Graph = ${initialStr};
+    expect(labelY(autoformat(initial))).toEqual(${JSON.stringify(expected, null, 6).split("\n").join("\n    ")});
+  });`;
+}
+
+const testCases = ids.map((id) => {
   const data: TestCase = JSON.parse(
     readFileSync(join(casesDir, `${id}.json`), "utf8"),
   );
-  return generateCase(data);
+  return data;
 });
+
+const xCases = testCases.map(generateXCase);
+const yCases = testCases.map(generateYCase);
 
 const output = `\
 // AUTO-GENERATED — do not edit.
@@ -72,11 +99,23 @@ function labelX(graph: Graph): Record<string, number> {
   return result;
 }
 
+function labelY(graph: Graph): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const [id, node] of Object.entries(graph.nodes)) {
+    result[id] = node.y;
+  }
+  return result;
+}
+
 describe("autoformat — x-positions", () => {
-${cases.join("\n\n")}
+${xCases.join("\n\n")}
+});
+
+describe("autoformat — y-positions", () => {
+${yCases.join("\n\n")}
 });
 `;
 
 const outPath = join(root, "src/lib/autoformat.test.ts");
 writeFileSync(outPath, output);
-console.log(`Generated ${cases.length} test cases → ${outPath}`);
+console.log(`Generated ${testCases.length} test cases → ${outPath}`);

@@ -20,6 +20,7 @@ interface NodeInfo {
 export interface LayoutNode {
   id: string;
   x: number;
+  y: number;
   row: number;
   width: number;
   height: number;
@@ -163,10 +164,16 @@ function assignRows(
 
       if (rowOf.has(endId)) {
         // End boundary already claimed → cross-row edge.
-        // Assign any unvisited internals to the end's row.
-        const endRow = rowOf.get(endId)!;
+        // Interior nodes still open their own row.
+        // If this chain's row is higher priority (lower index) than the end
+        // boundary's current row, prefer it — the higher-priority row wins.
+        const chainRow = !spineAssigned ? currentRow : nextRow++;
+        if (!spineAssigned) spineAssigned = true;
+        if (isMergeLike(infos.get(endId)!.role) && chainRow < rowOf.get(endId)!) {
+          rowOf.set(endId, chainRow);
+        }
         for (let i = 1; i < chain.length - 1; i++) {
-          if (!rowOf.has(chain[i])) rowOf.set(chain[i], endRow);
+          if (!rowOf.has(chain[i])) rowOf.set(chain[i], chainRow);
         }
         continue;
       }
@@ -354,7 +361,11 @@ function findBestRule4Pull(
         }
         // Stop this path here (don't traverse past a primary target).
       } else if (endRow === splitRow) {
-        // Same priority: skip as target, continue traversal through it.
+        // Same priority: valid fallback target if no primary is found; also continue traversal.
+        if (xExcl !== -Infinity) {
+          const pull = xExcl - pathWidthToEnd;
+          if (pull > bestFallbackPull) bestFallbackPull = pull;
+        }
         visitedBoundaries.add(endId);
         traverse(endId, pathWidthToEnd + endInfo.width + GAP);
       } else {
@@ -546,6 +557,132 @@ function reconcilePass(
   return result;
 }
 
+// ─── Step 3 + 4: DFS Row Order + Y Pass ──────────────────────────────────────
+//
+// Step 3: build an interval structure (list of {xStart, xEnd, bottomY} tuples)
+//   - insert(xStart, xEnd, bottomY): record a placed row's x-span and bottom edge
+//   - queryMaxBottomY(xStart, xEnd): max bottom-Y across all overlapping intervals
+//
+// Step 4: process rows in DFS order (NOT row-index order). The DFS starts at
+// the primary root, visits children sorted by initialY ascending, fully
+// exhausting each subtree before the next sibling. Secondary roots follow in
+// top-left order. The first time a row is encountered in this traversal is
+// when it is placed.
+//
+// Row y = max_bottom_y_across_x_span + GAP.
+// Row height = max(node heights in row). Gap = 30px.
+// Primary root anchoring: interval structure is seeded so that row 0 lands at
+// primaryRoot.initialY (i.e. baseBottomY = primaryRoot.initialY - GAP).
+
+function buildDFSRowOrder(
+  infos: Map<string, NodeInfo>,
+  rowOf: Map<string, number>,
+  primaryRootId: string,
+): number[] {
+  const rowsEncountered = new Set<number>();
+  const rowOrder: number[] = [];
+  const visited = new Set<string>();
+
+  function dfs(nodeId: string) {
+    if (visited.has(nodeId)) return;
+    visited.add(nodeId);
+
+    const row = rowOf.get(nodeId);
+    if (row !== undefined && !rowsEncountered.has(row)) {
+      rowsEncountered.add(row);
+      rowOrder.push(row);
+    }
+
+    const info = infos.get(nodeId)!;
+    const sortedChildren = [...info.children].sort(
+      (a, b) => infos.get(a)!.initialY - infos.get(b)!.initialY,
+    );
+    for (const childId of sortedChildren) {
+      dfs(childId);
+    }
+  }
+
+  dfs(primaryRootId);
+
+  // Secondary roots in top-left order (smallest y, tie-break smallest x)
+  const secondaryRoots = [...infos.values()]
+    .filter((n) => n.role === "root" && n.id !== primaryRootId)
+    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX);
+  for (const root of secondaryRoots) {
+    dfs(root.id);
+  }
+
+  return rowOrder;
+}
+
+function yPass(
+  infos: Map<string, NodeInfo>,
+  xFinal: Map<string, number>,
+  rowOf: Map<string, number>,
+  primaryRootId: string,
+): Map<string, number> {
+  const yOut = new Map<string, number>();
+
+  // Build row → nodes mapping
+  const rowNodes = new Map<number, string[]>();
+  for (const [id, row] of rowOf) {
+    if (!rowNodes.has(row)) rowNodes.set(row, []);
+    rowNodes.get(row)!.push(id);
+  }
+
+  // Seed baseBottomY so that row 0 lands at primaryRoot.initialY
+  const baseBottomY = infos.get(primaryRootId)!.initialY - GAP;
+
+  // Interval structure: list of {xStart, xEnd, bottomY}
+  const intervals: Array<{ xStart: number; xEnd: number; bottomY: number }> = [];
+
+  function queryMaxBottomY(xStart: number, xEnd: number): number {
+    let max = baseBottomY;
+    for (const iv of intervals) {
+      if (iv.xEnd > xStart && iv.xStart < xEnd) {
+        if (iv.bottomY > max) max = iv.bottomY;
+      }
+    }
+    return max;
+  }
+
+  const rowOrder = buildDFSRowOrder(infos, rowOf, primaryRootId);
+
+  for (const row of rowOrder) {
+    const nodeIds = rowNodes.get(row) ?? [];
+    if (nodeIds.length === 0) continue;
+
+    let xMin = Infinity;
+    let xMax = -Infinity;
+    let rowHeight = 0;
+
+    for (const id of nodeIds) {
+      const nodeX = xFinal.get(id)!;
+      const info = infos.get(id)!;
+      xMin = Math.min(xMin, nodeX);
+      xMax = Math.max(xMax, nodeX + info.width);
+      rowHeight = Math.max(rowHeight, info.height);
+    }
+
+    const y = queryMaxBottomY(xMin, xMax) + GAP;
+
+    for (const id of nodeIds) {
+      yOut.set(id, y);
+    }
+
+    // Insert per-node intervals using each node's own height.
+    // This lets nodes in adjacent columns (non-overlapping x-ranges) avoid
+    // being blocked by the tallest node in the row.
+    for (const id of nodeIds) {
+      const nodeX = xFinal.get(id)!;
+      const info = infos.get(id)!;
+      intervals.push({ xStart: nodeX, xEnd: nodeX + info.width, bottomY: y + info.height });
+    }
+  }
+
+  return yOut;
+}
+
 // ─── Main exports ─────────────────────────────────────────────────────────────
 
 export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
@@ -572,11 +709,14 @@ export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
     rule3Map,
   );
 
+  const yFinal = yPass(infos, xFinal, rowOf, primaryRoot.id);
+
   const result = new Map<string, LayoutNode>();
   for (const info of infos.values()) {
     result.set(info.id, {
       id: info.id,
       x: xFinal.get(info.id)!,
+      y: yFinal.get(info.id)!,
       row: rowOf.get(info.id) ?? 0,
       width: info.width,
       height: info.height,
@@ -591,12 +731,11 @@ export function analyze(graph: Graph) {
 }
 
 export function autoformat(graph: Graph): Graph {
-  // Steps 3 + 4 (Y pass) not yet implemented — returns graph with x-positions only
   const layout = analyzeLayout(graph);
   const nodes = { ...graph.nodes };
   for (const id of Object.keys(nodes)) {
     const l = layout.get(id);
-    if (l) nodes[id] = { ...nodes[id], x: l.x };
+    if (l) nodes[id] = { ...nodes[id], x: l.x, y: l.y };
   }
   return { ...graph, nodes };
 }
