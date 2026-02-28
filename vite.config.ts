@@ -116,6 +116,16 @@ function autoformatSavePlugin(): Plugin {
           try {
             const { cases } = JSON.parse(Buffer.concat(chunks).toString());
             if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+            const newIds = new Set(cases.map((c: any) => c.id));
+            const oldIndex: string[] = fs.existsSync(path.join(dir, "index.json"))
+              ? JSON.parse(fs.readFileSync(path.join(dir, "index.json"), "utf8"))
+              : [];
+            for (const oldId of oldIndex) {
+              if (!newIds.has(oldId)) {
+                const oldFile = path.join(dir, `${oldId}.json`);
+                if (fs.existsSync(oldFile)) fs.unlinkSync(oldFile);
+              }
+            }
             for (const c of cases) {
               fs.writeFileSync(
                 path.join(dir, `${c.id}.json`),
