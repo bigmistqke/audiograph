@@ -2914,6 +2914,61 @@
       "created_at": "2026-02-28T21:04:24.026465+01:00",
       "updated_at": "2026-02-28T21:04:24.026465+01:00",
       "metadata_json": "{\"branch\":\"main\",\"confidence\":70}"
+    },
+    {
+      "id": 266,
+      "change_id": "a055516e-5e9e-401f-b953-a3b9c8d502a4",
+      "node_type": "action",
+      "title": "Thread descCache through applyRule4 and reconcilePass",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T21:13:37.862812+01:00",
+      "updated_at": "2026-02-28T21:13:37.862812+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"721d7db\",\"confidence\":100}"
+    },
+    {
+      "id": 267,
+      "change_id": "69e0b426-44fc-4ffc-b8a8-de4c7a1ef033",
+      "node_type": "action",
+      "title": "Precompute all chains once with buildChainMap",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T21:13:37.894464+01:00",
+      "updated_at": "2026-02-28T21:13:37.894464+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"64da21c\",\"confidence\":100}"
+    },
+    {
+      "id": 268,
+      "change_id": "9a1720f1-4b13-473a-affe-e787b45a359d",
+      "node_type": "action",
+      "title": "Sort interval structure for early-exit in queryMaxBottomY",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T21:13:37.921887+01:00",
+      "updated_at": "2026-02-28T21:13:37.921887+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"ac245d1\",\"confidence\":100}"
+    },
+    {
+      "id": 269,
+      "change_id": "35e7c403-b411-4294-9f43-c4c19780ca7c",
+      "node_type": "action",
+      "title": "Precompute ancestor sets with buildAncestorSets, remove isDescendantOf",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T21:13:37.954683+01:00",
+      "updated_at": "2026-02-28T21:13:37.954683+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"3bbe77c\",\"confidence\":100}"
+    },
+    {
+      "id": 270,
+      "change_id": "611381d1-7866-4973-9f97-3c396631e4ad",
+      "node_type": "action",
+      "title": "Hoist infos.get() lookups in hot loops, replace map+spread with for loops",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T21:13:37.982242+01:00",
+      "updated_at": "2026-02-28T21:13:37.982242+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"b34c377\",\"confidence\":100}"
     }
   ],
   "edges": [
@@ -5589,6 +5644,61 @@
       "weight": 1.0,
       "rationale": "identified optimization",
       "created_at": "2026-02-28T21:04:31.255261+01:00"
+    },
+    {
+      "id": 244,
+      "from_node_id": 261,
+      "to_node_id": 266,
+      "from_change_id": "5e9904be-6570-4b9b-a393-ce4d2528dd34",
+      "to_change_id": "a055516e-5e9e-401f-b953-a3b9c8d502a4",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "implemented",
+      "created_at": "2026-02-28T21:13:42.085948+01:00"
+    },
+    {
+      "id": 245,
+      "from_node_id": 262,
+      "to_node_id": 267,
+      "from_change_id": "9267921f-698a-4f62-be6d-2b3c794b804f",
+      "to_change_id": "69e0b426-44fc-4ffc-b8a8-de4c7a1ef033",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "implemented",
+      "created_at": "2026-02-28T21:13:42.098232+01:00"
+    },
+    {
+      "id": 246,
+      "from_node_id": 263,
+      "to_node_id": 268,
+      "from_change_id": "55915f47-277a-493a-bc22-1dc9f7da3cc0",
+      "to_change_id": "9a1720f1-4b13-473a-affe-e787b45a359d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "implemented",
+      "created_at": "2026-02-28T21:13:42.108062+01:00"
+    },
+    {
+      "id": 247,
+      "from_node_id": 264,
+      "to_node_id": 269,
+      "from_change_id": "bd4307b9-3c54-4766-a34b-a72b6e599840",
+      "to_change_id": "35e7c403-b411-4294-9f43-c4c19780ca7c",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "implemented",
+      "created_at": "2026-02-28T21:13:42.117480+01:00"
+    },
+    {
+      "id": 248,
+      "from_node_id": 265,
+      "to_node_id": 270,
+      "from_change_id": "a39c1400-92cf-4df2-943e-586a67cf3356",
+      "to_change_id": "611381d1-7866-4973-9f97-3c396631e4ad",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "implemented",
+      "created_at": "2026-02-28T21:13:42.126163+01:00"
     }
   ]
 }

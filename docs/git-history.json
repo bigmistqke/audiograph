@@ -1,10 +1,50 @@
 [
   {
+    "hash": "b34c377ac1e9baa3259c282f3a6c40737c3b23e8",
+    "short_hash": "b34c377",
+    "author": "bigmistqke",
+    "date": "2026-02-28T21:12:07+01:00",
+    "message": "perf: hoist infos.get() lookups in hot loops\n\nReplace map()+spread max patterns with explicit for loops in forwardPass\nand reconcilePass, caching infos.get() result once per iteration.\nEliminates redundant map lookups in Rule 2 and Rule 5 paths.",
+    "files_changed": 1
+  },
+  {
+    "hash": "b34c377ac1e9baa3259c282f3a6c40737c3b23e8",
+    "short_hash": "b34c377",
+    "author": "bigmistqke",
+    "date": "2026-02-28T21:12:07+01:00",
+    "message": "perf: hoist infos.get() lookups in hot loops\n\nReplace map()+spread max patterns with explicit for loops in forwardPass\nand reconcilePass, caching infos.get() result once per iteration.\nEliminates redundant map lookups in Rule 2 and Rule 5 paths.",
+    "files_changed": 1
+  },
+  {
     "hash": "3bbe77cff9f00df7534e96f356fd2eaeb86c2228",
     "short_hash": "3bbe77c",
     "author": "bigmistqke",
     "date": "2026-02-28T21:10:54+01:00",
     "message": "perf: precompute ancestor sets, replace recursive isDescendantOf\n\nbuildAncestorSets() computes full ancestor sets for all nodes in one\nO(n) topological pass. computeXExcl now uses Set.has() lookups instead\nof recursive descent with a memoization cache. Removes isDescendantOf.",
+    "files_changed": 1
+  },
+  {
+    "hash": "ac245d1b76a6ffda02453e902d6ecc0c3e711264",
+    "short_hash": "ac245d1",
+    "author": "bigmistqke",
+    "date": "2026-02-28T21:09:50+01:00",
+    "message": "perf: sort interval structure for early-exit queries in yPass\n\nIntervals are kept sorted by xStart via insertion sort on insert.\nqueryMaxBottomY now breaks early when iv.xStart >= xEnd, avoiding\nscanning the full interval list for every row placement.",
+    "files_changed": 1
+  },
+  {
+    "hash": "64da21c866c9207e0dc1d89c20002d84f09e511b",
+    "short_hash": "64da21c",
+    "author": "bigmistqke",
+    "date": "2026-02-28T21:09:14+01:00",
+    "message": "perf: precompute all chains once after topology analysis\n\nbuildChainMap() traces all boundary→child chains once upfront.\nassignRows, findBestRule4Pull, and computeRule3Map now use the\nlookup map instead of re-tracing the same paths on each call.",
+    "files_changed": 1
+  },
+  {
+    "hash": "721d7db36eeccfac6e0079948b018f592ab50c74",
+    "short_hash": "721d7db",
+    "author": "bigmistqke",
+    "date": "2026-02-28T21:08:02+01:00",
+    "message": "perf: thread descCache through applyRule4 and reconcilePass\n\nSingle cache created once per layout run instead of per-merge call,\neliminating redundant ancestor relationship recomputation.",
     "files_changed": 1
   },
   {

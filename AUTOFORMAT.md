@@ -209,6 +209,30 @@ Inter-island collision resolution — shifting lower islands downward to avoid o
 
 ---
 
+## Optimizations
+
+### 1. Descendant cache threading
+
+`descCache` was previously created fresh on every `computeXExcl()` call, recomputing the same ancestor relationships O(N·M) times. One cache is now created per `applyRule4()` / `reconcilePass()` call and threaded through.
+
+### 2. Precomputed chains
+
+`traceChain()` previously re-walked the same node paths in `assignRows()`, `findBestRule4Pull()`, and `computeRule3Map()`. `buildChainMap()` now traces all chains once immediately after topology and stores them in a `Map<startId, Map<firstChildId, string[]>>` lookup used by all passes.
+
+### 3. Sorted interval structure with early-exit queries
+
+`queryMaxBottomY()` previously did a full O(n) linear scan for every row placement. The interval array is now kept sorted by `xStart` (insertion sort on insert), and the query loop breaks early when `iv.xStart >= xEnd`.
+
+### 4. Precomputed ancestor sets
+
+`isDescendantOf()` previously recursed per-call, rewalking overlapping ancestor paths with a memoization cache. `buildAncestorSets()` now computes full ancestor sets for all nodes in one O(n) topological pass. All descendant checks use `Set.has()` lookups. `isDescendantOf` has been removed.
+
+### 5. Hoisted info/width lookups in hot loops
+
+`infos.get(pid)!.width` was called repeatedly inside `map()`/spread-max patterns in the forward pass and reconcile pass. Rule 2 and Rule 5 paths now use explicit `for` loops with the `infos.get()` result cached once per iteration.
+
+---
+
 ## Open Questions
 
 1. **Audio graph cycles** — The algorithm assumes a DAG. The Web Audio API permits cycles (e.g., a delay node in a feedback loop). Handling cycles is deferred.
