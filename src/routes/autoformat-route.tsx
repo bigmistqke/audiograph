@@ -1,16 +1,18 @@
 import {
-  For,
-  Show,
   createEffect,
   createMemo,
+  createResource,
   createSignal,
+  For,
   mapArray,
-  on,
   onCleanup,
+  onMount,
+  Show,
   untrack,
 } from "solid-js";
-import { createStore, produce } from "solid-js/store";
+import { produce, SetStoreFunction } from "solid-js/store";
 import { autoformat } from "~/lib/autoformat";
+import { createWritableStore } from "~/lib/create-writable";
 import { GRID } from "~/lib/graph/constants";
 import type {
   Graph,
@@ -40,9 +42,6 @@ function makeNodeDef(
   };
 }
 
-const initialConfig: GraphConfig<null> = { node: makeNodeDef(true) };
-const expectedConfig: GraphConfig<null> = { node: makeNodeDef(false) };
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Comment {
@@ -57,12 +56,6 @@ interface TestCase {
   initial: Graph;
   expected: Graph;
 }
-
-interface State {
-  cases: TestCase[];
-}
-
-const emptyGraphStore = (): Graph => ({ nodes: {}, edges: [] });
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
@@ -238,78 +231,65 @@ function GraphPanel(props: {
 // ─── Main route ───────────────────────────────────────────────────────────────
 
 export function AutoformatRoute() {
-  const [state, setState] = createStore<State>({ cases: [] });
-  const [ready, setReady] = createSignal(false);
-  const [saveStatus, setSaveStatus] = createSignal<"idle" | "saving" | "saved">(
-    "idle",
+  const [_cases] = createResource(fetchCases);
+  const [cases, _setCases] = createWritableStore(
+    () => _cases() ?? ([] as Array<TestCase>),
   );
 
-  let isSaving = false;
-  let saveTimer: ReturnType<typeof setTimeout>;
-  let savedTimer: ReturnType<typeof setTimeout>;
+  const [shouldRefetch, setShouldRefetch] = createSignal(false, {
+    equals: false,
+  });
+  const [saveStatus] = createResource(shouldRefetch, () => saveCases(cases));
 
-  fetchCases().then((loaded) => {
-    setState("cases", loaded);
-    setReady(true);
+  let timeout: ReturnType<typeof setTimeout>;
+  const setCases: SetStoreFunction<Array<TestCase>> = (...args: Array<any>) => {
+    // @ts-expect-error
+    _setCases(...args);
+    clearTimeout(timeout);
+    timeout = setTimeout(() => setShouldRefetch(true), 1_000);
+  };
+
+  onMount(() => {
+    // WebSocket: receive comment updates from file edits (e.g. by Claude)
+    if (import.meta.hot) {
+      import.meta.hot.on(
+        "autoformat-updated",
+        async ({ id }: { id: string }) => {
+          if (saveStatus.state !== "ready") return;
+          const index = cases.findIndex((c) => c.id === id);
+          if (index === -1) return;
+          const updated = await fetchCase(id);
+          if (!updated) return;
+          const cur = JSON.stringify(cases[index]!.comments);
+          const next = JSON.stringify(updated.comments);
+          if (cur !== next) {
+            setCases(index, "comments", updated.comments);
+          }
+        },
+      );
+    }
   });
 
-  // Autosave: debounced 1s after any state change.
-  createEffect(
-    on(
-      () => JSON.stringify(state.cases),
-      () => {
-        if (!ready()) return;
-        clearTimeout(saveTimer);
-        setSaveStatus("idle");
-        saveTimer = setTimeout(async () => {
-          isSaving = true;
-          setSaveStatus("saving");
-          await saveCases(state.cases);
-          isSaving = false;
-          setSaveStatus("saved");
-          clearTimeout(savedTimer);
-          savedTimer = setTimeout(() => setSaveStatus("idle"), 2000);
-        }, 1000);
-      },
-      { defer: true },
-    ),
-  );
-
-  // WebSocket: receive comment updates from file edits (e.g. by Claude)
-  if (import.meta.hot) {
-    import.meta.hot.on("autoformat-updated", async ({ id }: { id: string }) => {
-      if (isSaving) return;
-      const index = state.cases.findIndex((c) => c.id === id);
-      if (index === -1) return;
-      const updated = await fetchCase(id);
-      if (!updated) return;
-      const cur = JSON.stringify(state.cases[index]!.comments);
-      const next = JSON.stringify(updated.comments);
-      if (cur !== next) {
-        setState("cases", index, "comments", updated.comments);
-      }
-    });
-  }
-
   const addCase = () => {
-    setState("cases", (prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        title: "",
-        comments: [],
-        initial: emptyGraphStore(),
-        expected: emptyGraphStore(),
-      },
-    ]);
+    setCases(
+      produce((prev) =>
+        prev.push({
+          id: crypto.randomUUID(),
+          title: "",
+          comments: [],
+          initial: { nodes: {}, edges: [] },
+          expected: { nodes: {}, edges: [] },
+        }),
+      ),
+    );
   };
 
   const deleteCase = (index: number) => {
-    setState("cases", (prev) => prev.filter((_, i) => i !== index));
+    setCases((prev) => prev.filter((_, i) => i !== index));
   };
 
   const duplicateCase = (index: number) => {
-    setState("cases", (prev) => {
+    setCases((prev) => {
       const copy = structuredClone(prev[index]!);
       copy.comments = [];
       copy.id = crypto.randomUUID();
@@ -319,7 +299,7 @@ export function AutoformatRoute() {
   };
 
   const diffs = createMemo(() =>
-    state.cases.map((c) => compare(c.expected, autoformat(c.initial))),
+    cases.map((c) => compare(c.expected, autoformat(c.initial))),
   );
 
   return (
@@ -328,11 +308,7 @@ export function AutoformatRoute() {
         <h1 class={styles.title}>Autoformat Workshop</h1>
         <div class={styles.headerActions}>
           <span class={styles.saveStatus}>
-            {saveStatus() === "saving"
-              ? "Saving…"
-              : saveStatus() === "saved"
-                ? "Saved"
-                : ""}
+            {saveStatus.state === "refreshing" ? "Saving…" : ""}
           </span>
           <button class={styles.addBtn} onClick={addCase}>
             + Add case
@@ -342,7 +318,7 @@ export function AutoformatRoute() {
       <div class={styles.body}>
         {/* ── Sidebar ── */}
         <nav class={styles.sidebar}>
-          <For each={state.cases}>
+          <For each={cases}>
             {(c, i) => (
               <a
                 class={styles.sidebarLink}
@@ -358,33 +334,30 @@ export function AutoformatRoute() {
 
         {/* ── Cases ── */}
         <div class={styles.cases}>
-          <For each={state.cases}>
+          <For each={cases}>
             {(c, i) => {
               const [collapsed, setCollapsed] = createSignal(true);
-              const result = createMemo(() =>
-                autoformat(state.cases[i()].initial),
-              );
+              const result = createMemo(() => autoformat(cases[i()].initial));
               const diff = createMemo(() => diffs()[i()]!);
 
               // Sync edges from Initial to Expected
               createEffect(() => {
-                setState("cases", i(), "expected", "edges", [
-                  ...state.cases[i()].initial.edges,
+                setCases(i(), "expected", "edges", [
+                  ...cases[i()].initial.edges,
                 ]);
               });
 
               // Per-node sync: seed on add, track dimensions, remove on cleanup
               createEffect(
                 mapArray(
-                  () => Object.keys(state.cases[i()].initial.nodes),
+                  () => Object.keys(cases[i()].initial.nodes),
                   (key) => {
                     // Seed node in Expected if not yet present
-                    if (untrack(() => !state.cases[i()].expected.nodes[key])) {
+                    if (untrack(() => !cases[i()].expected.nodes[key])) {
                       const node = untrack(
-                        () => state.cases[i()].initial.nodes[key]!,
+                        () => cases[i()].initial.nodes[key]!,
                       );
-                      setState(
-                        "cases",
+                      setCases(
                         i(),
                         "expected",
                         "nodes",
@@ -395,25 +368,18 @@ export function AutoformatRoute() {
 
                     // Track dimension changes for this node
                     createEffect(() => {
-                      const dims =
-                        state.cases[i()].initial.nodes[key]?.dimensions;
+                      const dims = cases[i()].initial.nodes[key]?.dimensions;
                       if (dims) {
-                        setState(
-                          "cases",
-                          i(),
-                          "expected",
-                          "nodes",
-                          key,
-                          "dimensions",
-                          { x: dims.x, y: dims.y },
-                        );
+                        setCases(i(), "expected", "nodes", key, "dimensions", {
+                          x: dims.x,
+                          y: dims.y,
+                        });
                       }
                     });
 
                     // Remove from Expected when node is removed from Initial
                     onCleanup(() => {
-                      setState(
-                        "cases",
+                      setCases(
                         i(),
                         "expected",
                         "nodes",
@@ -444,7 +410,7 @@ export function AutoformatRoute() {
                       placeholder="untitled"
                       value={c.title ?? ""}
                       onInput={(e) =>
-                        setState("cases", i(), "title", e.currentTarget.value)
+                        setCases(i(), "title", e.currentTarget.value)
                       }
                     />
                     <span class={styles.caseId}>{c.id}.json</span>
@@ -473,10 +439,10 @@ export function AutoformatRoute() {
                     </div>
                   </div>
                   <CommentThread
-                    comments={state.cases[i()].comments}
+                    comments={cases[i()].comments}
                     collapsed={collapsed()}
                     onAdd={(text) =>
-                      setState("cases", i(), "comments", (prev) => [
+                      setCases(i(), "comments", (prev) => [
                         ...prev,
                         { role: "user" as const, text },
                       ])
@@ -486,10 +452,11 @@ export function AutoformatRoute() {
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Initial</span>
                       <GraphPanel
-                        config={initialConfig}
-                        graphStore={state.cases[i()].initial}
+                        config={{ node: makeNodeDef(true) }}
+                        graphStore={cases[i()].initial}
                         setGraphStore={(...args: any[]) =>
-                          (setState as any)("cases", i(), "initial", ...args)
+                          // @ts-expect-error
+                          setCases(i(), "initial", ...args)
                         }
                         onEdgeClick={({ edge, graph }) =>
                           graph.unlink(edge.output, edge.input)
@@ -499,17 +466,18 @@ export function AutoformatRoute() {
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Expected</span>
                       <GraphPanel
-                        config={expectedConfig}
-                        graphStore={state.cases[i()].expected}
+                        config={{ node: makeNodeDef(false) }}
+                        graphStore={cases[i()].expected}
                         setGraphStore={(...args: any[]) =>
-                          (setState as any)("cases", i(), "expected", ...args)
+                          // @ts-expect-error
+                          setCases(i(), "expected", ...args)
                         }
                       />
                     </div>
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Result</span>
                       <GraphPanel
-                        config={expectedConfig}
+                        config={{ node: makeNodeDef(false) }}
                         graphStore={result()}
                         setGraphStore={() => {}}
                       />
