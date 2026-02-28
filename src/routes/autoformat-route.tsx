@@ -8,18 +8,15 @@ import {
   onCleanup,
   onMount,
   Show,
-  untrack,
 } from "solid-js";
 import { produce, SetStoreFunction } from "solid-js/store";
+import { action } from "~/lib/action";
 import { autoformat } from "~/lib/autoformat";
 import { createWritableStore } from "~/lib/create-writable";
 import { GRID } from "~/lib/graph/constants";
-import type {
-  Graph,
-  GraphConfig,
-  NodeTypeDef,
-} from "~/lib/graph/create-graph-api";
+import type { Graph, NodeTypeDef } from "~/lib/graph/create-graph-api";
 import { GraphEditor } from "~/lib/graph/graph-editor";
+import { wait } from "~/lib/wait";
 import styles from "./autoformat-route.module.css";
 
 // ─── Workshop node types ──────────────────────────────────────────────────────
@@ -198,36 +195,6 @@ function AxisBadge(props: { diff: AxisDiff; axis: "x" | "y" }) {
   );
 }
 
-function DiffBadges(props: { diff: Diff }) {
-  return (
-    <>
-      <AxisBadge diff={props.diff.x} axis="x" />
-      <AxisBadge diff={props.diff.y} axis="y" />
-    </>
-  );
-}
-
-// ─── Graph panel ─────────────────────────────────────────────────────────────
-
-function GraphPanel(props: {
-  config: GraphConfig<null>;
-  graphStore: Graph;
-  setGraphStore: (...args: any[]) => void;
-  onEdgeClick?: ({ edge, graph }: any) => void;
-}) {
-  return (
-    <GraphEditor
-      config={props.config}
-      context={null}
-      graphStore={props.graphStore}
-      setGraphStore={props.setGraphStore}
-      class={styles.graphPanel}
-      onClick={() => {}}
-      onEdgeClick={props.onEdgeClick}
-    />
-  );
-}
-
 // ─── Main route ───────────────────────────────────────────────────────────────
 
 export function AutoformatRoute() {
@@ -236,17 +203,17 @@ export function AutoformatRoute() {
     () => _cases() ?? ([] as Array<TestCase>),
   );
 
-  const [shouldRefetch, setShouldRefetch] = createSignal(false, {
-    equals: false,
-  });
-  const [saveStatus] = createResource(shouldRefetch, () => saveCases(cases));
+  const save = action
+    .phase("prepare save", () => wait())
+    .phase("saving", () => saveCases(cases))
+    .phase("saved", () => wait());
 
   let timeout: ReturnType<typeof setTimeout>;
   const setCases: SetStoreFunction<Array<TestCase>> = (...args: Array<any>) => {
     // @ts-expect-error
     _setCases(...args);
     clearTimeout(timeout);
-    timeout = setTimeout(() => setShouldRefetch(true), 1_000);
+    timeout = setTimeout(save, 1_000);
   };
 
   onMount(() => {
@@ -255,7 +222,7 @@ export function AutoformatRoute() {
       import.meta.hot.on(
         "autoformat-updated",
         async ({ id }: { id: string }) => {
-          if (saveStatus.state !== "ready") return;
+          if (save.pending()) return;
           const index = cases.findIndex((c) => c.id === id);
           if (index === -1) return;
           const updated = await fetchCase(id);
@@ -308,7 +275,11 @@ export function AutoformatRoute() {
         <h1 class={styles.title}>Autoformat Workshop</h1>
         <div class={styles.headerActions}>
           <span class={styles.saveStatus}>
-            {saveStatus.state === "refreshing" ? "Saving…" : ""}
+            {save.phase() === "saving"
+              ? "Saving…"
+              : save.phase() === "saved"
+                ? "Saved!"
+                : ""}
           </span>
           <button class={styles.addBtn} onClick={addCase}>
             + Add case
@@ -353,17 +324,13 @@ export function AutoformatRoute() {
                   () => Object.keys(cases[i()].initial.nodes),
                   (key) => {
                     // Seed node in Expected if not yet present
-                    if (untrack(() => !cases[i()].expected.nodes[key])) {
-                      const node = untrack(
-                        () => cases[i()].initial.nodes[key]!,
-                      );
-                      setCases(
-                        i(),
-                        "expected",
-                        "nodes",
-                        key,
-                        structuredClone(node),
-                      );
+                    if (!cases[i()].expected.nodes[key]) {
+                      const node = cases[i()].initial.nodes[key];
+
+                      setCases(i(), "expected", "nodes", key, {
+                        ...node,
+                        dimensions: { ...node.dimensions },
+                      });
                     }
 
                     // Track dimension changes for this node
@@ -404,7 +371,8 @@ export function AutoformatRoute() {
                 >
                   <div class={styles.rowHeader}>
                     <span class={styles.caseNumber}>#{i() + 1}</span>
-                    <DiffBadges diff={diff()} />
+                    <AxisBadge diff={diff().x} axis="x" />
+                    <AxisBadge diff={diff().y} axis="y" />
                     <input
                       class={styles.caseTitle}
                       placeholder="untitled"
@@ -451,8 +419,9 @@ export function AutoformatRoute() {
                   <div class={styles.panels}>
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Initial</span>
-                      <GraphPanel
+                      <GraphEditor
                         config={{ node: makeNodeDef(true) }}
+                        class={styles.graphPanel}
                         graphStore={cases[i()].initial}
                         setGraphStore={(...args: any[]) =>
                           // @ts-expect-error
@@ -461,12 +430,25 @@ export function AutoformatRoute() {
                         onEdgeClick={({ edge, graph }) =>
                           graph.unlink(edge.output, edge.input)
                         }
+                        onDoubleClick={({ x, y, graph }) => {
+                          const existing = new Set(
+                            Object.keys(cases[i()].initial.nodes),
+                          );
+                          const id =
+                            Array.from({ length: 26 }, (_, n) =>
+                              String.fromCharCode(65 + n),
+                            ).find((l) => !existing.has(l)) ??
+                            crypto.randomUUID();
+
+                          graph.addNode("node", { x, y, id });
+                        }}
                       />
                     </div>
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Expected</span>
-                      <GraphPanel
+                      <GraphEditor
                         config={{ node: makeNodeDef(false) }}
+                        class={styles.graphPanel}
                         graphStore={cases[i()].expected}
                         setGraphStore={(...args: any[]) =>
                           // @ts-expect-error
@@ -476,8 +458,9 @@ export function AutoformatRoute() {
                     </div>
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Result</span>
-                      <GraphPanel
+                      <GraphEditor
                         config={{ node: makeNodeDef(false) }}
+                        class={styles.graphPanel}
                         graphStore={result()}
                         setGraphStore={() => {}}
                       />

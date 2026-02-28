@@ -50,7 +50,7 @@ export interface GraphEditorProps<
 > extends CreateGraphAPIConfig<unknown, TConfig> {
   style?: JSX.CSSProperties;
   class?: string;
-  onClick(event: { x: number; y: number; graph: GraphAPI<TConfig> }): void;
+  onClick?(event: { x: number; y: number; graph: GraphAPI<TConfig> }): void;
   /** Called when pointer down on a node header. Call preventDefault() to block normal drag. */
   onNodePointerDown?(event: {
     node: NodeInstance;
@@ -100,6 +100,12 @@ export interface GraphEditorProps<
   onCursorMove?(position: { x: number; y: number } | undefined): void;
   /** Called when cursor enters/leaves a spliceable edge. */
   onEdgeHover?(event: { edge: Edge } | undefined): void;
+  /** Called on double-click on the SVG background. */
+  onDoubleClick?(event: {
+    x: number;
+    y: number;
+    graph: GraphAPI<TConfig>;
+  }): void;
 }
 
 export function GraphEditor<TContext extends Record<string, any>>(
@@ -230,6 +236,12 @@ export function GraphEditor<TContext extends Record<string, any>>(
           ...rest.style,
         }}
         data-dragging={UIState.dragging || undefined}
+        onDblClick={(event) => {
+          if (event.target !== event.currentTarget) return;
+          const x = snapToGrid(event.offsetX - UIState.origin.x);
+          const y = snapToGrid(event.offsetY + UIState.origin.y);
+          rest.onDoubleClick?.({ x, y, graph: graphAPI });
+        }}
         onPointerMove={(event) => {
           const rect = event.currentTarget.getBoundingClientRect();
           const pos = {
@@ -316,7 +328,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
             setUIState("selectedNodes", []);
             const x = snapToGrid(event.offsetX - UIState.origin.x);
             const y = snapToGrid(event.offsetY + UIState.origin.y);
-            rest.onClick({ x, y, graph: graphAPI });
+            rest.onClick?.({ x, y, graph: graphAPI });
           }
         }}
       >
@@ -338,7 +350,14 @@ export function GraphEditor<TContext extends Record<string, any>>(
           fill="url(#grid)"
           pointer-events="none"
         />
-        <circle cx={0} cy={0} r={3} fill="#e05" pointer-events="none" opacity={0.6} />
+        <circle
+          cx={0}
+          cy={0}
+          r={3}
+          fill="#e05"
+          pointer-events="none"
+          opacity={0.6}
+        />
         <For each={props.graphStore.edges}>
           {(edge) => <GraphEdge {...edge} />}
         </For>
