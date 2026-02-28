@@ -54,28 +54,44 @@ Row assignment is per-chain, not per-node. A boundary node that starts multiple 
 
 Identify all boundary nodes (split / merge / merge-split / root / leaf), then trace all chains between them. Compute each chain's **minimum width**: `sum(node widths) + (n-1) × gap`.
 
-### Step 2: DFS Traversal — X-positions + Row Assignment
+### Step 2: Row Assignment + X-Positions
 
-Row assignment and x-computation happen in a **single DFS traversal**. They are not separate phases.
+X-computation happens in **three sequential phases** after row assignment. All phases use topological order (Kahn's algorithm) to guarantee parents are processed before children.
 
-**Starting point:** DFS begins from the **primary root** — the root node with the smallest y, with x as tiebreaker (most top-left). After the primary DFS completes, any remaining roots (secondary roots) are processed in top-left order (smallest y, then smallest x).
+**Starting point:** The **primary root** — the root node with the smallest y, with x as tiebreaker (most top-left) — is anchored to its current position. Secondary roots are processed after the primary root's subtree is fully placed, in top-left order (smallest y, then smallest x).
 
-**At each split node**, sort its outgoing branches by the **current y-position of each branch's first node** (ascending). Traverse branches in that order — this is the **forward phase**:
+#### Step 2a: Row Assignment
+
+Process boundary nodes in topological order. At each node, sort its outgoing branches by the **current y-position of each branch's first node** (ascending):
 
 - The branch with the **lowest initial y** continues in the **current row** (spine continuation).
-- Each subsequent branch **opens a new row** below — unless its first node is already row-assigned (claimed by a prior branch in the traversal). Already-claimed nodes represent cross-row edges; no new row is opened for them.
+- Each subsequent branch **opens a new row** below — unless its end boundary is already row-assigned (claimed by a prior branch). Already-claimed nodes represent cross-row edges; no new row is opened for them.
 
-Row-claiming is **first-come-first-served in y-order** across the whole DFS. A node gets the row of whichever branch reaches it first — always the branch whose start had the lowest initial y, since that branch is traversed first.
+Row-claiming is **first-come-first-served in y-order** across the whole traversal. A node gets the row of whichever branch reaches it first.
 
-After all branches are fully explored, the split computes its **pull** in a **post-order phase** (see Rule 4).
+#### Step 2b: Forward Pass
 
-**Merges are settled on first visit.** When a merge is first reached in the DFS, its x-position is computed from the parents already visited (same or higher-priority rows). If the merge is reached again later via a cross-row edge from a lower-priority row, it is not repositioned — that arrival produces a longer diagonal edge accepted as-is.
+Walk all nodes in topological order, assigning provisional x-positions using Rules 1, 2, and 5. Rule 4 pulls are not applied yet — splits and secondary roots get their Rule 5 provisional position here. Merges are settled using Rule 2 with all parents available at that point in topological order.
 
-**X-position** at each node is determined by the placement rules (see *X-Position Rules*).
+#### Step 2c: Rule 4 Pulls
+
+Process splits in reverse topological order (post-order approximation), then secondary roots in y-order. For each, compute the best pull (see Rule 4), update x, and propagate the new position forward through any sequential (simple/leaf) nodes in the split's chains.
+
+When no Rule 4 target is reachable, splits stay at their Rule 5 position. Secondary roots with no reachable target default to x = 0.
+
+#### Step 2d: Reconcile Pass
+
+After all Rule 4 pulls, recompute all non-fixed nodes in topological order using their final rules. Fixed nodes (primary root, splits, secondary roots — all placed in earlier phases) are kept as-is. For all others:
+
+- **Rule 3** nodes: recomputed using `x_excl` (see Rule 3 below)
+- **Rule 2** nodes: recomputed from all parents' current positions
+- **Rule 5** nodes: recomputed sequentially from their single parent
+
+This pass ensures Rule 2 merges reflect their parents' post-pull positions, and Rule 3 nodes are computed without circular dependencies.
 
 ### Step 3: Build Spatial Data Structure
 
-After x-positions are computed, build an **interval structure** indexed by x-range that tracks the maximum occupied bottom-Y for any x-span. Supports range queries: given `[x1, x2]`, return the maximum bottom-Y across that span.
+After x-positions are finalized (Steps 2a–2d), build an **interval structure** indexed by x-range that tracks the maximum occupied bottom-Y for any x-span. Supports range queries: given `[x1, x2]`, return the maximum bottom-Y across that span.
 
 ### Step 4: Y Pass
 
@@ -106,20 +122,24 @@ Every node's x-position is determined by exactly one rule. The rules form a prio
 | Priority | Role | Rule |
 |----------|------|------|
 | 1 | **Primary root** | Anchored to current user position — not moved |
-| 2 | Merge / merge-split | `x = max(parent.right for parents in same or higher-priority rows) + gap` |
-| 3 | Last internal before a **merge** end boundary **in a higher-priority row** (smaller row index) | `x = max(prev.right + gap, end.x - width - gap)` |
+| 2 | Merge / merge-split | `x = max(parent.right for ALL parents) + gap` |
+| 3 | Last internal before a **merge** end boundary **in a higher-priority row** (smaller row index) | `x = max(prev.right + gap, end.x_excl - width - gap)` |
 | 4 | Split or secondary root with a reachable **independent** merge in the same or higher-priority row | `x = merge.x_excl - min_path_width` — or `x = max(prev.right + gap, merge.x_excl - min_path_width)` if a prev exists |
 | 5 | All other nodes | `x = prev.right + gap` (sequential) |
 
-**Rule 3:** "Higher-priority row" means smaller row index (closer to the top of the layout). If the end boundary is not a merge, is in the same row, or is in a lower-priority row (larger row index), the condition is not met and the node falls through to rule 5.
+**Rule 2:** All parents are considered regardless of row. Because merges are recomputed in the reconcile pass (Step 2d), they always reflect the final positions of every parent.
+
+**Rule 3:** "Higher-priority row" means smaller row index (closer to the top of the layout). If the end boundary is not a merge, is in the same row, or is in a lower-priority row (larger row index), the condition is not met and the node falls through to Rule 5.
+
+Rule 3 is applied during the reconcile pass (Step 2d), not during the forward pass. It uses `end.x_excl` — the end merge's position excluding the chain's start node's subtree — rather than `end.x` directly. This avoids a circular dependency: the end merge's Rule 2 position includes the last internal as a parent, so using `end.x` would be self-referential. `end.x_excl` is computed by taking the max right-edge of the merge's parents that are **not** downstream of the chain's start, then adding gap.
 
 **Rule 4:**
 
-- **Target merge:** Follow paths forward from S through any intermediate boundaries. Skip same-priority intermediate merges (same row as S) and continue through them. Stop at the **first merge M with a strictly smaller row index** (higher-priority row) encountered along the path. If multiple paths lead to different first higher-priority merges, pick the one that gives the **largest x for S** (most constraining). For splits and secondary roots whose branches stay in the same or lower-priority rows, the target may also be a same-row merge reached via a direct chain — same-row merges are valid targets when no higher-priority merge is reachable.
+- **Target merge:** Follow paths forward from S through any intermediate boundaries. Track `visitedBoundaries` to avoid revisiting the same boundary twice (handles DAG diamonds and same-row merges). Skip same-priority intermediate merges (same row as S) and continue through them. Stop at the **first merge M with a strictly smaller row index** (higher-priority row) encountered along the path. If multiple paths lead to different first higher-priority merges, pick the one that gives the **largest x for S** (most constraining). For splits and secondary roots whose branches stay in the same or lower-priority rows, the target may also be a same-row merge reached via a direct chain — same-row merges are valid targets when no higher-priority merge is reachable.
 - `min_path_width` = `sum of widths of all nodes on the path from S to M (excluding M) + (number of those nodes) × gap`. This includes any intermediate boundary nodes (merges, splits) traversed along the path — not just simple internals.
 - **Independence:** compute `merge.x_excl` — M's x-position excluding S's subtree entirely. For each of M's parents: if the parent is downstream of S, skip it; otherwise include its right-edge. `merge.x_excl = max(non-S-subtree parent right-edges) + gap`. M is independent of S if `merge.x_excl` is finite (M has at least one parent not downstream of S). Use `merge.x_excl` as the pull target — not M's full forward-pass x.
-- **Independence guarantees convergence.** If M is independent of S, its dominant path comes from outside S's subtree — settled before S is positioned in the post-order phase. A single DFS pass always converges.
-- **Secondary roots** (no prev): the pull alone determines x and can be negative — no `max(prev.right + gap, …)` guard.
+- **Independence guarantees convergence.** If M is independent of S, its dominant path comes from outside S's subtree — settled before S is positioned in the post-order phase. The multi-phase approach always converges.
+- **Secondary roots** (no prev): the pull alone determines x and can be negative — no `max(prev.right + gap, …)` guard. If no Rule 4 target is reachable, secondary roots default to x = 0.
 
 Rule 4 unifies split-pull and secondary-root placement: both place a chain start so its full path fits exactly between itself and a downstream merge.
 
