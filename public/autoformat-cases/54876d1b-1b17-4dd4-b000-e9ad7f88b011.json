@@ -1,5 +1,6 @@
 {
   "id": "54876d1b-1b17-4dd4-b000-e9ad7f88b011",
+  "title": "Connecting two branches merges them into the same row",
   "comments": [
     {
       "role": "user",
@@ -112,6 +113,16 @@
       {
         "output": {
           "node": "248c43a9-8cd8-43ae-9de3-eaf5c688489b",
+          "port": "out"
+        },
+        "input": {
+          "node": "2840bb45-6e71-41e6-a091-a7dace081818",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "34ee9914-45dd-4af6-a1d1-2bab438fcdde",
           "port": "out"
         },
         "input": {

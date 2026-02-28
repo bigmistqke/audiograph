@@ -1,5 +1,6 @@
 {
   "id": "2a0ca854-8f69-43a5-9b9c-a8c93fc5c29c",
+  "title": "Large fan-out with cross-row edges and multiple secondary splits",
   "comments": [],
   "initial": {
     "nodes": {
@@ -377,7 +378,7 @@
       "ab2f90c9-fcd4-4403-939e-39ea95772e20": {
         "id": "ab2f90c9-fcd4-4403-939e-39ea95772e20",
         "type": "node",
-        "x": 390,
+        "x": 520,
         "y": 0,
         "dimensions": {
           "x": 100,
@@ -390,7 +391,7 @@
       "6f42c88f-7e1f-4e70-b0b6-1be33bdb04de": {
         "id": "6f42c88f-7e1f-4e70-b0b6-1be33bdb04de",
         "type": "node",
-        "x": 650,
+        "x": 780,
         "y": 0,
         "dimensions": {
           "x": 100,
@@ -416,7 +417,7 @@
       "43bb18dc-7a12-43a8-8db9-3478ecf5c21b": {
         "id": "43bb18dc-7a12-43a8-8db9-3478ecf5c21b",
         "type": "node",
-        "x": 520,
+        "x": 650,
         "y": 110,
         "dimensions": {
           "x": 100,
@@ -455,7 +456,7 @@
       "5950e6bd-7581-457a-bd5c-994de10ed0e5": {
         "id": "5950e6bd-7581-457a-bd5c-994de10ed0e5",
         "type": "node",
-        "x": 520,
+        "x": 390,
         "y": 220,
         "dimensions": {
           "x": 100,
@@ -468,8 +469,8 @@
       "22264c4a-68f7-41f8-ba09-d901b19a75fa": {
         "id": "22264c4a-68f7-41f8-ba09-d901b19a75fa",
         "type": "node",
-        "x": 130,
-        "y": 330,
+        "x": 650,
+        "y": 220,
         "dimensions": {
           "x": 100,
           "y": 80
@@ -481,7 +482,7 @@
       "ed647256-d125-42f9-a115-3426d735a27e": {
         "id": "ed647256-d125-42f9-a115-3426d735a27e",
         "type": "node",
-        "x": 260,
+        "x": 130,
         "y": 330,
         "dimensions": {
           "x": 100,
@@ -494,7 +495,7 @@
       "4f962cb9-e3bc-447a-b751-3b0da9b59d9c": {
         "id": "4f962cb9-e3bc-447a-b751-3b0da9b59d9c",
         "type": "node",
-        "x": 390,
+        "x": 260,
         "y": 330,
         "dimensions": {
           "x": 100,
@@ -507,7 +508,7 @@
       "970c3085-957f-4306-8e2e-dc3226bb5de9": {
         "id": "970c3085-957f-4306-8e2e-dc3226bb5de9",
         "type": "node",
-        "x": 520,
+        "x": 390,
         "y": 330,
         "dimensions": {
           "x": 100,
@@ -515,6 +516,32 @@
         },
         "state": {
           "label": "L"
+        }
+      },
+      "e9bba0d6-3f88-41af-a21b-2cdeec5a0216": {
+        "id": "e9bba0d6-3f88-41af-a21b-2cdeec5a0216",
+        "type": "node",
+        "x": 520,
+        "y": 330,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "M"
+        }
+      },
+      "a3667a31-146d-4b0d-8307-97bcc9ee7f5d": {
+        "id": "a3667a31-146d-4b0d-8307-97bcc9ee7f5d",
+        "type": "node",
+        "x": 650,
+        "y": 330,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "N"
         }
       }
     },
@@ -551,16 +578,6 @@
       },
       {
         "output": {
-          "node": "94c074bb-eb89-46d1-b7af-a2fa40dfea81",
-          "port": "out"
-        },
-        "input": {
-          "node": "43bb18dc-7a12-43a8-8db9-3478ecf5c21b",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
           "node": "ab2f90c9-fcd4-4403-939e-39ea95772e20",
           "port": "out"
         },
@@ -586,26 +603,6 @@
         },
         "input": {
           "node": "b4e7f56f-eef1-42f2-a06e-acfa0bcb8843",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "b4e7f56f-eef1-42f2-a06e-acfa0bcb8843",
-          "port": "out"
-        },
-        "input": {
-          "node": "5950e6bd-7581-457a-bd5c-994de10ed0e5",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "ab2f90c9-fcd4-4403-939e-39ea95772e20",
-          "port": "out"
-        },
-        "input": {
-          "node": "5950e6bd-7581-457a-bd5c-994de10ed0e5",
           "port": "in"
         }
       },
@@ -621,11 +618,41 @@
       },
       {
         "output": {
-          "node": "ab2f90c9-fcd4-4403-939e-39ea95772e20",
+          "node": "ed647256-d125-42f9-a115-3426d735a27e",
+          "port": "out"
+        },
+        "input": {
+          "node": "4f962cb9-e3bc-447a-b751-3b0da9b59d9c",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "4f962cb9-e3bc-447a-b751-3b0da9b59d9c",
           "port": "out"
         },
         "input": {
           "node": "970c3085-957f-4306-8e2e-dc3226bb5de9",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "b4e7f56f-eef1-42f2-a06e-acfa0bcb8843",
+          "port": "out"
+        },
+        "input": {
+          "node": "5950e6bd-7581-457a-bd5c-994de10ed0e5",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "5950e6bd-7581-457a-bd5c-994de10ed0e5",
+          "port": "out"
+        },
+        "input": {
+          "node": "22264c4a-68f7-41f8-ba09-d901b19a75fa",
           "port": "in"
         }
       },
@@ -635,37 +662,57 @@
           "port": "out"
         },
         "input": {
-          "node": "22264c4a-68f7-41f8-ba09-d901b19a75fa",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "22264c4a-68f7-41f8-ba09-d901b19a75fa",
-          "port": "out"
-        },
-        "input": {
           "node": "ed647256-d125-42f9-a115-3426d735a27e",
           "port": "in"
         }
       },
       {
         "output": {
-          "node": "ed647256-d125-42f9-a115-3426d735a27e",
-          "port": "out"
-        },
-        "input": {
-          "node": "4f962cb9-e3bc-447a-b751-3b0da9b59d9c",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "4f962cb9-e3bc-447a-b751-3b0da9b59d9c",
-          "port": "out"
-        },
-        "input": {
           "node": "970c3085-957f-4306-8e2e-dc3226bb5de9",
+          "port": "out"
+        },
+        "input": {
+          "node": "e9bba0d6-3f88-41af-a21b-2cdeec5a0216",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "e9bba0d6-3f88-41af-a21b-2cdeec5a0216",
+          "port": "out"
+        },
+        "input": {
+          "node": "a3667a31-146d-4b0d-8307-97bcc9ee7f5d",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "94c074bb-eb89-46d1-b7af-a2fa40dfea81",
+          "port": "out"
+        },
+        "input": {
+          "node": "43bb18dc-7a12-43a8-8db9-3478ecf5c21b",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "ab2f90c9-fcd4-4403-939e-39ea95772e20",
+          "port": "out"
+        },
+        "input": {
+          "node": "22264c4a-68f7-41f8-ba09-d901b19a75fa",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "ab2f90c9-fcd4-4403-939e-39ea95772e20",
+          "port": "out"
+        },
+        "input": {
+          "node": "a3667a31-146d-4b0d-8307-97bcc9ee7f5d",
           "port": "in"
         }
       }

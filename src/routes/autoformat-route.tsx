@@ -1,9 +1,10 @@
 import { For, createEffect, createSignal, on } from "solid-js";
 import { createStore } from "solid-js/store";
+import { autoformat } from "~/lib/autoformat";
 import { GRID } from "~/lib/graph/constants";
 import type {
+  Graph,
   GraphConfig,
-  GraphStore,
   NodeTypeDef,
 } from "~/lib/graph/create-graph-api";
 import { GraphEditor } from "~/lib/graph/graph-editor";
@@ -40,16 +41,17 @@ interface Comment {
 
 interface TestCase {
   id: string;
+  title: string;
   comments: Comment[];
-  initial: GraphStore;
-  expected: GraphStore;
+  initial: Graph;
+  expected: Graph;
 }
 
 interface State {
   cases: TestCase[];
 }
 
-const emptyGraphStore = (): GraphStore => ({ nodes: {}, edges: [] });
+const emptyGraphStore = (): Graph => ({ nodes: {}, edges: [] });
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
@@ -132,7 +134,7 @@ function CommentThread(props: {
 // ─── Graph panel ─────────────────────────────────────────────────────────────
 
 function GraphPanel(props: {
-  graphStore: GraphStore;
+  graphStore: Graph;
   setGraphStore: (...args: any[]) => void;
   readonly?: boolean;
 }) {
@@ -230,6 +232,7 @@ export function AutoformatRoute() {
       ...prev,
       {
         id: crypto.randomUUID(),
+        title: "",
         comments: [],
         initial: emptyGraphStore(),
         expected: emptyGraphStore(),
@@ -246,6 +249,7 @@ export function AutoformatRoute() {
       const copy = structuredClone(prev[index]!);
       copy.comments = [];
       copy.id = crypto.randomUUID();
+      copy.title = "";
       return [...prev.slice(0, index + 1), copy, ...prev.slice(index + 1)];
     });
   };
@@ -269,65 +273,75 @@ export function AutoformatRoute() {
       </header>
       <div class={styles.cases}>
         <For each={state.cases}>
-          {(c, i) => (
-            <div class={styles.row}>
-              <div class={styles.rowHeader}>
-                <span class={styles.caseNumber}>#{i() + 1}</span>
-                <span class={styles.caseId}>{c.id}.json</span>
-                <div class={styles.rowActions}>
-                  <button
-                    class={styles.duplicateBtn}
-                    onClick={() => duplicateCase(i())}
-                  >
-                    ⧉
-                  </button>
-                  <button
-                    class={styles.deleteBtn}
-                    onClick={() => deleteCase(i())}
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-              <CommentThread
-                comments={state.cases[i()].comments}
-                onAdd={(text) =>
-                  setState("cases", i(), "comments", (prev) => [
-                    ...prev,
-                    { role: "user" as const, text },
-                  ])
-                }
-              />
-              <div class={styles.panels}>
-                <div class={styles.panelWrap}>
-                  <span class={styles.panelLabel}>Initial</span>
-                  <GraphPanel
-                    graphStore={state.cases[i()].initial}
-                    setGraphStore={(...args: any[]) =>
-                      (setState as any)("cases", i(), "initial", ...args)
+          {(c, i) => {
+            return (
+              <div class={styles.row}>
+                <div class={styles.rowHeader}>
+                  <span class={styles.caseNumber}>#{i() + 1}</span>
+                  <input
+                    class={styles.caseTitle}
+                    placeholder="untitled"
+                    value={c.title ?? ""}
+                    onInput={(e) =>
+                      setState("cases", i(), "title", e.currentTarget.value)
                     }
                   />
+                  <span class={styles.caseId}>{c.id}.json</span>
+                  <div class={styles.rowActions}>
+                    <button
+                      class={styles.duplicateBtn}
+                      onClick={() => duplicateCase(i())}
+                    >
+                      ⧉
+                    </button>
+                    <button
+                      class={styles.deleteBtn}
+                      onClick={() => deleteCase(i())}
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
-                <div class={styles.panelWrap}>
-                  <span class={styles.panelLabel}>Expected</span>
-                  <GraphPanel
-                    graphStore={state.cases[i()].expected}
-                    setGraphStore={(...args: any[]) =>
-                      (setState as any)("cases", i(), "expected", ...args)
-                    }
-                  />
-                </div>
-                <div class={styles.panelWrap}>
-                  <span class={styles.panelLabel}>Result (noop)</span>
-                  <GraphPanel
-                    graphStore={state.cases[i()].initial}
-                    setGraphStore={() => {}}
-                    readonly
-                  />
+                <CommentThread
+                  comments={state.cases[i()].comments}
+                  onAdd={(text) =>
+                    setState("cases", i(), "comments", (prev) => [
+                      ...prev,
+                      { role: "user" as const, text },
+                    ])
+                  }
+                />
+                <div class={styles.panels}>
+                  <div class={styles.panelWrap}>
+                    <span class={styles.panelLabel}>Initial</span>
+                    <GraphPanel
+                      graphStore={state.cases[i()].initial}
+                      setGraphStore={(...args: any[]) =>
+                        (setState as any)("cases", i(), "initial", ...args)
+                      }
+                    />
+                  </div>
+                  <div class={styles.panelWrap}>
+                    <span class={styles.panelLabel}>Expected</span>
+                    <GraphPanel
+                      graphStore={state.cases[i()].expected}
+                      setGraphStore={(...args: any[]) =>
+                        (setState as any)("cases", i(), "expected", ...args)
+                      }
+                    />
+                  </div>
+                  <div class={styles.panelWrap}>
+                    <span class={styles.panelLabel}>Result</span>
+                    <GraphPanel
+                      graphStore={autoformat(state.cases[i()].initial)}
+                      setGraphStore={() => {}}
+                      readonly
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          }}
         </For>
       </div>
     </div>

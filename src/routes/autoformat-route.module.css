@@ -50,12 +50,35 @@
 
 .rowHeader {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
   border-bottom: 1px solid #eee;
   background: #fafafa;
+}
+
+.caseTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+  min-width: 0;
+
+  &::placeholder {
+    color: #ccc;
+    font-weight: 400;
+  }
+
+  &:focus {
+    background: #f0f4ff;
+    border-radius: 3px;
+    padding: 1px 4px;
+    margin: -1px -4px;
+  }
 }
 
 .caseId {

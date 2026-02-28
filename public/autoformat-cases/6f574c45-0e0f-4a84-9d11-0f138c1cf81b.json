@@ -1,5 +1,6 @@
 {
   "id": "6f574c45-0e0f-4a84-9d11-0f138c1cf81b",
+  "title": "Split pulled toward merge across three branches (longer chains)",
   "comments": [
     {
       "role": "assistant",
@@ -273,7 +274,7 @@
       "ab2f90c9-fcd4-4403-939e-39ea95772e20": {
         "id": "ab2f90c9-fcd4-4403-939e-39ea95772e20",
         "type": "node",
-        "x": 260,
+        "x": 390,
         "y": 0,
         "dimensions": {
           "x": 100,
@@ -312,7 +313,7 @@
       "43bb18dc-7a12-43a8-8db9-3478ecf5c21b": {
         "id": "43bb18dc-7a12-43a8-8db9-3478ecf5c21b",
         "type": "node",
-        "x": 390,
+        "x": 520,
         "y": 110,
         "dimensions": {
           "x": 100,
@@ -360,6 +361,19 @@
         "state": {
           "label": "H"
         }
+      },
+      "238e72fd-b861-4bf4-8f10-74bb75fe491f": {
+        "id": "238e72fd-b861-4bf4-8f10-74bb75fe491f",
+        "type": "node",
+        "x": 520,
+        "y": 220,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {
+          "label": "I"
+        }
       }
     },
     "edges": [
@@ -395,26 +409,6 @@
       },
       {
         "output": {
-          "node": "94c074bb-eb89-46d1-b7af-a2fa40dfea81",
-          "port": "out"
-        },
-        "input": {
-          "node": "43bb18dc-7a12-43a8-8db9-3478ecf5c21b",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "ab2f90c9-fcd4-4403-939e-39ea95772e20",
-          "port": "out"
-        },
-        "input": {
-          "node": "43bb18dc-7a12-43a8-8db9-3478ecf5c21b",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
           "node": "c2a6300e-615d-46e2-9106-fb6ad683340e",
           "port": "out"
         },
@@ -445,21 +439,51 @@
       },
       {
         "output": {
-          "node": "ab2f90c9-fcd4-4403-939e-39ea95772e20",
-          "port": "out"
-        },
-        "input": {
-          "node": "5950e6bd-7581-457a-bd5c-994de10ed0e5",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
           "node": "43bb18dc-7a12-43a8-8db9-3478ecf5c21b",
           "port": "out"
         },
         "input": {
           "node": "6f42c88f-7e1f-4e70-b0b6-1be33bdb04de",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "5950e6bd-7581-457a-bd5c-994de10ed0e5",
+          "port": "out"
+        },
+        "input": {
+          "node": "238e72fd-b861-4bf4-8f10-74bb75fe491f",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "ab2f90c9-fcd4-4403-939e-39ea95772e20",
+          "port": "out"
+        },
+        "input": {
+          "node": "238e72fd-b861-4bf4-8f10-74bb75fe491f",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "94c074bb-eb89-46d1-b7af-a2fa40dfea81",
+          "port": "out"
+        },
+        "input": {
+          "node": "43bb18dc-7a12-43a8-8db9-3478ecf5c21b",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "ab2f90c9-fcd4-4403-939e-39ea95772e20",
+          "port": "out"
+        },
+        "input": {
+          "node": "43bb18dc-7a12-43a8-8db9-3478ecf5c21b",
           "port": "in"
         }
       }

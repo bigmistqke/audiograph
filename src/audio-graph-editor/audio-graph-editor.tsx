@@ -13,9 +13,9 @@ import {
 import type {
   Edge,
   EdgeHandle,
+  Graph,
   GraphAPI,
   GraphConfig,
-  GraphStore,
 } from "~/lib/graph/create-graph-api";
 import { GraphEditor } from "~/lib/graph/graph-editor";
 
@@ -190,7 +190,7 @@ export function AudioGraphEditor(props: {
   >();
 
   const [graphStore, setGraphStore] = makePersisted(
-    createStore<GraphStore>({ nodes: {}, edges: [] }),
+    createStore<Graph>({ nodes: {}, edges: [] }),
     {
       name: `audiograph-${props.id}`,
     },

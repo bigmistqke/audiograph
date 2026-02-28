@@ -1,5 +1,6 @@
 {
   "id": "74223105-62c3-49bc-8c48-5fcf97b0b28b",
+  "title": "Top-alignment accepted even when it produces a long diagonal edge",
   "comments": [
     {
       "role": "user",

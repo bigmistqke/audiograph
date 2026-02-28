@@ -3,19 +3,26 @@
   "version": "0.0.0",
   "description": "",
   "type": "module",
+  "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "types": "tsc --noEmit"
+    "types": "tsc --noEmit",
+    "test": "vitest",
+    "generate:autoformat-tests": "node scripts/generate-autoformat-tests.ts"
   },
   "license": "MIT",
   "devDependencies": {
     "solid-devtools": "^0.34.3",
     "typescript": "^5.7.2",
     "vite": "^7.1.4",
-    "vite-plugin-solid": "^2.11.8"
+    "vite-plugin-solid": "^2.11.8",
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "@bigmistqke/minni": "^0.0.11",

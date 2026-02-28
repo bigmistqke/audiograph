@@ -1,5 +1,6 @@
 {
   "id": "a7bed139-71d4-478a-b40d-f153ae4935db",
+  "title": "No pull when merge is in the same row as the split",
   "comments": [
     {
       "role": "assistant",

@@ -18,11 +18,6 @@ interface Connectable {
   disconnect(target?: any): void;
 }
 
-interface AudioPorts {
-  in?: Record<string, AudioNode | AudioParam>;
-  out?: Record<string, Connectable>;
-}
-
 export interface ConstructProps<
   S extends Record<string, any> = Record<string, any>,
   C = any,
@@ -32,8 +27,8 @@ export interface ConstructProps<
   state: S;
   setState: SetStoreFunction<NoInfer<S>>;
   isInputConnected(portName: string): boolean;
-  graphStore: GraphStore;
-  setGraphStore: SetStoreFunction<GraphStore>;
+  graphStore: Graph;
+  setGraphStore: SetStoreFunction<Graph>;
 }
 
 export interface ConstructResult {
@@ -84,7 +79,7 @@ export interface Edge {
   input: EdgeHandle;
 }
 
-export interface GraphStore {
+export interface Graph {
   nodes: Record<string, NodeInstance>;
   edges: Edge[];
 }
@@ -93,7 +88,7 @@ export type GraphAPI<
   TConfig extends GraphConfig<unknown> = GraphConfig<unknown>,
 > = {
   config: TConfig;
-  graphStore: GraphStore;
+  graphStore: Graph;
   nodes: Record<string, ConstructResult>;
   getPortDef: (nodeId: string, portName: string) => PortDef | undefined;
   addNode(
@@ -125,8 +120,8 @@ export interface CreateGraphAPIConfig<
 > {
   config: TConfig;
   context: TContext;
-  graphStore: GraphStore;
-  setGraphStore: SetStoreFunction<GraphStore>;
+  graphStore: Graph;
+  setGraphStore: SetStoreFunction<Graph>;
 }
 
 export function createGraphAPI<

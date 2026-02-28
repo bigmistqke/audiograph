@@ -1,5 +1,6 @@
 {
   "id": "b7318fb9-d8d0-4b10-bb65-99567e1c7c1a",
+  "title": "Row y depends on available space, not row index",
   "comments": [
     {
       "role": "user",
@@ -15,7 +16,7 @@
       "952b4c59-e9f0-4355-ab91-9f1dcdac1a7d": {
         "id": "952b4c59-e9f0-4355-ab91-9f1dcdac1a7d",
         "type": "node",
-        "x": 10,
+        "x": 0,
         "y": 0,
         "dimensions": {
           "x": 100,
@@ -41,7 +42,7 @@
       "d88a06fd-9d18-4a78-9732-7dcaaf7dba71": {
         "id": "d88a06fd-9d18-4a78-9732-7dcaaf7dba71",
         "type": "node",
-        "x": 270,
+        "x": 260,
         "y": 20,
         "dimensions": {
           "x": 100,
@@ -55,7 +56,7 @@
         "id": "34ee9914-45dd-4af6-a1d1-2bab438fcdde",
         "type": "node",
         "x": 100,
-        "y": 200,
+        "y": 220,
         "dimensions": {
           "x": 100,
           "y": 80
