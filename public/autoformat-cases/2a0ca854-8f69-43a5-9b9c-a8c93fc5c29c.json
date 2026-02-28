@@ -484,41 +484,11 @@
       },
       {
         "output": {
-          "node": "A",
-          "port": "out"
-        },
-        "input": {
-          "node": "D",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
           "node": "B",
           "port": "out"
         },
         "input": {
           "node": "E",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "A",
-          "port": "out"
-        },
-        "input": {
-          "node": "F",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "F",
-          "port": "out"
-        },
-        "input": {
-          "node": "G",
           "port": "in"
         }
       },
@@ -534,21 +504,41 @@
       },
       {
         "output": {
-          "node": "J",
+          "node": "A",
           "port": "out"
         },
         "input": {
-          "node": "K",
+          "node": "D",
           "port": "in"
         }
       },
       {
         "output": {
-          "node": "K",
+          "node": "D",
           "port": "out"
         },
         "input": {
-          "node": "L",
+          "node": "E",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "F",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "F",
+          "port": "out"
+        },
+        "input": {
+          "node": "G",
           "port": "in"
         }
       },
@@ -574,11 +564,41 @@
       },
       {
         "output": {
+          "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "I",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
           "node": "A",
           "port": "out"
         },
         "input": {
           "node": "J",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "J",
+          "port": "out"
+        },
+        "input": {
+          "node": "K",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "K",
+          "port": "out"
+        },
+        "input": {
+          "node": "L",
           "port": "in"
         }
       },
@@ -594,7 +614,7 @@
       },
       {
         "output": {
-          "node": "M",
+          "node": "B",
           "port": "out"
         },
         "input": {
@@ -604,27 +624,7 @@
       },
       {
         "output": {
-          "node": "D",
-          "port": "out"
-        },
-        "input": {
-          "node": "E",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "B",
-          "port": "out"
-        },
-        "input": {
-          "node": "I",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "B",
+          "node": "M",
           "port": "out"
         },
         "input": {

@@ -152,8 +152,8 @@
       "B": {
         "id": "B",
         "type": "node",
-        "x": 200,
-        "y": 20,
+        "x": 260,
+        "y": 0,
         "dimensions": {
           "x": 100,
           "y": 100
@@ -207,7 +207,17 @@
           "port": "out"
         },
         "input": {
-          "node": "D",
+          "node": "B",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
           "port": "in"
         }
       },
@@ -217,7 +227,7 @@
           "port": "out"
         },
         "input": {
-          "node": "B",
+          "node": "D",
           "port": "in"
         }
       },
@@ -228,6 +238,16 @@
         },
         "input": {
           "node": "E",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "E",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
           "port": "in"
         }
       },
@@ -238,26 +258,6 @@
         },
         "input": {
           "node": "F",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "E",
-          "port": "out"
-        },
-        "input": {
-          "node": "C",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "B",
-          "port": "out"
-        },
-        "input": {
-          "node": "C",
           "port": "in"
         }
       }

@@ -146,7 +146,7 @@
         "y": 0,
         "dimensions": {
           "x": 100,
-          "y": 80
+          "y": 90
         }
       },
       "D": {
@@ -177,16 +177,6 @@
           "port": "out"
         },
         "input": {
-          "node": "D",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "A",
-          "port": "out"
-        },
-        "input": {
           "node": "B",
           "port": "in"
         }
@@ -198,6 +188,16 @@
         },
         "input": {
           "node": "C",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
           "port": "in"
         }
       },

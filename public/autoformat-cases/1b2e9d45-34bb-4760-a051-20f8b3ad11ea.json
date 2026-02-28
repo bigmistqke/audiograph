@@ -197,16 +197,6 @@
           "port": "out"
         },
         "input": {
-          "node": "D",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "A",
-          "port": "out"
-        },
-        "input": {
           "node": "B",
           "port": "in"
         }
@@ -218,6 +208,16 @@
         },
         "input": {
           "node": "C",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
           "port": "in"
         }
       },

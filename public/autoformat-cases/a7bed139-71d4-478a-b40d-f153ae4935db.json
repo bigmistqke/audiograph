@@ -177,11 +177,11 @@
     "edges": [
       {
         "output": {
-          "node": "E",
+          "node": "A",
           "port": "out"
         },
         "input": {
-          "node": "C",
+          "node": "D",
           "port": "in"
         }
       },
@@ -207,21 +207,21 @@
       },
       {
         "output": {
-          "node": "A",
-          "port": "out"
-        },
-        "input": {
-          "node": "D",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
           "node": "D",
           "port": "out"
         },
         "input": {
           "node": "E",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "E",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
           "port": "in"
         }
       }

@@ -345,41 +345,11 @@
       },
       {
         "output": {
-          "node": "A",
+          "node": "B",
           "port": "out"
         },
         "input": {
-          "node": "D",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "A",
-          "port": "out"
-        },
-        "input": {
-          "node": "F",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "F",
-          "port": "out"
-        },
-        "input": {
-          "node": "G",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "G",
-          "port": "out"
-        },
-        "input": {
-          "node": "H",
+          "node": "E",
           "port": "in"
         }
       },
@@ -395,21 +365,11 @@
       },
       {
         "output": {
-          "node": "H",
+          "node": "A",
           "port": "out"
         },
         "input": {
-          "node": "I",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "B",
-          "port": "out"
-        },
-        "input": {
-          "node": "I",
+          "node": "D",
           "port": "in"
         }
       },
@@ -425,11 +385,51 @@
       },
       {
         "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "F",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "F",
+          "port": "out"
+        },
+        "input": {
+          "node": "G",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "G",
+          "port": "out"
+        },
+        "input": {
+          "node": "H",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "H",
+          "port": "out"
+        },
+        "input": {
+          "node": "I",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
           "node": "B",
           "port": "out"
         },
         "input": {
-          "node": "E",
+          "node": "I",
           "port": "in"
         }
       }

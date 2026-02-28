@@ -294,16 +294,6 @@
       },
       {
         "output": {
-          "node": "C",
-          "port": "out"
-        },
-        "input": {
-          "node": "D",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
           "node": "E",
           "port": "out"
         },
@@ -329,6 +319,16 @@
         },
         "input": {
           "node": "H",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "C",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
           "port": "in"
         }
       },
