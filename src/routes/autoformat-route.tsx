@@ -21,7 +21,7 @@ const workshopConfig: GraphConfig<null> = {
       out: [{ name: "out" }],
     },
     state: {},
-    resizable: "y",
+    resizable: true,
     construct: ({ id }) => ({
       render: () => (
         <div class={styles.nodeLabel}>{id}</div>
