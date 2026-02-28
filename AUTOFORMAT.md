@@ -62,30 +62,9 @@ all others:           x = prev.right + gap
 After the forward pass, all merge positions reflect the minimum x determined by the longest sequential chain reaching them.
 
 #### Backward pass (right → left)
-Walk nodes in reverse topological order. Apply **pull rules**:
+Walk nodes in reverse topological order. For each node, evaluate the placement rules (see *Placement Rules* below) and apply whichever rule matches. Because rules have conditions baked in, no edge cases need separate treatment — a node that doesn't satisfy rule 3's or 4's conditions simply falls through to rule 5 (sequential).
 
-```
-split node:                x = max(prev.right + gap, ref.x - split.width - gap)
-last internal before end:  x = max(prev.right + gap, end.x - node.width - gap)
-                           (only when end boundary is in a lower row — i.e. a forward diagonal)
-```
-
-**Split pull — which reference to use:**
-A split is pulled toward a downstream merge when the merge's x-position is **fixed independently** of the split — i.e., the forward-pass position of that merge is determined by a chain that doesn't pass through the split.
-
-The **reference point** for the pull is the **last node in the longest alternative path to that merge** — the final node (before the merge) on the longest path that does not go through the split. This is not necessarily the merge node itself.
-
-- If the alternative path ends with an internal node `H`, then `ref.x = H.x` and `split.x = H.x - split.width - gap`
-- If there is no internal node in the alternative path (the merge has only one non-split input), `ref.x = merge.x` and `split.x = merge.x - split.width - gap`
-
-Merges whose forward-pass x depends on the split's own output are excluded (circular dependency). **Same-row merges are not excluded** — a split is still pulled toward same-row merges when their x is stable.
-
-**Last-internal pull — when it applies:**
-The last internal node before an end boundary is pulled **only when the end boundary is in a lower row** (creating a forward diagonal edge). Two exclusions:
-- **Same-row end boundary**: node stays sequential, no pull. A horizontal edge needs no compression.
-- **Upward end boundary** (end is in a higher row than the last internal): node stays sequential, no pull. The shorter path accepts the long diagonal as a trade-off of the top-alignment preference.
-
-**CPM completeness caveat:** The two-pass guarantee (merge positions are stable after the forward pass) may not hold in all topologies. When a split is an input to a merge, pulling the split rightward can increase that merge's x, which may cascade to further merges downstream. This may require additional passes or iterative refinement. See Open Questions.
+After a split is pulled (rule 4), any merges that take it as input may need their positions updated (rule 2). This propagation may require more than two passes in some topologies. See Open Questions.
 
 ### Phase 3: Y Pass
 Process rows top-to-bottom. For each chain:
@@ -101,17 +80,6 @@ The Y pass requires a spatial data structure that tracks occupied y-space per x-
 
 ## X-Position Rules
 
-### Within a Chain `[start, D1, D2, ..., Dn, end]`
-
-- **Start boundary**: x determined externally by its own dependencies
-- **Internal nodes D1 … Dn-1**: sequential — `x = prev.x + prev.width + gap`
-- **Last internal node Dn**: pulled toward the end boundary **only when the end boundary is in a lower row** (forward diagonal edge) —
-  `x = max(prev.right + gap, end.x - Dn.width - gap)`
-  If the end boundary is in the same row or a higher row, Dn stays sequential.
-- **End boundary**: x determined externally by its own dependencies
-
-The last internal node is the only one that gets pulled. All other internal nodes are strictly sequential from the start.
-
 ### Cross-Row Edge Alignment
 
 When a node has edges going into a chain at **multiple depths** (e.g., edges to both an internal node and the end boundary), only the **first** node in the chain it connects to is x-aligned. Deeper connections are accepted as-is and may result in longer diagonal edges.
@@ -126,13 +94,22 @@ Every node's x-position is determined by exactly one rule. The rules form a hier
 
 | Priority | Role | Rule |
 |----------|------|------|
-| 1 | Root | Anchored to current user position — not moved |
+| 1 | **Primary root** | Anchored to current user position — not moved |
 | 2 | Merge / merge-split | `x = max(parent.right for all parents) + gap` |
-| 3 | Last internal before a merge end boundary, in a lower row | `x = max(prev.right + gap, end.x - width - gap)` |
-| 4 | Split with an independent downstream merge | `x = max(prev.right + gap, ref.x - width - gap)` — where `ref` is the last node of the longest alternative path to the target merge, found by traversing the graph and summing widths |
+| 3 | Last internal before a **merge** end boundary, **in a lower row** | `x = max(prev.right + gap, end.x - width - gap)` |
+| 4 | Split or secondary root with an **independent** downstream merge | `x = merge.x_fwd - min_direct_path_width` — or `x = max(prev.right + gap, merge.x_fwd - min_direct_path_width)` if a prev exists |
 | 5 | All other nodes | `x = prev.right + gap` (sequential) |
 
-Rules 3 and 4 are the "complex" cases — they require traversing paths and summing widths to compute the reference position. All other nodes just step sequentially from their predecessor.
+**Rule 3 conditions** do the work of all the "edge cases": if the end boundary is a split (not a merge), same-row, or in a *higher* row, the condition simply isn't met and the node falls through to rule 5.
+
+**Rule 4 details:**
+
+- `min_direct_path_width` = the minimum horizontal space needed from this node's left edge to the target merge's left edge along the direct chain: `this.width + sum(internal.widths) + (n+1) × gap` where n = number of internals between this node and the merge.
+- **Independence**: merge M is independent of node N if N is not the dominant input to M in the forward pass — i.e., increasing N.right would not increase M.x_fwd (some other parent already drives M further right).
+- **Target merge selection**: among all independent downstream merges, prefer **same-row** merges (largest pull among same-row candidates); fall back to largest pull among cross-row candidates if none are same-row.
+- **Secondary roots** (no prev): rule 4 applies without the `max(prev.right + gap, …)` guard — the pull alone determines x, and it can be negative.
+
+Rule 4 unifies the split pull and the secondary-root placement: both are expressions of the same operation — place a chain start so its chain fits exactly between itself and a fixed downstream merge.
 
 Adding an edge can **promote** a node from simple → merge, which changes its rule and makes it a new chain boundary, splitting the chain it previously belonged to.
 
@@ -140,9 +117,9 @@ Adding an edge can **promote** a node from simple → merge, which changes its r
 
 ## Root Anchoring
 
-Each root node is **anchored to its current user position** — the layout preserves where the user placed it. The root's x and y are not recomputed; all other nodes are placed relative to it.
+The **primary root** (topmost root — smallest y in current layout) is **anchored to its current user position**. Its x and y are not recomputed; all other nodes are placed relative to it.
 
-Secondary roots (in multi-root graphs where roots share downstream nodes) are also anchored to their current position. The topmost root (smallest y) is the primary anchor; others participate in the same layout.
+**Secondary roots** (other roots in a multi-root graph) are placed by the backward pass like any other chain start — they follow rule 4 and can end up at negative x if needed to fit their chain before a shared downstream merge.
 
 ## Islands
 
@@ -159,7 +136,7 @@ Each island is laid out independently. Islands are then arranged to avoid collis
 
 ## Open Questions
 
-1. **CPM completeness** — The two-pass approach may be insufficient when a split is a direct input to a merge: pulling the split rightward increases that merge's x, which can cascade. Does the algorithm need additional passes or iterative refinement to converge?
+1. **Pass count / convergence** — The rule hierarchy is correct, but execution order matters. Pulling a split (rule 4) can update its position, which may invalidate a downstream merge (rule 2), which may in turn affect another split, etc. The "two forward/backward passes" framing of CPM may not capture all propagation chains. Open question: what execution order minimises passes, and is a fixed-point iteration needed in the worst case?
 
 2. **Chicken-and-egg: row assignment vs x-positions** — Row assignment uses minimum widths to detect x-range overlap, but actual x-positions (after pulls) may be wider. Do we need to re-assign rows after the X pass? If row assignment changes, pull eligibility (same-row vs cross-row) also changes, making this circular.
 
@@ -173,20 +150,20 @@ Each island is laid out independently. Islands are then arranged to avoid collis
 
 7. ~~**Y pass details**~~ — **Resolved**: row height = `max(node heights in row)`. Gap = 30px uniformly. Chain y = max occupied bottom-Y across the full chain x-span + gap (not just the leftmost node's column — the widest node in the chain can push the whole chain down).
 
-8. ~~**Cross-row edge alignment in CPM**~~ — **Resolved**: only the first node in each downstream chain gets x-aligned; deeper connections accept longer diagonals. Already in spec.
+8. ~~**Cross-row edge alignment in CPM**~~ — **Resolved**: falls out of the rule conditions. Rule 3 requires the end boundary to be in a lower row; rule 4 requires the target merge's x to be independent of the split. Neither rule has a same-row exclusion baked in for splits — a split is pulled toward a same-row merge whenever the merge's x is stable. Only the first node in each downstream chain gets x-aligned; deeper connections accept longer diagonals.
 
 9. ~~**Root x-position**~~ — **Resolved**: roots are anchored to their current user position. See *Root Anchoring* section.
 
 10. ~~**Zero-internal-node chains**~~ — **Resolved**: zero-internal chains `[A, B]` are valid. They participate in row assignment with x-range `[start.x, end.right]`. End boundary x comes from forward pass (merge rule); start boundary x comes from backward pass (split pull rule).
 
-11. ~~**End boundary is a split**~~ — **Resolved**: when the end boundary of a chain is a split (not a merge), the last internal node stays sequential — no pull. The split's own x is determined by its role as the start boundary of its outgoing chains.
+11. ~~**End boundary is a split**~~ — **Resolved**: falls out of rule 3's condition ("last internal before a **merge** end boundary, **in a lower row**"). Same-row, upward, and non-merge end boundaries all simply fail to match rule 3 and fall through to rule 5 (sequential). No special cases needed.
 
-12. ~~**Definition of "longest child path"**~~ — **Reframed**: the split pull (rule 4) finds the **last independent reference node** — the final node before the target merge in the longest alternative path that does not pass through the split. Traverse the graph to enumerate alternative paths; sum node widths + gaps along each to find the longest in pixels; the last node on that path is `ref`. The split is placed so that `split.right + gap = ref.x`.
+12. ~~**Definition of "longest child path"**~~ — **Resolved**: the reference point for rule 4 is the **target merge's forward-pass x** directly — no need to find the "last node of an alternative path." The formula is `x = merge.x_fwd - min_direct_path_width`. The merge's x_fwd is already computed in the forward pass; no additional traversal is needed beyond identifying which merge to target (see target merge selection in rule 4).
 
 13. ~~**Row height**~~ — **Resolved**: `max(node heights in row)`.
 
 14. ~~**Chain priority from user position**~~ — **Resolved**: the chain's start boundary node's current y-coordinate determines priority. Lower y = higher priority = assigned to an earlier row.
 
-15. **Audio graph cycles** — The algorithm assumes a DAG. Deferred: the Web Audio API does not support true signal cycles, so this is not a concern in practice.
+15. **Audio graph cycles** — The algorithm assumes a DAG. The Web Audio API does support cycles (a delay node is required to avoid infinite feedback), so this is a real concern. Deferred for now.
 
-16. ~~**`minChildPathWidth` across chain boundaries**~~ — **Reframed**: see Q12. `minChildPathWidth` as a single accumulated scalar is not the right abstraction. The split pull traverses the graph to find alternative paths, sums widths + gaps along each to identify the longest, and uses the last node of that path as the reference. The "width sum" is implicit in that traversal — it selects the longest path, it is not fed into a separate formula.
+16. ~~**`minChildPathWidth` across chain boundaries**~~ — **Resolved**: see Q12 and rule 4. `min_direct_path_width` is the width of this node + all internals on the direct chain to the merge + gaps between them. It does not cross chain boundaries — it is the width of the direct path only. The target merge is selected using its forward-pass x (already computed); no cross-boundary traversal is needed.
