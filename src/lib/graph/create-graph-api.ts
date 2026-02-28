@@ -120,7 +120,7 @@ export interface CreateGraphAPIConfig<
   TConfig extends GraphConfig<TContext>,
 > {
   config: TConfig;
-  context: TContext;
+  context?: TContext;
   graphStore: Graph;
   setGraphStore: SetStoreFunction<Graph>;
 }
@@ -231,7 +231,10 @@ export function createGraphAPI<
     graphStore,
     nodes,
     getPortDef,
-    addNode(type: keyof TConfig & string, options: { x: number; y: number; id?: string }) {
+    addNode(
+      type: keyof TConfig & string,
+      options: { x: number; y: number; id?: string },
+    ) {
       const id = options.id ?? crypto.randomUUID();
       const typeDef = config[type];
 
