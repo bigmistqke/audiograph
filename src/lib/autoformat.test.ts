@@ -2749,6 +2749,105 @@ describe("autoformat — x-positions", () => {
           "D": 340
     });
   });
+
+  it("merge with edges to multiple nodes in same chain links to first node of chain", () => {
+    const initial: Graph = {
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "dimensions": {
+                    "x": 100,
+                    "y": 80
+                },
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 150,
+                "y": 10,
+                "dimensions": {
+                    "x": 100,
+                    "y": 80
+                },
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 100,
+                "y": 170,
+                "dimensions": {
+                    "x": 100,
+                    "y": 80
+                },
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 270,
+                "y": 190,
+                "dimensions": {
+                    "x": 100,
+                    "y": 80
+                },
+                "state": {}
+            }
+        },
+        "edges": [
+            {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            }
+        ]
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 130,
+          "C": 130,
+          "D": 260
+    });
+  });
 });
 
 describe("autoformat — y-positions", () => {
@@ -5477,6 +5576,105 @@ describe("autoformat — y-positions", () => {
           "B": 200,
           "C": 200,
           "D": 200
+    });
+  });
+
+  it("merge with edges to multiple nodes in same chain links to first node of chain", () => {
+    const initial: Graph = {
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "dimensions": {
+                    "x": 100,
+                    "y": 80
+                },
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 150,
+                "y": 10,
+                "dimensions": {
+                    "x": 100,
+                    "y": 80
+                },
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 100,
+                "y": 170,
+                "dimensions": {
+                    "x": 100,
+                    "y": 80
+                },
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 270,
+                "y": 190,
+                "dimensions": {
+                    "x": 100,
+                    "y": 80
+                },
+                "state": {}
+            }
+        },
+        "edges": [
+            {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            }
+        ]
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 0,
+          "C": 110,
+          "D": 110
     });
   });
 });
