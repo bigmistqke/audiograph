@@ -2969,6 +2969,83 @@
       "created_at": "2026-02-28T21:13:37.982242+01:00",
       "updated_at": "2026-02-28T21:13:37.982242+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"b34c377\",\"confidence\":100}"
+    },
+    {
+      "id": 271,
+      "change_id": "6be0bf1b-e75f-4682-900d-c9f44a111bb8",
+      "node_type": "goal",
+      "title": "Add coverage test cases for autoformat edge cases",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T21:58:01.715406+01:00",
+      "updated_at": "2026-02-28T21:58:01.715406+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95,\"prompt\":\"are there more autoformat-cases we could add?\\n\\n-> add .json cases in public/autoformat-cases/... -> run it parallel w agents\"}"
+    },
+    {
+      "id": 272,
+      "change_id": "c9b36ec6-b66d-4c65-b1a7-f14c01e7f702",
+      "node_type": "action",
+      "title": "Fix autoformat x-positioning bug: traverse through splits in findBestRule4Pull, process secondary roots before splits",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T22:46:12.299158+01:00",
+      "updated_at": "2026-02-28T22:46:12.299158+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 273,
+      "change_id": "c79bde8f-0a09-4b10-a452-0dcb7ee7524c",
+      "node_type": "outcome",
+      "title": "6 edge-case tests added, split traversal bug fixed",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T22:52:53.063951+01:00",
+      "updated_at": "2026-02-28T22:52:53.063951+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"adf1427\",\"confidence\":90}"
+    },
+    {
+      "id": 274,
+      "change_id": "e7c54a84-e638-48ce-87f8-8bb29010b5a6",
+      "node_type": "outcome",
+      "title": "Q1 resolved: independence property guarantees single-pass convergence",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T22:58:42.255653+01:00",
+      "updated_at": "2026-02-28T22:58:42.255653+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95}"
+    },
+    {
+      "id": 275,
+      "change_id": "972ec93c-4965-4746-8cf5-b8357fef8afa",
+      "node_type": "outcome",
+      "title": "Q2 resolved: four-phase algorithm + DFS row ordering eliminates chicken-and-egg",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T22:58:47.530178+01:00",
+      "updated_at": "2026-02-28T22:58:47.530178+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95}"
+    },
+    {
+      "id": 276,
+      "change_id": "afbbe520-b251-4db7-8737-3f34c49bf1b1",
+      "node_type": "outcome",
+      "title": "Q4+Q15 formally deferred: island collision resolution and audio graph cycles remain open; spec Open Questions lists only cycles",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T22:58:52.381839+01:00",
+      "updated_at": "2026-02-28T22:58:52.381839+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90}"
+    },
+    {
+      "id": 277,
+      "change_id": "2c470832-23c1-40e0-91c3-900d57f134e5",
+      "node_type": "outcome",
+      "title": "Island collision resolution specced: sort by primary root y, anchor roots, push lower islands down by overlap, cascades top-to-bottom",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T23:00:15.611799+01:00",
+      "updated_at": "2026-02-28T23:00:15.611799+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90}"
     }
   ],
   "edges": [
@@ -5699,6 +5776,72 @@
       "weight": 1.0,
       "rationale": "implemented",
       "created_at": "2026-02-28T21:13:42.126163+01:00"
+    },
+    {
+      "id": 249,
+      "from_node_id": 272,
+      "to_node_id": 273,
+      "from_change_id": "c9b36ec6-b66d-4c65-b1a7-f14c01e7f702",
+      "to_change_id": "c79bde8f-0a09-4b10-a452-0dcb7ee7524c",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation complete",
+      "created_at": "2026-02-28T22:52:53.077676+01:00"
+    },
+    {
+      "id": 250,
+      "from_node_id": 271,
+      "to_node_id": 272,
+      "from_change_id": "6be0bf1b-e75f-4682-900d-c9f44a111bb8",
+      "to_change_id": "c9b36ec6-b66d-4c65-b1a7-f14c01e7f702",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation of bug fix and test cases",
+      "created_at": "2026-02-28T22:52:55.826050+01:00"
+    },
+    {
+      "id": 251,
+      "from_node_id": 236,
+      "to_node_id": 274,
+      "from_change_id": "810d2f4a-b8f8-462e-bfc3-655c0659fda8",
+      "to_change_id": "e7c54a84-e638-48ce-87f8-8bb29010b5a6",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Q1 resolved: independence property ensures M.x_excl is settled before S is evaluated in post-order; no fixed-point iteration needed",
+      "created_at": "2026-02-28T22:58:45.167528+01:00"
+    },
+    {
+      "id": 252,
+      "from_node_id": 237,
+      "to_node_id": 275,
+      "from_change_id": "fb635927-7fef-41f5-b1d3-beffcffc5dcb",
+      "to_change_id": "972ec93c-4965-4746-8cf5-b8357fef8afa",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Q2 resolved: row ordering uses initial user y-positions (not computed x-ranges), so rows are stable before x-computation begins; the four phases handle forward/backward causality",
+      "created_at": "2026-02-28T22:58:50.131700+01:00"
+    },
+    {
+      "id": 253,
+      "from_node_id": 238,
+      "to_node_id": 276,
+      "from_change_id": "7489738c-c550-4ee0-8a11-548dff604d45",
+      "to_change_id": "afbbe520-b251-4db7-8737-3f34c49bf1b1",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Deferral formalized in SPEC.md Open Questions section",
+      "created_at": "2026-02-28T22:58:54.434124+01:00"
+    },
+    {
+      "id": 254,
+      "from_node_id": 276,
+      "to_node_id": 277,
+      "from_change_id": "afbbe520-b251-4db7-8737-3f34c49bf1b1",
+      "to_change_id": "2c470832-23c1-40e0-91c3-900d57f134e5",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Island collision now specced in SPEC.md; only audio graph cycles remain deferred",
+      "created_at": "2026-02-28T23:00:19.845419+01:00"
     }
   ]
 }

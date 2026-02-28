@@ -205,7 +205,14 @@ The **primary root** is the root node with the smallest y, with x as tiebreaker 
 
 An **island** is a connected subgraph with no edges to any other subgraph. Each island is laid out independently using the same algorithm.
 
-Inter-island collision resolution — shifting lower islands downward to avoid overlap with higher islands — is deferred to a later version.
+### Island Collision Resolution
+
+After all islands are laid out independently, overlapping islands are resolved with a top-to-bottom sweep:
+
+1. **Sort islands** by the y-position of their primary root (ascending). Islands higher on screen are processed first.
+2. **Anchor each island's root** — the primary root of every island stays at its current user position; the island's internal layout is relative to it.
+3. **Push down on overlap** — for each island (in sorted order), check whether its bounding box overlaps any already-placed island above it. If it does, shift the entire island downward until the gap between it and the lowest overlapping island above is exactly the standard gap (30px). Apply this shift to every node in the island uniformly.
+4. **Cascade** — because islands are processed top-to-bottom, each shift only affects the current island and those below it. Earlier islands are never moved.
 
 ---
 
