@@ -91,49 +91,5 @@
       }
     ]
   },
-  "expected": {
-    "nodes": {},
-    "edges": [
-      {
-        "output": {
-          "node": "A",
-          "port": "out"
-        },
-        "input": {
-          "node": "B",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "A",
-          "port": "out"
-        },
-        "input": {
-          "node": "D",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "C",
-          "port": "out"
-        },
-        "input": {
-          "node": "D",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "A",
-          "port": "out"
-        },
-        "input": {
-          "node": "C",
-          "port": "in"
-        }
-      }
-    ]
-  }
+  "expected": {}
 }

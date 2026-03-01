@@ -1,6 +1,6 @@
 {
   "id": "aa11bb22-0006-0006-0006-aa11bb220006",
-  "title": "Three levels of nested splits (spine propagates through S1\u2192S2\u2192S3)",
+  "title": "Three levels of nested splits (spine propagates through S1→S2→S3)",
   "initial": {
     "nodes": {
       "R": {
@@ -178,179 +178,41 @@
     ]
   },
   "expected": {
-    "nodes": {
-      "R": {
-        "id": "R",
-        "type": "node",
-        "x": 0,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      },
-      "S1": {
-        "id": "S1",
-        "type": "node",
-        "x": 130,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      },
-      "S2": {
-        "id": "S2",
-        "type": "node",
-        "x": 260,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      },
-      "S3": {
-        "id": "S3",
-        "type": "node",
-        "x": 390,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      },
-      "Z1": {
-        "id": "Z1",
-        "type": "node",
-        "x": 520,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      },
-      "X": {
-        "id": "X",
-        "type": "node",
-        "x": 260,
-        "y": 110,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      },
-      "Y": {
-        "id": "Y",
-        "type": "node",
-        "x": 390,
-        "y": 110,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      },
-      "Z2": {
-        "id": "Z2",
-        "type": "node",
-        "x": 520,
-        "y": 110,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      },
-      "Z3": {
-        "id": "Z3",
-        "type": "node",
-        "x": 520,
-        "y": 220,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      }
+    "R": {
+      "x": 0,
+      "y": 0
     },
-    "edges": [
-      {
-        "output": {
-          "node": "R",
-          "port": "out"
-        },
-        "input": {
-          "node": "S1",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "S1",
-          "port": "out"
-        },
-        "input": {
-          "node": "S2",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "S1",
-          "port": "out"
-        },
-        "input": {
-          "node": "X",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "S2",
-          "port": "out"
-        },
-        "input": {
-          "node": "S3",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "S2",
-          "port": "out"
-        },
-        "input": {
-          "node": "Y",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "S3",
-          "port": "out"
-        },
-        "input": {
-          "node": "Z1",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "S3",
-          "port": "out"
-        },
-        "input": {
-          "node": "Z2",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "S3",
-          "port": "out"
-        },
-        "input": {
-          "node": "Z3",
-          "port": "in"
-        }
-      }
-    ]
+    "S1": {
+      "x": 130,
+      "y": 0
+    },
+    "S2": {
+      "x": 260,
+      "y": 0
+    },
+    "S3": {
+      "x": 390,
+      "y": 0
+    },
+    "Z1": {
+      "x": 520,
+      "y": 0
+    },
+    "X": {
+      "x": 260,
+      "y": 110
+    },
+    "Y": {
+      "x": 390,
+      "y": 110
+    },
+    "Z2": {
+      "x": 520,
+      "y": 110
+    },
+    "Z3": {
+      "x": 520,
+      "y": 220
+    }
   }
 }

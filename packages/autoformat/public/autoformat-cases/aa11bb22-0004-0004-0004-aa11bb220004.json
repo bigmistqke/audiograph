@@ -118,119 +118,29 @@
     ]
   },
   "expected": {
-    "nodes": {
-      "R": {
-        "id": "R",
-        "type": "node",
-        "x": 0,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      },
-      "S": {
-        "id": "S",
-        "type": "node",
-        "x": 130,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      },
-      "B1": {
-        "id": "B1",
-        "type": "node",
-        "x": 260,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      },
-      "B2": {
-        "id": "B2",
-        "type": "node",
-        "x": 260,
-        "y": 110,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      },
-      "B3": {
-        "id": "B3",
-        "type": "node",
-        "x": 260,
-        "y": 220,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      },
-      "B4": {
-        "id": "B4",
-        "type": "node",
-        "x": 260,
-        "y": 330,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
-      }
+    "R": {
+      "x": 0,
+      "y": 0
     },
-    "edges": [
-      {
-        "output": {
-          "node": "R",
-          "port": "out"
-        },
-        "input": {
-          "node": "S",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "S",
-          "port": "out"
-        },
-        "input": {
-          "node": "B1",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "S",
-          "port": "out"
-        },
-        "input": {
-          "node": "B2",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "S",
-          "port": "out"
-        },
-        "input": {
-          "node": "B3",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "S",
-          "port": "out"
-        },
-        "input": {
-          "node": "B4",
-          "port": "in"
-        }
-      }
-    ]
+    "S": {
+      "x": 130,
+      "y": 0
+    },
+    "B1": {
+      "x": 260,
+      "y": 0
+    },
+    "B2": {
+      "x": 260,
+      "y": 110
+    },
+    "B3": {
+      "x": 260,
+      "y": 220
+    },
+    "B4": {
+      "x": 260,
+      "y": 330
+    }
   }
 }

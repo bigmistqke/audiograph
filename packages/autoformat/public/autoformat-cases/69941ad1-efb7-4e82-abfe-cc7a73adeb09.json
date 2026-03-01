@@ -113,114 +113,25 @@
     ]
   },
   "expected": {
-    "nodes": {
-      "A": {
-        "id": "A",
-        "type": "node",
-        "x": 0,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        },
-        "state": {}
-      },
-      "B": {
-        "id": "B",
-        "type": "node",
-        "x": 130,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        },
-        "state": {}
-      },
-      "C": {
-        "id": "C",
-        "type": "node",
-        "x": 130,
-        "y": 110,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        },
-        "state": {}
-      },
-      "D": {
-        "id": "D",
-        "type": "node",
-        "x": 260,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        },
-        "state": {}
-      },
-      "E": {
-        "id": "E",
-        "type": "node",
-        "x": 390,
-        "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        },
-        "state": {}
-      }
+    "A": {
+      "x": 0,
+      "y": 0
     },
-    "edges": [
-      {
-        "output": {
-          "node": "A",
-          "port": "out"
-        },
-        "input": {
-          "node": "B",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "A",
-          "port": "out"
-        },
-        "input": {
-          "node": "C",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "B",
-          "port": "out"
-        },
-        "input": {
-          "node": "D",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "C",
-          "port": "out"
-        },
-        "input": {
-          "node": "D",
-          "port": "in"
-        }
-      },
-      {
-        "output": {
-          "node": "D",
-          "port": "out"
-        },
-        "input": {
-          "node": "E",
-          "port": "in"
-        }
-      }
-    ]
+    "B": {
+      "x": 130,
+      "y": 0
+    },
+    "C": {
+      "x": 130,
+      "y": 110
+    },
+    "D": {
+      "x": 260,
+      "y": 0
+    },
+    "E": {
+      "x": 390,
+      "y": 0
+    }
   }
 }
