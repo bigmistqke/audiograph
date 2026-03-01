@@ -30,7 +30,11 @@ export function GraphEdge(props: { edgeId: string; edge: Edge }) {
   const fromPortIndex = () => {
     const node = fromNode();
     if (!node) return -1;
-    return graph.config[node.type].ports.out?.indexOf(fromPort()!) ?? -1;
+    return (
+      graph.config[node.type].ports.out?.findIndex(
+        (p: any) => p.name === props.edge.output.port,
+      ) ?? -1
+    );
   };
 
   const toPortIndex = () => {
