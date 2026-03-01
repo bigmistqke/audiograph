@@ -3101,6 +3101,39 @@
       "created_at": "2026-03-01T02:22:46.312945+01:00",
       "updated_at": "2026-03-01T02:22:46.312945+01:00",
       "metadata_json": "{\"branch\":\"main\",\"confidence\":95}"
+    },
+    {
+      "id": 283,
+      "change_id": "f7839964-8bd6-4f76-8b07-dd1b67f4b990",
+      "node_type": "outcome",
+      "title": "Committed: extract utils package, move autoformat workshop, fix type errors",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-01T02:53:42.974232+01:00",
+      "updated_at": "2026-03-01T02:53:42.974232+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"deac52c\",\"confidence\":95}"
+    },
+    {
+      "id": 284,
+      "change_id": "b7992658-f1da-4e90-add6-789b42d93b57",
+      "node_type": "action",
+      "title": "Simplified autoformat test case expected format to Record<string, {x, y}>",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-01T03:53:58.313628+01:00",
+      "updated_at": "2026-03-01T03:53:58.313628+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"afd5f08\",\"confidence\":95}"
+    },
+    {
+      "id": 285,
+      "change_id": "b062fc85-6014-444d-bbef-54d7b417ee63",
+      "node_type": "outcome",
+      "title": "Committed: split graph package into create-graph and svg-graph",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-01T18:20:56.513228+01:00",
+      "updated_at": "2026-03-01T18:20:56.513228+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"30292bf\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -5930,6 +5963,28 @@
       "weight": 1.0,
       "rationale": "Refinement complete",
       "created_at": "2026-03-01T02:22:46.329733+01:00"
+    },
+    {
+      "id": 258,
+      "from_node_id": 281,
+      "to_node_id": 283,
+      "from_change_id": "77c2641b-4bf4-4209-b4c8-0bcca1501a5b",
+      "to_change_id": "f7839964-8bd6-4f76-8b07-dd1b67f4b990",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-03-01T02:53:43.008637+01:00"
+    },
+    {
+      "id": 259,
+      "from_node_id": 281,
+      "to_node_id": 285,
+      "from_change_id": "77c2641b-4bf4-4209-b4c8-0bcca1501a5b",
+      "to_change_id": "b062fc85-6014-444d-bbef-54d7b417ee63",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-03-01T18:20:56.545471+01:00"
     }
   ]
 }
