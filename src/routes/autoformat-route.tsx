@@ -33,9 +33,11 @@ function makeNodeDef(
     },
     state: {},
     resizable,
-    construct: ({ id }) => ({
-      render: () => <div class={styles.nodeLabel}>{id}</div>,
-    }),
+    construct: ({ id }) => {
+      return {
+        render: () => <div class={styles.nodeLabel}>{id}</div>,
+      };
+    },
   };
 }
 
@@ -257,8 +259,20 @@ export function AutoformatRoute() {
     });
   };
 
-  const diffs = createMemo(() =>
-    cases.map((c) => compare(c.expected, autoformat(c.initial))),
+  const results = createMemo(
+    mapArray(
+      () => cases,
+      (_case) => {
+        console.log("THIS HAPPENS??");
+        return createMemo(() => autoformat(_case.initial));
+      },
+    ),
+  );
+
+  const diffs = createMemo(
+    mapArray(results, (result, index) =>
+      compare(cases[index()].expected, result()),
+    ),
   );
 
   return (
@@ -302,28 +316,44 @@ export function AutoformatRoute() {
         {/* ── Cases ── */}
         <div class={styles.cases}>
           <For each={cases}>
-            {(c, i) => {
+            {(c, index) => {
               const [collapsed, setCollapsed] = createSignal(true);
-              const result = createMemo(() => autoformat(cases[i()].initial));
-              const diff = createMemo(() => diffs()[i()]!);
+              const diff = createMemo(() => diffs()[index()]!);
+              const result = createMemo(() => results()[index()]());
 
               // Sync edges from Initial to Expected
-              createEffect(() => {
-                setCases(i(), "expected", "edges", [
-                  ...cases[i()].initial.edges,
-                ]);
-              });
+              createEffect(
+                mapArray(
+                  () => cases[index()].initial.edges,
+                  (edge, index) => {
+                    createEffect(() => {
+                      setCases(index(), "expected", "edges", index(), edge);
+
+                      // Remove from Expected when edge is removed from Initial
+                      onCleanup(() => {
+                        setCases(
+                          index(),
+                          "expected",
+                          "edges",
+                          produce((edges) => {
+                            delete edges[index()];
+                          }),
+                        );
+                      });
+                    });
+                  },
+                ),
+              );
 
               // Per-node sync: seed on add, track dimensions, remove on cleanup
               createEffect(
                 mapArray(
-                  () => Object.keys(cases[i()].initial.nodes),
+                  () => Object.keys(cases[index()].initial.nodes),
                   (key) => {
                     // Seed node in Expected if not yet present
-                    if (!cases[i()].expected.nodes[key]) {
-                      const node = cases[i()].initial.nodes[key];
-
-                      setCases(i(), "expected", "nodes", key, {
+                    if (!cases[index()].expected.nodes[key]) {
+                      const node = cases[index()].initial.nodes[key];
+                      setCases(index(), "expected", "nodes", key, {
                         ...node,
                         dimensions: { ...node.dimensions },
                       });
@@ -331,19 +361,27 @@ export function AutoformatRoute() {
 
                     // Track dimension changes for this node
                     createEffect(() => {
-                      const dims = cases[i()].initial.nodes[key]?.dimensions;
+                      const dims =
+                        cases[index()].initial.nodes[key]?.dimensions;
                       if (dims) {
-                        setCases(i(), "expected", "nodes", key, "dimensions", {
-                          x: dims.x,
-                          y: dims.y,
-                        });
+                        setCases(
+                          index(),
+                          "expected",
+                          "nodes",
+                          key,
+                          "dimensions",
+                          {
+                            x: dims.x,
+                            y: dims.y,
+                          },
+                        );
                       }
                     });
 
                     // Remove from Expected when node is removed from Initial
                     onCleanup(() => {
                       setCases(
-                        i(),
+                        index(),
                         "expected",
                         "nodes",
                         produce((nodes) => {
@@ -366,7 +404,7 @@ export function AutoformatRoute() {
                   }}
                 >
                   <div class={styles.rowHeader}>
-                    <span class={styles.caseNumber}>#{i() + 1}</span>
+                    <span class={styles.caseNumber}>#{index() + 1}</span>
                     <AxisBadge diff={diff().x} axis="x" />
                     <AxisBadge diff={diff().y} axis="y" />
                     <input
@@ -374,7 +412,7 @@ export function AutoformatRoute() {
                       placeholder="untitled"
                       value={c.title ?? ""}
                       onInput={(e) =>
-                        setCases(i(), "title", e.currentTarget.value)
+                        setCases(index(), "title", e.currentTarget.value)
                       }
                     />
                     <span class={styles.caseId}>{c.id}.json</span>
@@ -390,23 +428,23 @@ export function AutoformatRoute() {
                       </button>
                       <button
                         class={styles.duplicateBtn}
-                        onClick={() => duplicateCase(i())}
+                        onClick={() => duplicateCase(index())}
                       >
                         ⧉
                       </button>
                       <button
                         class={styles.deleteBtn}
-                        onClick={() => deleteCase(i())}
+                        onClick={() => deleteCase(index())}
                       >
                         ✕
                       </button>
                     </div>
                   </div>
                   <CommentThread
-                    comments={cases[i()].comments}
+                    comments={cases[index()].comments}
                     collapsed={collapsed()}
                     onAdd={(text) =>
-                      setCases(i(), "comments", (prev) => [
+                      setCases(index(), "comments", (prev) => [
                         ...prev,
                         { role: "user" as const, text },
                       ])
@@ -418,17 +456,17 @@ export function AutoformatRoute() {
                       <GraphEditor
                         config={{ node: makeNodeDef(true) }}
                         class={styles.graphPanel}
-                        graphStore={cases[i()].initial}
+                        graphStore={cases[index()].initial}
                         setGraphStore={(...args: any[]) =>
                           // @ts-expect-error
-                          setCases(i(), "initial", ...args)
+                          setCases(index(), "initial", ...args)
                         }
                         onEdgeClick={({ edge, graph }) =>
                           graph.unlink(edge.output, edge.input)
                         }
                         onDoubleClick={({ x, y, graph }) => {
                           const existing = new Set(
-                            Object.keys(cases[i()].initial.nodes),
+                            Object.keys(cases[index()].initial.nodes),
                           );
                           const id =
                             Array.from({ length: 26 }, (_, n) =>
@@ -445,10 +483,10 @@ export function AutoformatRoute() {
                       <GraphEditor
                         config={{ node: makeNodeDef(false) }}
                         class={styles.graphPanel}
-                        graphStore={cases[i()].expected}
+                        graphStore={cases[index()].expected}
                         setGraphStore={(...args: any[]) =>
                           // @ts-expect-error
-                          setCases(i(), "expected", ...args)
+                          setCases(index(), "expected", ...args)
                         }
                       />
                     </div>

@@ -926,7 +926,7 @@ export function analyze(graph: Graph) {
   return analyzeLayout(graph);
 }
 
-export function autoformat(graph: Graph): Graph {
+export function autoformat<T extends Graph>(graph: T): T {
   const layout = analyzeLayout(graph);
   const nodes = { ...graph.nodes };
   for (const id of Object.keys(nodes)) {

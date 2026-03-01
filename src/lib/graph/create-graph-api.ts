@@ -23,7 +23,7 @@ export interface ConstructProps<
   C = any,
 > {
   id: string;
-  context: C;
+  context?: C;
   state: S;
   setState: SetStoreFunction<NoInfer<S>>;
   isInputConnected(portName: string): boolean;
@@ -125,21 +125,15 @@ export interface CreateGraphAPIConfig<
   setGraphStore: SetStoreFunction<Graph>;
 }
 
-export function createGraphAPI<
-  TContext,
-  TConfig extends GraphConfig<TContext>,
->({
-  config,
-  context,
-  graphStore,
-  setGraphStore,
-}: CreateGraphAPIConfig<TContext, TConfig>): GraphAPI<TConfig> {
+export function createGraphAPI<TContext, TConfig extends GraphConfig<TContext>>(
+  graphOptions: CreateGraphAPIConfig<TContext, TConfig>,
+): GraphAPI<TConfig> {
   const [nodes, setNodes] = createStore<Record<string, ConstructResult>>({});
 
   function getPortDef(nodeId: string, portName: string) {
-    const node = graphStore.nodes[nodeId];
+    const node = graphOptions.graphStore.nodes[nodeId];
     if (!node) return undefined;
-    const typeDef = config[node.type];
+    const typeDef = graphOptions.config[node.type];
     return (
       typeDef.ports.in?.find((p: PortDef) => p.name === portName) ??
       typeDef.ports.out?.find((p: PortDef) => p.name === portName)
@@ -148,29 +142,29 @@ export function createGraphAPI<
 
   createComputed(
     mapArray(
-      () => Object.keys(graphStore.nodes),
+      () => Object.keys(graphOptions.graphStore.nodes),
       (id) => {
         createComputed(() => {
-          const node = graphStore.nodes[id];
-          const typeDef = config[node.type];
+          const node = graphOptions.graphStore.nodes[id];
+          const typeDef = graphOptions.config[node.type];
 
           if (!typeDef?.construct) {
             throw new Error(
-              `Expected ${node.type} to be defined in the graph-config. Valid node-kinds: ${Object.keys(config)}`,
+              `Expected ${node.type} to be defined in the graph-config. Valid node-kinds: ${Object.keys(graphOptions.config)}`,
             );
           }
 
           createComputed(() => {
             const result = typeDef.construct({
               id: node.id,
-              context,
-              graphStore,
-              setGraphStore,
+              context: graphOptions.context,
+              graphStore: graphOptions.graphStore,
+              setGraphStore: graphOptions.setGraphStore,
               get state() {
                 return node.state;
               },
               setState(...args: any[]) {
-                return setGraphStore(
+                return graphOptions.setGraphStore(
                   "nodes",
                   id,
                   "state",
@@ -179,7 +173,7 @@ export function createGraphAPI<
                 );
               },
               isInputConnected: (portName: string) =>
-                graphStore.edges.some(
+                graphOptions.graphStore.edges.some(
                   (e) => e.input.node === node.id && e.input.port === portName,
                 ),
             });
@@ -193,7 +187,7 @@ export function createGraphAPI<
   // Edge lifecycle: connect/disconnect audio ports when edges change
   createEffect(
     mapArray(
-      () => graphStore.edges,
+      () => graphOptions.graphStore.edges,
       (edge) => {
         createEffect(() => {
           const from = nodes[edge.output.node];
@@ -227,27 +221,27 @@ export function createGraphAPI<
   );
 
   return {
-    config,
-    graphStore,
+    config: graphOptions.config,
+    graphStore: graphOptions.graphStore,
     nodes,
     getPortDef,
     addNode(
       type: keyof TConfig & string,
-      options: { x: number; y: number; id?: string },
+      nodeOptions: { x: number; y: number; id?: string },
     ) {
-      const id = options.id ?? crypto.randomUUID();
-      const typeDef = config[type];
+      const id = nodeOptions.id ?? crypto.randomUUID();
+      const typeDef = graphOptions.config[type];
 
-      setGraphStore(
+      graphOptions.setGraphStore(
         "nodes",
         produce((nodes) => {
           nodes[id] = {
             id,
             type,
-            x: snapToGrid(options.x),
-            y: snapToGrid(options.y),
+            x: snapToGrid(nodeOptions.x),
+            y: snapToGrid(nodeOptions.y),
             dimensions: { ...typeDef.dimensions },
-            state: { ...config[type]?.state },
+            state: { ...graphOptions.config[type]?.state },
           };
         }),
       );
@@ -255,7 +249,7 @@ export function createGraphAPI<
       return id;
     },
     deleteNode(id: string) {
-      setGraphStore(
+      graphOptions.setGraphStore(
         produce((graph) => {
           delete graph.nodes[id];
           graph.edges = graph.edges.filter(
@@ -265,7 +259,7 @@ export function createGraphAPI<
       );
     },
     unlink(output: EdgeHandle, input: EdgeHandle) {
-      setGraphStore(
+      graphOptions.setGraphStore(
         "edges",
         produce((edges) => {
           const index = edges.findIndex(
@@ -280,7 +274,7 @@ export function createGraphAPI<
       );
     },
     link(output: EdgeHandle, input: EdgeHandle) {
-      const exists = graphStore.edges.find(
+      const exists = graphOptions.graphStore.edges.find(
         (e) =>
           e.output.node === output.node &&
           e.output.port === output.port &&
@@ -293,7 +287,7 @@ export function createGraphAPI<
       const toPort = getPortDef(input.node, input.port);
       if (fromPort?.kind !== toPort?.kind) return;
 
-      setGraphStore(
+      graphOptions.setGraphStore(
         "edges",
         produce((edges) => edges.push({ output, input })),
       );
@@ -304,7 +298,7 @@ export function createGraphAPI<
         dimensions?: Partial<{ x: number; y: number }>;
       },
     ) {
-      setGraphStore(
+      graphOptions.setGraphStore(
         "nodes",
         produce((nodes) => {
           const { dimensions, ...rest } = update;
@@ -314,10 +308,10 @@ export function createGraphAPI<
       );
     },
     spliceNodeIntoEdge(edge: Edge, nodeId: string) {
-      const node = graphStore.nodes[nodeId];
+      const node = graphOptions.graphStore.nodes[nodeId];
       if (!node) return;
 
-      const typeDef = config[node.type];
+      const typeDef = graphOptions.config[node.type];
       if (!typeDef) return;
 
       const firstInPort = typeDef.ports.in?.[0];
@@ -325,7 +319,7 @@ export function createGraphAPI<
       if (!firstInPort || !firstOutPort) return;
 
       // Remove original edge A→B
-      setGraphStore(
+      graphOptions.setGraphStore(
         "edges",
         produce((edges) => {
           const index = edges.findIndex(
@@ -340,7 +334,7 @@ export function createGraphAPI<
       );
 
       // Add edge A→node (using first input port)
-      setGraphStore(
+      graphOptions.setGraphStore(
         "edges",
         produce((edges) =>
           edges.push({
@@ -351,7 +345,7 @@ export function createGraphAPI<
       );
 
       // Add edge node→B (using first output port)
-      setGraphStore(
+      graphOptions.setGraphStore(
         "edges",
         produce((edges) =>
           edges.push({
