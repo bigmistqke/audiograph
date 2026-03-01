@@ -3,5 +3,5 @@
   "compilerOptions": {
     "paths": {}
   },
-  "include": ["src", "scripts", "plugins", "workshop"]
+  "include": ["src"]
 }

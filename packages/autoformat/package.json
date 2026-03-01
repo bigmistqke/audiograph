@@ -8,10 +8,12 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest",
-    "generate:tests": "node scripts/generate-autoformat-tests.ts"
+    "generate:tests": "node scripts/generate-autoformat-tests.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@audiograph/graph": "workspace:*",
+    "@audiograph/utils": "workspace:*",
     "solid-js": "^1.9.5"
   },
   "devDependencies": {

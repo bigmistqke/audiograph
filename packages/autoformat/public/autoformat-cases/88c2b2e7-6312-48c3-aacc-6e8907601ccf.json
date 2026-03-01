@@ -1,0 +1,290 @@
+{
+  "id": "88c2b2e7-6312-48c3-aacc-6e8907601ccf",
+  "title": "merge before split should be part of the same row",
+  "initial": {
+    "nodes": {
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": 200,
+        "y": 80,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "C": {
+        "id": "C",
+        "type": "node",
+        "x": 210,
+        "y": 220,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "D": {
+        "id": "D",
+        "type": "node",
+        "x": 100,
+        "y": 280,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "E": {
+        "id": "E",
+        "type": "node",
+        "x": -40,
+        "y": 260,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "F": {
+        "id": "F",
+        "type": "node",
+        "x": -40,
+        "y": 390,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "G": {
+        "id": "G",
+        "type": "node",
+        "x": 240,
+        "y": 370,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "F",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "E",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "D",
+          "port": "out"
+        },
+        "input": {
+          "node": "G",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "G",
+          "port": "in"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "nodes": {
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "C": {
+        "id": "C",
+        "type": "node",
+        "x": 130,
+        "y": 110,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "D": {
+        "id": "D",
+        "type": "node",
+        "x": 0,
+        "y": 220,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "E": {
+        "id": "E",
+        "type": "node",
+        "x": -130,
+        "y": 220,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "F": {
+        "id": "F",
+        "type": "node",
+        "x": -130,
+        "y": 330,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      },
+      "G": {
+        "id": "G",
+        "type": "node",
+        "x": 130,
+        "y": 220,
+        "dimensions": {
+          "x": 100,
+          "y": 80
+        },
+        "state": {}
+      }
+    },
+    "edges": [
+      {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "G",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "E",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "D",
+          "port": "out"
+        },
+        "input": {
+          "node": "G",
+          "port": "in"
+        }
+      },
+      {
+        "output": {
+          "node": "F",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
+          "port": "in"
+        }
+      }
+    ]
+  }
+}

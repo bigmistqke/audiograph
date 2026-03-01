@@ -1,24 +1,5 @@
 import { createSignal, type Accessor } from "solid-js";
-
-/** Check if a function is a generator function */
-function isGeneratorFunction<T extends (...args: any[]) => Generator>(
-  fn: Function,
-): fn is T {
-  return fn.constructor.name === "GeneratorFunction";
-}
-
-function isObject(value: unknown): value is {} {
-  return value !== null && typeof value === "object";
-}
-
-function assertedNotNullish<T>(value: T, error?: string): NonNullable<T> {
-  if (assertNotNullish(value)) {
-    return value;
-  } else {
-    console.error(value);
-    throw new Error(error);
-  }
-}
+import { assertedNotNullish, isGeneratorFunction, isObject } from "./guards";
 
 /** Symbol to identify hold marker */
 export const $HOLD = Symbol("hold");
@@ -417,6 +398,8 @@ export interface PhasedAction<Phases extends string, Result> {
   progress: Accessor<number>;
   /** Cancel execution */
   cancel: () => void;
+  /** Read the current phase signal directly */
+  getPhase: Accessor<Phases | "idle" | "complete" | "error">;
 }
 
 /** Check if value is a generator (instance, not function) */

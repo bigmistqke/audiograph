@@ -1,3 +1,10 @@
+import type {
+  ConstructProps,
+  ConstructResult,
+  GraphConfig,
+  NodeTypeDef,
+} from "@audiograph/graph";
+import { calcNodeHeight } from "@audiograph/graph";
 import { when } from "@bigmistqke/solid-whenever";
 import { ReactiveMap } from "@solid-primitives/map";
 import {
@@ -11,13 +18,6 @@ import {
   onCleanup,
   Show,
 } from "solid-js";
-import { calcNodeHeight } from "@audiograph/graph";
-import type {
-  ConstructProps,
-  ConstructResult,
-  GraphConfig,
-  NodeTypeDef,
-} from "@audiograph/graph";
 import type { WorkletFileSystem } from "~/lib/worklet-file-system";
 import { Button } from "~/ui/button";
 import { HorizontalSlider } from "~/ui/horizontal-slider";
@@ -38,9 +38,16 @@ export interface AudioGraphContext {
 
 function createNodeDef<S extends Record<string, any> = Record<string, any>>(
   config: Omit<NodeTypeDef<S, AudioGraphContext>, "construct">,
-  construct: (props: ConstructProps<S, AudioGraphContext>) => ConstructResult,
+  construct: (
+    props: Omit<ConstructProps<S, AudioGraphContext>, "context"> & {
+      context: AudioGraphContext;
+    },
+  ) => ConstructResult,
 ): NodeTypeDef<S, AudioGraphContext> {
-  return { ...config, construct };
+  return {
+    ...config,
+    construct: construct as NodeTypeDef<S, AudioGraphContext>["construct"],
+  };
 }
 
 const audioContextModuleMap = new ReactiveMap<

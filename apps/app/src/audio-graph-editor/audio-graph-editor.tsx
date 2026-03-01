@@ -1,16 +1,4 @@
-import { makePersisted } from "@solid-primitives/storage";
-import clsx from "clsx";
-import { createSignal, For, Setter, Show } from "solid-js";
-import { createStore } from "solid-js/store";
-import {
-  NodeShell,
-  GRID,
-  PORT_INSET,
-  PORT_RADIUS,
-  snapToGrid,
-  TITLE_HEIGHT,
-  GraphEditor,
-} from "@audiograph/graph";
+import { autoformat } from "@audiograph/autoformat";
 import type {
   Edge,
   EdgeHandle,
@@ -18,7 +6,19 @@ import type {
   GraphAPI,
   GraphConfig,
 } from "@audiograph/graph";
-
+import {
+  GraphEditor,
+  GRID,
+  NodeShell,
+  PORT_INSET,
+  PORT_RADIUS,
+  snapToGrid,
+  TITLE_HEIGHT,
+} from "@audiograph/graph";
+import { makePersisted } from "@solid-primitives/storage";
+import clsx from "clsx";
+import { createSignal, For, Setter, Show } from "solid-js";
+import { createStore, reconcile } from "solid-js/store";
 import {
   createWorkletFileSystem,
   getSourceBoilerplate,
@@ -134,11 +134,18 @@ function SideBar(props: {
   );
 }
 
-function TopRightHUD(props: { id: string; onOpenProject(id: string): void }) {
+function TopRightHUD(props: {
+  id: string;
+  onOpenProject(id: string): void;
+  onAutoformat(): void;
+}) {
   // const navigate = useNavigate();
   return (
     <div class={styles.topRight}>
       <span class={styles.graphName}>{props.id}</span>
+      <Button onClick={props.onAutoformat} class={styles.button}>
+        autoformat
+      </Button>
       <Button
         onClick={() => {
           const name = prompt("New graph name:");
@@ -427,7 +434,11 @@ export function AudioGraphEditor(props: {
         selectedNodeType={selectedNodeType()}
         setSelectedNodeType={setSelectedNodeType}
       />
-      <TopRightHUD id={props.id ?? ""} onOpenProject={props.onOpenProject} />
+      <TopRightHUD
+        id={props.id ?? ""}
+        onOpenProject={props.onOpenProject}
+        onAutoformat={() => setGraphStore(reconcile(autoformat(graphStore)))}
+      />
       <GraphEditor
         context={context}
         config={config}

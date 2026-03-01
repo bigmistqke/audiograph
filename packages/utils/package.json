@@ -1,0 +1,12 @@
+{
+  "name": "@audiograph/utils",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@bigmistqke/minni": "^0.0.11",
+    "solid-js": "^1.9.5"
+  }
+}

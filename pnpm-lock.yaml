@@ -10,6 +10,9 @@ importers:
 
   apps/app:
     dependencies:
+      '@audiograph/autoformat':
+        specifier: workspace:*
+        version: link:../../packages/autoformat
       '@audiograph/graph':
         specifier: workspace:*
         version: link:../../packages/graph
@@ -34,19 +37,16 @@ importers:
       '@solidjs/router':
         specifier: ^0.15.4
         version: 0.15.4(solid-js@1.9.9)
-      '@types/audioworklet':
-        specifier: ^0.0.95
-        version: 0.0.95
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
       solid-js:
         specifier: ^1.9.5
         version: 1.9.9
-      vite-tsconfig-paths:
-        specifier: ^6.1.1
-        version: 6.1.1(typescript@5.9.2)(vite@7.1.10(@types/node@22.19.11)(jiti@2.6.1)(yaml@2.8.2))
     devDependencies:
+      '@types/audioworklet':
+        specifier: ^0.0.95
+        version: 0.0.95
       solid-devtools:
         specifier: ^0.34.3
         version: 0.34.3(solid-js@1.9.9)(vite@7.1.10(@types/node@22.19.11)(jiti@2.6.1)(yaml@2.8.2))
@@ -59,12 +59,18 @@ importers:
       vite-plugin-solid:
         specifier: ^2.11.8
         version: 2.11.9(solid-js@1.9.9)(vite@7.1.10(@types/node@22.19.11)(jiti@2.6.1)(yaml@2.8.2))
+      vite-tsconfig-paths:
+        specifier: ^6.1.1
+        version: 6.1.1(typescript@5.9.2)(vite@7.1.10(@types/node@22.19.11)(jiti@2.6.1)(yaml@2.8.2))
 
   packages/autoformat:
     dependencies:
       '@audiograph/graph':
         specifier: workspace:*
         version: link:../graph
+      '@audiograph/utils':
+        specifier: workspace:*
+        version: link:../utils
       solid-js:
         specifier: ^1.9.5
         version: 1.9.9
@@ -82,7 +88,33 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@22.19.11)(jiti@2.6.1)(yaml@2.8.2)
 
-  packages/graph: {}
+  packages/graph:
+    dependencies:
+      '@bigmistqke/minni':
+        specifier: ^0.0.11
+        version: 0.0.11
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      solid-js:
+        specifier: ^1.9.5
+        version: 1.9.9
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.2
+      vite:
+        specifier: ^7.1.4
+        version: 7.1.10(@types/node@22.19.11)(jiti@2.6.1)(yaml@2.8.2)
+
+  packages/utils:
+    dependencies:
+      '@bigmistqke/minni':
+        specifier: ^0.0.11
+        version: 0.0.11
+      solid-js:
+        specifier: ^1.9.5
+        version: 1.9.9
 
 packages:
 

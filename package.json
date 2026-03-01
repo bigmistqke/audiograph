@@ -10,7 +10,8 @@
     "dev": "pnpm --filter @audiograph/app dev",
     "build": "pnpm --filter @audiograph/app build",
     "test": "pnpm --filter @audiograph/autoformat test",
-    "workshop": "pnpm --filter @audiograph/autoformat dev"
+    "workshop": "pnpm --filter @audiograph/autoformat dev",
+    "typecheck": "pnpm -r typecheck"
   },
   "license": "MIT"
 }

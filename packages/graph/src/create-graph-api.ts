@@ -23,7 +23,7 @@ export interface ConstructProps<
   C = any,
 > {
   id: string;
-  context?: C;
+  context: C;
   state: S;
   setState: SetStoreFunction<NoInfer<S>>;
   isInputConnected(portName: string): boolean;
@@ -120,7 +120,7 @@ export interface CreateGraphAPIConfig<
   TConfig extends GraphConfig<TContext>,
 > {
   config: TConfig;
-  context?: TContext;
+  context: TContext;
   graphStore: Graph;
   setGraphStore: SetStoreFunction<Graph>;
 }

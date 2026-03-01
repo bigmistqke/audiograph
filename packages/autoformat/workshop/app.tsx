@@ -1,19 +1,21 @@
 import {
+  type Graph,
+  GraphEditor,
+  GRID,
+  type NodeTypeDef,
+} from "@audiograph/graph";
+import { action, createWritableStore, wait } from "@audiograph/utils";
+import {
   createEffect,
   createMemo,
   createResource,
-  createSignal,
   For,
   mapArray,
   onCleanup,
 } from "solid-js";
 import { produce } from "solid-js/store";
-import { action } from "./lib/action";
-import { autoformat } from "./index";
-import { createWritableStore } from "./lib/create-writable";
-import { GRID, type NodeTypeDef, type Graph, GraphEditor } from "@audiograph/graph";
-import { wait } from "./lib/wait";
-import styles from "./autoformat-route.module.css";
+import { autoformat } from "../src/index";
+import styles from "./app.module.css";
 
 // ─── Workshop node types ──────────────────────────────────────────────────────
 
@@ -127,7 +129,7 @@ function AxisBadge(props: { diff: AxisDiff; axis: "x" | "y" }) {
 
 // ─── Main route ───────────────────────────────────────────────────────────────
 
-export function AutoformatRoute() {
+export function App() {
   const [_cases] = createResource(fetchCases, { initialValue: [] });
   const [cases, setCases] = createWritableStore(_cases);
 
@@ -237,7 +239,7 @@ export function AutoformatRoute() {
                           "expected",
                           "edges",
                           produce((edges) => {
-                            delete edges[index()];
+                            edges.splice(index(), 1);
                           }),
                         );
                       });
@@ -295,10 +297,7 @@ export function AutoformatRoute() {
               );
 
               return (
-                <div
-                  id={`case-${c.id}`}
-                  class={styles.row}
-                >
+                <div id={`case-${c.id}`} class={styles.row}>
                   <div class={styles.rowHeader}>
                     <span class={styles.caseNumber}>#{index() + 1}</span>
                     <AxisBadge diff={diff().x} axis="x" />
@@ -331,6 +330,7 @@ export function AutoformatRoute() {
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Initial</span>
                       <GraphEditor
+                        context={null}
                         config={{ node: makeNodeDef(true) }}
                         class={styles.graphPanel}
                         graphStore={cases[index()].initial}
@@ -358,6 +358,7 @@ export function AutoformatRoute() {
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Expected</span>
                       <GraphEditor
+                        context={null}
                         config={{ node: makeNodeDef(false) }}
                         class={styles.graphPanel}
                         graphStore={cases[index()].expected}
@@ -370,6 +371,7 @@ export function AutoformatRoute() {
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Result</span>
                       <GraphEditor
+                        context={null}
                         config={{ node: makeNodeDef(false) }}
                         class={styles.graphPanel}
                         graphStore={result()}
