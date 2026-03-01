@@ -16,10 +16,6 @@
 
     // Type Checking & Safety
     "strict": true,
-    "types": ["vite/client"],
-
-    "paths": {
-      "~/*": ["./src/*"]
-    }
+    "types": ["vite/client"]
   }
 }

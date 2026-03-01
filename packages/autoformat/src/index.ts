@@ -1,4 +1,4 @@
-import type { Graph } from "../graph/create-graph-api";
+import type { Graph } from "@audiograph/graph";
 
 const GAP = 30;
 

@@ -8,13 +8,11 @@ import {
   onCleanup,
 } from "solid-js";
 import { produce } from "solid-js/store";
-import { action } from "~/lib/action";
-import { autoformat } from "~/lib/autoformat";
-import { createWritableStore } from "~/lib/create-writable";
-import { GRID } from "~/lib/graph/constants";
-import type { Graph, NodeTypeDef } from "~/lib/graph/create-graph-api";
-import { GraphEditor } from "~/lib/graph/graph-editor";
-import { wait } from "~/lib/wait";
+import { action } from "./lib/action";
+import { autoformat } from "./index";
+import { createWritableStore } from "./lib/create-writable";
+import { GRID, type NodeTypeDef, type Graph, GraphEditor } from "@audiograph/graph";
+import { wait } from "./lib/wait";
 import styles from "./autoformat-route.module.css";
 
 // ─── Workshop node types ──────────────────────────────────────────────────────

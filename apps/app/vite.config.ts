@@ -2,10 +2,9 @@ import devtools from "solid-devtools/vite";
 import { defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
 import tsconfigPaths from "vite-tsconfig-paths";
-import { autoformatSavePlugin } from "./plugins/autoformat-save-plugin";
 
 export default defineConfig({
-  plugins: [tsconfigPaths(), devtools(), solidPlugin(), autoformatSavePlugin()],
+  plugins: [tsconfigPaths(), devtools(), solidPlugin()],
   server: {
     port: 3000,
   },

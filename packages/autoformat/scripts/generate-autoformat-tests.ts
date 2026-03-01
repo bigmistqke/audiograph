@@ -1,19 +1,13 @@
-// Generates src/lib/autoformat.test.ts from public/autoformat-cases/*.json.
-// Run with: pnpm generate:autoformat-tests
+// Generates src/autoformat.test.ts from public/autoformat-cases/*.json.
+// Run with: pnpm generate:tests
 
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import type { Graph } from "../src/lib/graph/create-graph-api";
-
-interface Comment {
-  role: "user" | "assistant";
-  text: string;
-}
+import type { Graph } from "@audiograph/graph";
 
 interface TestCase {
   id: string;
   title: string;
-  comments: Comment[];
   initial: Graph;
   expected: Graph;
 }
@@ -42,10 +36,7 @@ function labelY(graph: Graph): Record<string, number> {
 }
 
 function generateXCase(testCase: TestCase): string {
-  const description =
-    testCase.title ||
-    testCase.comments.find((c) => c.role === "user")?.text ||
-    testCase.id;
+  const description = testCase.title || testCase.id;
   const expected = labelX(testCase.expected);
   const initialStr = JSON.stringify(testCase.initial, null, 4)
     .split("\n")
@@ -58,10 +49,7 @@ function generateXCase(testCase: TestCase): string {
 }
 
 function generateYCase(testCase: TestCase): string {
-  const description =
-    testCase.title ||
-    testCase.comments.find((c) => c.role === "user")?.text ||
-    testCase.id;
+  const description = testCase.title || testCase.id;
   const expected = labelY(testCase.expected);
   const initialStr = JSON.stringify(testCase.initial, null, 4)
     .split("\n")
@@ -85,11 +73,11 @@ const yCases = testCases.map(generateYCase);
 
 const output = `\
 // AUTO-GENERATED — do not edit.
-// Run \`pnpm generate:autoformat-tests\` to regenerate.
+// Run \`pnpm generate:tests\` to regenerate.
 
 import { describe, it, expect } from "vitest";
-import { autoformat } from "./autoformat";
-import type { Graph } from "./graph/create-graph-api";
+import { autoformat } from ".";
+import type { Graph } from "@audiograph/graph";
 
 function labelX(graph: Graph): Record<string, number> {
   const result: Record<string, number> = {};
@@ -116,6 +104,6 @@ ${yCases.join("\n\n")}
 });
 `;
 
-const outPath = join(root, "src/lib/autoformat.test.ts");
+const outPath = join(root, "src/autoformat.test.ts");
 writeFileSync(outPath, output);
 console.log(`Generated ${testCases.length} test cases → ${outPath}`);

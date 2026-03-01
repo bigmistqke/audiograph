@@ -11,13 +11,13 @@ import {
   onCleanup,
   Show,
 } from "solid-js";
-import { calcNodeHeight } from "~/lib/graph/constants";
+import { calcNodeHeight } from "@audiograph/graph";
 import type {
   ConstructProps,
   ConstructResult,
   GraphConfig,
   NodeTypeDef,
-} from "~/lib/graph/create-graph-api";
+} from "@audiograph/graph";
 import type { WorkletFileSystem } from "~/lib/worklet-file-system";
 import { Button } from "~/ui/button";
 import { HorizontalSlider } from "~/ui/horizontal-slider";

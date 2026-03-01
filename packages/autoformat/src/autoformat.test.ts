@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 import { autoformat } from ".";
-import type { Graph } from "../graph/create-graph-api";
+import type { Graph } from "@audiograph/graph";
 
 function labelX(graph: Graph): Record<string, number> {
   const result: Record<string, number> = {};

@@ -2,22 +2,22 @@ import { makePersisted } from "@solid-primitives/storage";
 import clsx from "clsx";
 import { createSignal, For, Setter, Show } from "solid-js";
 import { createStore } from "solid-js/store";
-import { NodeShell } from "~/lib/graph/components/node-shell";
 import {
+  NodeShell,
   GRID,
   PORT_INSET,
   PORT_RADIUS,
   snapToGrid,
   TITLE_HEIGHT,
-} from "~/lib/graph/constants";
+  GraphEditor,
+} from "@audiograph/graph";
 import type {
   Edge,
   EdgeHandle,
   Graph,
   GraphAPI,
   GraphConfig,
-} from "~/lib/graph/create-graph-api";
-import { GraphEditor } from "~/lib/graph/graph-editor";
+} from "@audiograph/graph";
 
 import {
   createWorkletFileSystem,
