@@ -817,10 +817,14 @@ function layoutIsland(islandInfos: Map<string, NodeInfo>): {
 
 // ─── Island Collision Resolution ──────────────────────────────────────────────
 //
-// Sort islands by their primary root y (ascending). For each island in order,
-// check if its bounding box x-overlaps and y-overlaps any already-placed island.
-// If so, shift the entire island downward until the gap is exactly GAP (30px).
-// Cascade naturally: placed islands never move, shifts only affect current island.
+// Sort islands by their primary root y (ascending). For each island, query a
+// shared sorted interval structure (built from all already-placed islands' nodes)
+// to find the precise max bottom-Y across each node's x-range. The uniform shift
+// for the island = max(interval_query(node) + GAP - node.y) across all nodes.
+// Apply that shift, then insert this island's nodes into the shared structure.
+//
+// This is more precise than bbox-vs-bbox: two islands whose bounding boxes
+// overlap but whose actual node footprints don't will not be shifted.
 
 interface IslandLayout {
   nodeIds: string[];
@@ -833,49 +837,53 @@ interface IslandLayout {
 function resolveIslandCollisions(islands: IslandLayout[]): void {
   islands.sort((a, b) => a.primaryRootY - b.primaryRootY);
 
-  const placedBBoxes: Array<{
-    xMin: number;
-    yMin: number;
-    xMax: number;
-    yMax: number;
-  }> = [];
+  // Shared interval structure across all placed islands, sorted by xStart.
+  const intervals: Array<{ xStart: number; xEnd: number; bottomY: number }> =
+    [];
+
+  function insertInterval(xStart: number, xEnd: number, bottomY: number) {
+    const iv = { xStart, xEnd, bottomY };
+    let i = intervals.length;
+    while (i > 0 && intervals[i - 1].xStart > xStart) i--;
+    intervals.splice(i, 0, iv);
+  }
+
+  function queryMaxBottomY(xStart: number, xEnd: number): number {
+    let max = -Infinity;
+    for (const iv of intervals) {
+      if (iv.xStart >= xEnd) break; // sorted — no further overlaps possible
+      if (iv.xEnd > xStart && iv.bottomY > max) max = iv.bottomY;
+    }
+    return max;
+  }
 
   for (const island of islands) {
-    let xMin = Infinity,
-      yMin = Infinity,
-      xMax = -Infinity,
-      yMax = -Infinity;
+    // Compute the uniform downward shift needed across all nodes in this island.
+    let maxShift = 0;
 
     for (const id of island.nodeIds) {
       const nx = island.xFinal.get(id)!;
       const ny = island.yFinal.get(id)!;
       const info = island.infos.get(id)!;
-      if (nx < xMin) xMin = nx;
-      if (ny < yMin) yMin = ny;
-      if (nx + info.width > xMax) xMax = nx + info.width;
-      if (ny + info.height > yMax) yMax = ny + info.height;
+      const maxBottom = queryMaxBottomY(nx, nx + info.width);
+      if (maxBottom === -Infinity) continue;
+      const needed = maxBottom + GAP - ny;
+      if (needed > maxShift) maxShift = needed;
     }
 
-    // Find max bottom-Y of placed islands that x-overlap AND y-overlap this one.
-    let maxBottomY = -Infinity;
-    for (const pb of placedBBoxes) {
-      if (pb.xMax <= xMin || pb.xMin >= xMax) continue; // no x-overlap
-      if (pb.yMax <= yMin) continue; // placed island fully above, no y-overlap
-      if (pb.yMax > maxBottomY) maxBottomY = pb.yMax;
-    }
-
-    if (maxBottomY !== -Infinity) {
-      const shift = maxBottomY + GAP - yMin;
-      if (shift > 0) {
-        for (const id of island.nodeIds) {
-          island.yFinal.set(id, island.yFinal.get(id)! + shift);
-        }
-        yMin += shift;
-        yMax += shift;
+    if (maxShift > 0) {
+      for (const id of island.nodeIds) {
+        island.yFinal.set(id, island.yFinal.get(id)! + maxShift);
       }
     }
 
-    placedBBoxes.push({ xMin, yMin, xMax, yMax });
+    // Insert this island's nodes into the shared interval structure.
+    for (const id of island.nodeIds) {
+      const nx = island.xFinal.get(id)!;
+      const ny = island.yFinal.get(id)!;
+      const info = island.infos.get(id)!;
+      insertInterval(nx, nx + info.width, ny + info.height);
+    }
   }
 }
 

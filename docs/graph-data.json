@@ -3046,6 +3046,61 @@
       "created_at": "2026-02-28T23:00:15.611799+01:00",
       "updated_at": "2026-02-28T23:00:15.611799+01:00",
       "metadata_json": "{\"branch\":\"main\",\"confidence\":90}"
+    },
+    {
+      "id": 278,
+      "change_id": "9ba165ea-8d14-4c14-ad10-19c9ee31a7ee",
+      "node_type": "goal",
+      "title": "Implement island collision resolution",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T23:50:42.624268+01:00",
+      "updated_at": "2026-02-28T23:50:42.624268+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"implement island collision resolution\"}"
+    },
+    {
+      "id": 279,
+      "change_id": "0d4baa08-0839-4476-aae6-5f876ca42e30",
+      "node_type": "action",
+      "title": "Refactor analyzeLayout to detect islands, run per-island layout, apply collision resolution",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T23:50:46.204191+01:00",
+      "updated_at": "2026-02-28T23:50:46.204191+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 280,
+      "change_id": "e36bbb7a-85e8-4de0-ad3c-1f8a89574351",
+      "node_type": "outcome",
+      "title": "Island collision resolution implemented: findIslands (BFS), layoutIsland (per-island pipeline), resolveIslandCollisions (top-to-bottom bbox sweep); all 28 tests pass",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-28T23:52:35.380887+01:00",
+      "updated_at": "2026-02-28T23:52:35.380887+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95}"
+    },
+    {
+      "id": 281,
+      "change_id": "77c2641b-4bf4-4209-b4c8-0bcca1501a5b",
+      "node_type": "action",
+      "title": "Refactor to monorepo: packages/graph, packages/autoformat, apps/app",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-01T02:11:13.892637+01:00",
+      "updated_at": "2026-03-01T02:11:13.892637+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"937c17b\",\"confidence\":95}"
+    },
+    {
+      "id": 282,
+      "change_id": "fc34865d-20c8-4477-84e2-a8fe7402692d",
+      "node_type": "outcome",
+      "title": "Island collision uses per-node interval queries instead of bbox-vs-bbox; all 28 tests pass",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-01T02:22:46.312945+01:00",
+      "updated_at": "2026-03-01T02:22:46.312945+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -5842,6 +5897,39 @@
       "weight": 1.0,
       "rationale": "Island collision now specced in SPEC.md; only audio graph cycles remain deferred",
       "created_at": "2026-02-28T23:00:19.845419+01:00"
+    },
+    {
+      "id": 255,
+      "from_node_id": 278,
+      "to_node_id": 279,
+      "from_change_id": "9ba165ea-8d14-4c14-ad10-19c9ee31a7ee",
+      "to_change_id": "0d4baa08-0839-4476-aae6-5f876ca42e30",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation",
+      "created_at": "2026-02-28T23:50:46.214627+01:00"
+    },
+    {
+      "id": 256,
+      "from_node_id": 279,
+      "to_node_id": 280,
+      "from_change_id": "0d4baa08-0839-4476-aae6-5f876ca42e30",
+      "to_change_id": "e36bbb7a-85e8-4de0-ad3c-1f8a89574351",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation complete",
+      "created_at": "2026-02-28T23:52:35.391942+01:00"
+    },
+    {
+      "id": 257,
+      "from_node_id": 279,
+      "to_node_id": 281,
+      "from_change_id": "0d4baa08-0839-4476-aae6-5f876ca42e30",
+      "to_change_id": "77c2641b-4bf4-4209-b4c8-0bcca1501a5b",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Refinement complete",
+      "created_at": "2026-03-01T02:22:46.329733+01:00"
     }
   ]
 }
