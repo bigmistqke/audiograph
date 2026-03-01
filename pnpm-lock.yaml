@@ -77,6 +77,9 @@ importers:
       '@audiograph/utils':
         specifier: workspace:*
         version: link:../utils
+      '@solidjs/router':
+        specifier: ^0.15.4
+        version: 0.15.4(solid-js@1.9.9)
       solid-js:
         specifier: ^1.9.5
         version: 1.9.9

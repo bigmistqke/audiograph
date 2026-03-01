@@ -6,13 +6,14 @@ import type {
 } from "@audiograph/create-graph";
 import { GraphEditor, GRID } from "@audiograph/svg-graph";
 import { action, createWritableStore, wait } from "@audiograph/utils";
+import { useNavigate, useParams } from "@solidjs/router";
 import {
   createEffect,
   createMemo,
   createResource,
-  createSignal,
   For,
-  mapArray,
+  type ParentProps,
+  Show,
 } from "solid-js";
 import { produce } from "solid-js/store";
 import { autoformat } from "../src/index";
@@ -136,9 +137,12 @@ function AxisBadge(props: { diff: AxisDiff; axis: "x" | "y" }) {
   );
 }
 
-// ─── Main route ───────────────────────────────────────────────────────────────
+// ─── Main app (router root) ──────────────────────────────────────────────────
 
-export function App() {
+export function App(props: ParentProps) {
+  const params = useParams<{ id?: string }>();
+  const navigate = useNavigate();
+
   const [_cases] = createResource(fetchCases, { initialValue: [] });
   const [cases, setCases] = createWritableStore(_cases);
 
@@ -147,71 +151,96 @@ export function App() {
     .phase("saving", () => saveCases(cases))
     .phase("saved", () => wait());
 
+  // Redirect to first case when no valid /:id
+  createEffect(() => {
+    if (cases.length === 0) return;
+    if (!params.id || !cases.find((c) => c.id === params.id)) {
+      navigate(`/${cases[0].id}`, { replace: true });
+    }
+  });
+
+  const currentIndex = createMemo(() =>
+    cases.findIndex((c) => c.id === params.id),
+  );
+
   const addCase = () => {
+    const id = crypto.randomUUID();
     setCases(
       produce((prev) =>
         prev.push({
-          id: crypto.randomUUID(),
+          id,
           title: "",
           initial: { nodes: {}, edges: {} },
           expected: {},
         }),
       ),
     );
+    navigate(`/${id}`);
   };
 
   const deleteCase = (index: number) => {
+    const wasActive = index === currentIndex();
     setCases((prev) => prev.filter((_, i) => i !== index));
+    if (wasActive && cases.length > 0) {
+      const nextIndex = Math.min(index, cases.length - 1);
+      navigate(`/${cases[nextIndex].id}`, { replace: true });
+    }
   };
 
   const duplicateCase = (index: number) => {
+    const id = crypto.randomUUID();
     setCases((prev) => {
       const copy = structuredClone(prev[index]!);
-      copy.id = crypto.randomUUID();
+      copy.id = id;
       copy.title = "";
       return [...prev.slice(0, index + 1), copy, ...prev.slice(index + 1)];
     });
+    navigate(`/${id}`);
   };
 
-  const resultCases = createMemo(
-    mapArray(
-      () => cases,
-      (_case) => {
-        return createMemo(() => autoformat(_case.initial));
-      },
-    ),
-  );
+  const resultCase = createMemo(() => {
+    const idx = currentIndex();
+    if (idx === -1) return undefined;
+    return autoformat(cases[idx].initial);
+  });
 
-  const expectedCases = createMemo(
-    mapArray(
-      () => cases,
-      (_case) => {
-        return createMemo(() => ({
-          edges: _case.initial.edges,
-          nodes: Object.fromEntries(
-            Object.entries(_case.expected).map(
-              ([key, value]) =>
-                [key, { ..._case.initial.nodes[key], ...value }] as const,
-            ),
+  const expectedCase = createMemo(() => {
+    const idx = currentIndex();
+    if (idx === -1) return undefined;
+    const c = cases[idx];
+    return {
+      edges: c.initial.edges,
+      nodes: Object.fromEntries(
+        Object.entries(c.expected).map(
+          ([key, value]) =>
+            [key, { ...c.initial.nodes[key], ...value }] as const,
+        ),
+      ),
+    };
+  });
+
+  const diff = createMemo(() => {
+    const result = resultCase();
+    const expected = expectedCase();
+    if (!result || !expected) return undefined;
+    return compare(expected, result);
+  });
+
+  // Compute diffs for all cases (sidebar badges)
+  const allDiffs = createMemo(() =>
+    cases.map((c) => {
+      const result = autoformat(c.initial);
+      const expected = {
+        edges: c.initial.edges,
+        nodes: Object.fromEntries(
+          Object.entries(c.expected).map(
+            ([key, value]) =>
+              [key, { ...c.initial.nodes[key], ...value }] as const,
           ),
-        }));
-      },
-    ),
-  );
-
-  const diffs = createMemo(
-    mapArray(resultCases, (result, index) =>
-      compare(expectedCases()[index()]!(), result()),
-    ),
-  );
-
-  const paneHeights = createMemo(
-    mapArray(
-      () => cases,
-      (_case) => {
-        return createSignal(300);
-      },
-    ),
+        ),
+      };
+      return compare(expected, result);
+    }),
   );
 
   return (
@@ -242,8 +271,13 @@ export function App() {
             {(c, i) => (
               <a
                 class={styles.sidebarLink}
-                href={`#case-${c.id}`}
-                data-pass={diffs()[i()]?.x.pass && diffs()[i()]?.y.pass}
+                href={`/${c.id}`}
+                data-pass={allDiffs()[i()]?.x.pass && allDiffs()[i()]?.y.pass}
+                data-active={c.id === params.id}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate(`/${c.id}`);
+                }}
               >
                 <span class={styles.sidebarNum}>#{i() + 1}</span>
                 <span class={styles.sidebarTitle}>{c.title || "untitled"}</span>
@@ -252,73 +286,49 @@ export function App() {
           </For>
         </nav>
 
-        {/* ── Cases ── */}
-        <div
-          class={styles.cases}
-          style={{
-            "grid-template-rows": paneHeights()
-              .map((height) => `${height[0]()}px`)
-              .join(" "),
-          }}
-        >
-          <For each={cases}>
-            {(c, index) => {
-              const diff = createMemo(() => diffs()[index()]!);
-              const result = createMemo(() => resultCases()[index()]());
-              const expected = createMemo(() => expectedCases()[index()]!());
+        {/* ── Single case ── */}
+        <Show when={currentIndex() !== -1}>
+          {(() => {
+            const index = currentIndex;
+            const c = () => cases[index()];
 
-              // Per-node sync: seed on add, track dimensions, remove on cleanup
-              createEffect(
-                mapArray(
-                  () => Object.keys(cases[index()].initial.nodes),
-                  (key) => {
-                    // Seed node in Expected if not yet present
-                    if (!cases[index()].expected[key]) {
-                      const node = cases[index()].initial.nodes[key];
-                      setCases(index(), "expected", key, {
-                        x: node.x,
-                        y: node.y,
-                      });
-                    }
-                  },
-                ),
-              );
+            // Per-node sync: seed on add
+            createEffect(() => {
+              const idx = index();
+              if (idx === -1) return;
+              for (const key of Object.keys(cases[idx].initial.nodes)) {
+                if (!cases[idx].expected[key]) {
+                  const node = cases[idx].initial.nodes[key];
+                  setCases(idx, "expected", key, {
+                    x: node.x,
+                    y: node.y,
+                  });
+                }
+              }
+            });
 
-              const onHandlePointerDown = (e: PointerEvent) => {
-                const startY = e.clientY;
-                const startH = paneHeights()[index()][0]();
-                const onMove = (ev: PointerEvent) => {
-                  paneHeights()[index()][1](
-                    Math.max(80, startH + ev.clientY - startY),
-                  );
-                };
-                const onUp = () => {
-                  window.removeEventListener("pointermove", onMove);
-                  window.removeEventListener("pointerup", onUp);
-                };
-                window.addEventListener("pointermove", onMove);
-                window.addEventListener("pointerup", onUp);
-              };
-
-              return (
-                <div
-                  id={`case-${c.id}`}
-                  class={styles.row}
-                  // style={{ "grid-template-rows": `auto ${panelsHeight()}px auto` }}
-                >
+            return (
+              <div class={styles.cases}>
+                <div id={`case-${c().id}`} class={styles.row}>
                   <div class={styles.rowHeader}>
                     <span class={styles.caseNumber}>#{index() + 1}</span>
-                    <AxisBadge diff={diff().x} axis="x" />
-                    <AxisBadge diff={diff().y} axis="y" />
+                    <Show when={diff()}>
+                      {(d) => (
+                        <>
+                          <AxisBadge diff={d().x} axis="x" />
+                          <AxisBadge diff={d().y} axis="y" />
+                        </>
+                      )}
+                    </Show>
                     <input
                       class={styles.caseTitle}
                       placeholder="untitled"
-                      value={c.title ?? ""}
+                      value={c().title ?? ""}
                       onInput={(e) =>
                         setCases(index(), "title", e.currentTarget.value)
                       }
                     />
-                    <span class={styles.caseId}>{c.id}.json</span>
+                    <span class={styles.caseId}>{c().id}.json</span>
                     <div class={styles.rowActions}>
                       <button
                         class={styles.duplicateBtn}
@@ -410,42 +420,46 @@ export function App() {
                     </div>
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Expected</span>
-                      <GraphEditor
-                        {...expected()}
-                        context={null}
-                        config={{ node: makeNodeDef(false) }}
-                        class={styles.graphPanel}
-                        onNodeUpdate={({ nodeId, callback }) => {
-                          setCases(
-                            index(),
-                            "expected",
-                            nodeId,
-                            produce((node) => {
-                              callback(node as Node);
-                            }),
-                          );
-                        }}
-                      />
+                      <Show when={expectedCase()}>
+                        {(expected) => (
+                          <GraphEditor
+                            {...expected()}
+                            context={null}
+                            config={{ node: makeNodeDef(false) }}
+                            class={styles.graphPanel}
+                            onNodeUpdate={({ nodeId, callback }) => {
+                              setCases(
+                                index(),
+                                "expected",
+                                nodeId,
+                                produce((node) => {
+                                  callback(node as Node);
+                                }),
+                              );
+                            }}
+                          />
+                        )}
+                      </Show>
                     </div>
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Result</span>
-                      <GraphEditor
-                        {...result()}
-                        context={null}
-                        config={{ node: makeNodeDef(false) }}
-                        class={styles.graphPanel}
-                      />
+                      <Show when={resultCase()}>
+                        {(result) => (
+                          <GraphEditor
+                            {...result()}
+                            context={null}
+                            config={{ node: makeNodeDef(false) }}
+                            class={styles.graphPanel}
+                          />
+                        )}
+                      </Show>
                     </div>
                   </div>
-                  <div
-                    class={styles.resizeHandle}
-                    onPointerDown={onHandlePointerDown}
-                  />
                 </div>
-              );
-            }}
-          </For>
-        </div>
+              </div>
+            );
+          })()}
+        </Show>
       </div>
     </div>
   );
