@@ -1,45 +1,48 @@
 {
-  "id": "229bbc11-bdf6-4c77-b636-7bd5e1d7a46e",
-  "title": "Basic split: two children stacked in separate rows",
+  "id": "f8dee104-6e5a-4063-b000-f7da3bddc97d",
+  "title": "row placement is not time-dependent",
   "initial": {
     "nodes": {
       "A": {
         "id": "A",
         "type": "node",
-        "x": 0,
-        "y": 0,
+        "x": 10,
+        "y": 100,
         "width": 100,
-        "height": 80
+        "height": 80,
+        "state": {}
       },
       "B": {
         "id": "B",
         "type": "node",
-        "x": 200,
-        "y": -80,
+        "x": 0,
+        "y": 0,
         "width": 100,
-        "height": 80
+        "height": 80,
+        "state": {}
       },
       "C": {
         "id": "C",
         "type": "node",
         "x": 140,
-        "y": 100,
+        "y": 10,
         "width": 100,
-        "height": 80
+        "height": 80,
+        "state": {}
       }
     },
     "edges": {
-      "60d65820-f4b4-4dd8-ae5e-a3881a58cb4c": {
+      "4d837acf-6779-4cc1-8c0d-c7db8baefece": {
         "output": {
-          "node": "A",
+          "node": "B",
           "port": "out"
         },
         "input": {
-          "node": "B",
+          "node": "C",
           "port": "in"
         }
       },
-      "71226ede-04b3-4b32-bb24-39a438614e61": {
+      "2a4083fb-09f1-4cfd-ae71-512560714da6": {
         "output": {
           "node": "A",
           "port": "out"
@@ -54,15 +57,15 @@
   "expected": {
     "A": {
       "x": 0,
-      "y": 0
+      "y": 110
     },
     "B": {
-      "x": 130,
+      "x": 0,
       "y": 0
     },
     "C": {
       "x": 130,
-      "y": 110
+      "y": 0
     }
   }
 }
