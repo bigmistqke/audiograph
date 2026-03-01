@@ -3189,6 +3189,17 @@
       "created_at": "2026-03-01T18:40:24.390614+01:00",
       "updated_at": "2026-03-01T18:40:24.390614+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"38fc5e6\",\"confidence\":95}"
+    },
+    {
+      "id": 291,
+      "change_id": "a75770bf-9e51-44ed-9a3b-90156c3760dc",
+      "node_type": "outcome",
+      "title": "Fixed edge output port misalignment: indexOf with stale reference → findIndex with name comparison",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-01T18:44:37.731227+01:00",
+      "updated_at": "2026-03-01T18:44:37.731227+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"6ae9d12\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -6073,6 +6084,17 @@
       "weight": 1.0,
       "rationale": "Implementation complete",
       "created_at": "2026-03-01T18:40:27.547113+01:00"
+    },
+    {
+      "id": 263,
+      "from_node_id": 289,
+      "to_node_id": 291,
+      "from_change_id": "eba6d0ee-4944-4a53-ac4d-354f8a1d2dca",
+      "to_change_id": "a75770bf-9e51-44ed-9a3b-90156c3760dc",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Bug fix",
+      "created_at": "2026-03-01T18:44:37.748400+01:00"
     }
   ]
 }
