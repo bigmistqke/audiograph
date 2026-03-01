@@ -7,7 +7,11 @@ interface Graph {
 
 const GAP = 30;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+/**********************************************************************************/
+/*                                                                                */
+/*                                      Types                                     */
+/*                                                                                */
+/**********************************************************************************/
 
 type NodeRole = "root" | "leaf" | "simple" | "split" | "merge" | "merge-split";
 
@@ -31,8 +35,21 @@ export interface LayoutNode {
   height: number;
 }
 
-// ─── Step 1: Topology Analysis ────────────────────────────────────────────────
+function isMergeLike(role: NodeRole): boolean {
+  return role === "merge" || role === "merge-split";
+}
 
+/**
+ * A "boundary" node is any non-simple node (root, leaf, split, merge, merge-split).
+ * Chains run between boundary nodes; simple nodes are interior to chains.
+ */
+function isBoundary(role: NodeRole): boolean {
+  return role !== "simple";
+}
+
+/**
+ * Step 1: Topology Analysis
+ */
 function buildTopology(graph: Graph): Map<string, NodeInfo> {
   const infos = new Map<string, NodeInfo>();
 
@@ -80,18 +97,9 @@ function buildTopology(graph: Graph): Map<string, NodeInfo> {
   return infos;
 }
 
-function isMergeLike(role: NodeRole): boolean {
-  return role === "merge" || role === "merge-split";
-}
-
-// A "boundary" node is any non-simple node (root, leaf, split, merge, merge-split).
-// Chains run between boundary nodes; simple nodes are interior to chains.
-function isBoundary(role: NodeRole): boolean {
-  return role !== "simple";
-}
-
-// Trace a chain from a boundary node through one of its output children.
-// Returns [startId, ...simpleInteriors, endBoundaryId].
+/**
+ * Trace a chain from a boundary node through one of its output children.
+ */
 function traceChain(
   startId: string,
   firstChildId: string,
@@ -111,13 +119,15 @@ function traceChain(
   return chain;
 }
 
-// ─── Chain Precomputation ─────────────────────────────────────────────────────
-//
-// Trace all chains once after topology analysis. Stores chains as:
-//   chainMap: startBoundaryId → (firstChildId → chain[])
-// All later passes use chainMap.get(startId)!.get(firstChildId)! instead of
-// calling traceChain() on every traversal.
-
+/**
+ * Chain Precomputation
+ *
+ * Trace all chains once after topology analysis. Stores chains as:
+ *   chainMap: startBoundaryId → (firstChildId → chain[])
+ *
+ * All later passes use chainMap.get(startId)!.get(firstChildId)! instead of
+ * calling traceChain() on every traversal.
+ */
 function buildChainMap(
   infos: Map<string, NodeInfo>,
 ): Map<string, Map<string, string[]>> {
@@ -133,8 +143,9 @@ function buildChainMap(
   return chainMap;
 }
 
-// ─── Topological sort (Kahn's) ────────────────────────────────────────────────
-
+/**
+ * Topological sort (Kahn's)
+ */
 function topologicalSort(infos: Map<string, NodeInfo>): string[] {
   const inDegree = new Map<string, number>();
   for (const info of infos.values()) inDegree.set(info.id, info.parents.length);
@@ -157,14 +168,15 @@ function topologicalSort(infos: Map<string, NodeInfo>): string[] {
   return order;
 }
 
-// ─── Step 2a: Row Assignment ──────────────────────────────────────────────────
-//
-// Process boundary nodes in topological order. At each node, sort output chains
-// by the initial y of their first child (ascending). The first unclaimed chain
-// continues in the current row (spine); subsequent unclaimed chains open new rows.
-// Already-claimed chain ends represent cross-row edges — no new row is opened.
-// Row claiming is first-come-first-served in y-order across the whole traversal.
-
+/**
+ * Step 2a: Row Assignment
+ *
+ * Process boundary nodes in topological order. At each node, sort output chains
+ * by the initial y of their first child (ascending). The first unclaimed chain
+ * continues in the current row (spine); subsequent unclaimed chains open new rows.
+ * Already-claimed chain ends represent cross-row edges — no new row is opened.
+ * Row claiming is first-come-first-served in y-order across the whole traversal.
+ */
 function assignRows(
   infos: Map<string, NodeInfo>,
   order: string[],
@@ -221,19 +233,19 @@ function assignRows(
   return rowOf;
 }
 
-// ─── Step 2b: Forward Pass ────────────────────────────────────────────────────
-//
-// Walk nodes in topological order, placing each at its provisional x.
-//
-// Rule 1: primary root → anchored to current user position.
-// Rule 2: merge/merge-split → max(parent.right for ALL parents) + gap.
-// Rule 5: all others → prev.right + gap (secondary roots start at 0).
-
+/**
+ * Step 2b: Forward Pass
+ *
+ * Walk nodes in topological order, placing each at its provisional x.
+ *
+ * Rule 1: primary root → anchored to current user position.
+ * Rule 2: merge/merge-split → max(parent.right for ALL parents) + gap.
+ * Rule 5: all others → prev.right + gap (secondary roots start at 0).
+ */
 function forwardPass(
   infos: Map<string, NodeInfo>,
   primaryRootId: string,
   order: string[],
-  rowOf: Map<string, number>,
 ): Map<string, number> {
   const x = new Map<string, number>();
 
@@ -251,7 +263,8 @@ function forwardPass(
       }
       x.set(id, maxRight + GAP);
     } else if (info.parents.length === 0) {
-      x.set(id, 0); // secondary root: provisional, adjusted by Rule 4
+      // secondary root: provisional, adjusted by Rule 4
+      x.set(id, 0);
     } else {
       // Rule 5: sequential from single parent
       const prevId = info.parents[0];
@@ -263,12 +276,13 @@ function forwardPass(
   return x;
 }
 
-// ─── Ancestor Sets ────────────────────────────────────────────────────────────
-//
-// Precompute the full ancestor set for every node in one O(n) pass (topological
-// order guarantees all parents are processed before their children).
-// Replaces the recursive isDescendantOf + descCache pattern.
-
+/**
+ * Ancestor Sets
+ *
+ * Precompute the full ancestor set for every node in one O(n) pass (topological
+ * order guarantees all parents are processed before their children).
+ * Replaces the recursive isDescendantOf + descCache pattern.
+ */
 function buildAncestorSets(
   infos: Map<string, NodeInfo>,
   order: string[],
@@ -285,12 +299,13 @@ function buildAncestorSets(
   return ancestors;
 }
 
-// ─── x_excl Computation ───────────────────────────────────────────────────────
-//
-// For merge M and split S: compute M's x-position excluding S's subtree entirely.
-// x_excl = max(right-edges of M's parents NOT downstream of S) + GAP.
-// Returns -Infinity if M has no external parents (M is not independent of S).
-
+/**
+ * x_excl Computation
+ *
+ * For merge M and split S: compute M's x-position excluding S's subtree entirely.
+ * x_excl = max(right-edges of M's parents NOT downstream of S) + GAP.
+ * Returns -Infinity if M has no external parents (M is not independent of S).
+ */
 function computeXExcl(
   mergeId: string,
   splitId: string,
@@ -308,12 +323,13 @@ function computeXExcl(
   return maxExternal + GAP;
 }
 
-// ─── Propagate Sequential ────────────────────────────────────────────────────
-//
-// After a split is pulled, propagate the new x through simple and leaf nodes
-// downstream. Stop at merge/split/merge-split boundaries (they have their own
-// placement rules). Leaves ARE updated (they use Rule 5 like simple nodes).
-
+/**
+ * Propagate Sequential
+ *
+ * After a split is pulled, propagate the new x through simple and leaf nodes
+ * downstream. Stop at merge/split/merge-split boundaries (they have their own
+ * placement rules). Leaves ARE updated (they use Rule 5 like simple nodes).
+ */
 function propagateSequential(
   id: string,
   prevRight: number,
@@ -331,22 +347,23 @@ function propagateSequential(
   }
 }
 
-// ─── Step 2c: Find Best Rule 4 Pull ──────────────────────────────────────────
-//
-// Multi-hop path traversal from splitId to find the most constraining
-// independent merge target.
-//
-// Priority:
-//   - PRIMARY: first merge with strictly smaller row index (higher priority)
-//     encountered along each path. Stop traversal at primary targets.
-//   - FALLBACK: merges in same or lower-priority rows. Continue traversal
-//     through them to look for deeper primary targets.
-//   - Same-priority merges: skip as target, continue traversal through them.
-//
-// pathWidthSoFar tracks: sum(widths of [splitId..currentBoundary]) + count×GAP.
-// This equals the minimum horizontal span from S's left edge to place the next
-// node right after currentBoundary.
-
+/**
+ * Step 2c: Find Best Rule 4 Pull
+ *
+ * Multi-hop path traversal from splitId to find the most constraining
+ * independent merge target.
+ *
+ * Priority:
+ *   - PRIMARY: first merge with strictly smaller row index (higher priority)
+ *     encountered along each path. Stop traversal at primary targets.
+ *   - FALLBACK: merges in same or lower-priority rows. Continue traversal
+ *     through them to look for deeper primary targets.
+ *   - Same-priority merges: skip as target, continue traversal through them.
+ *
+ * pathWidthSoFar tracks: sum(widths of [splitId..currentBoundary]) + count×GAP.
+ * This equals the minimum horizontal span from S's left edge to place the next
+ * node right after currentBoundary.
+ */
 function findBestRule4Pull(
   splitId: string,
   infos: Map<string, NodeInfo>,
@@ -432,13 +449,14 @@ function findBestRule4Pull(
   return -Infinity;
 }
 
-// ─── Step 2c: Apply All Rule 4 Pulls ─────────────────────────────────────────
-//
-// 1. Process splits in reverse topological order (post-order approximation).
-// 2. Process secondary roots in y-order (smallest y first), using current
-//    positions — this ensures later secondary roots see updated x_excl values
-//    from already-placed earlier ones.
-
+/**
+ * Step 2c: Apply All Rule 4 Pulls
+ *
+ * 1. Process splits in reverse topological order (post-order approximation).
+ * 2. Process secondary roots in y-order (smallest y first), using current
+ *    positions — this ensures later secondary roots see updated x_excl values
+ *    from already-placed earlier ones.
+ */
 function applyRule4(
   infos: Map<string, NodeInfo>,
   primaryRootId: string,
@@ -502,14 +520,15 @@ function applyRule4(
   return x;
 }
 
-// ─── Rule 3: Node Identification ─────────────────────────────────────────────
-//
-// Rule 3 applies to the LAST INTERNAL node in a chain where the end boundary is
-// a merge/merge-split in a strictly HIGHER-PRIORITY row than the chain's start.
-//
-// For such a node: x = max(prev.right + gap, end.x - width - gap)
-// where "prev" is the node immediately before it in the chain.
-
+/**
+ * Rule 3: Node Identification
+ *
+ * Rule 3 applies to the LAST INTERNAL node in a chain where the end boundary is
+ * a merge/merge-split in a strictly HIGHER-PRIORITY row than the chain's start.
+ *
+ * For such a node: x = max(prev.right + gap, end.x - width - gap)
+ * where "prev" is the node immediately before it in the chain.
+ */
 function computeRule3Map(
   infos: Map<string, NodeInfo>,
   rowOf: Map<string, number>,
@@ -546,20 +565,20 @@ function computeRule3Map(
   return rule3Map;
 }
 
-// ─── Step 3: Reconcile Pass ───────────────────────────────────────────────────
-//
-// After all Rule 4 pulls, recompute all non-fixed nodes in topological order:
-//   - Rule 3: last internal before higher-priority merge
-//   - Rule 2 (row-filtered): merge/merge-split
-//   - Rule 5: simple and leaf nodes
-//
-// Fixed nodes (keep as-is): primary root, splits, secondary roots.
-// Topological order guarantees parents are computed before children.
-
+/**
+ * Step 3: Reconcile Pass
+ *
+ * After all Rule 4 pulls, recompute all non-fixed nodes in topological order:
+ *   - Rule 3: last internal before higher-priority merge
+ *   - Rule 2 (row-filtered): merge/merge-split
+ *   - Rule 5: simple and leaf nodes
+ *
+ * Fixed nodes (keep as-is): primary root, splits, secondary roots.
+ * Topological order guarantees parents are computed before children.
+ */
 function reconcilePass(
   infos: Map<string, NodeInfo>,
   order: string[],
-  rowOf: Map<string, number>,
   primaryRootId: string,
   x: Map<string, number>,
   rule3Map: Map<string, { endId: string; prevId: string; startId: string }>,
@@ -751,11 +770,12 @@ function yPass(
   return yOut;
 }
 
-// ─── Island Detection ─────────────────────────────────────────────────────────
-//
-// Find connected components (islands) via BFS over undirected adjacency.
-// Each island is an independent subgraph with no edges to any other.
-
+/**
+ * Island Detection
+ *
+ * Find connected components (islands) via BFS over undirected adjacency.
+ * Each island is an independent subgraph with no edges to any other.
+ */
 function findIslands(infos: Map<string, NodeInfo>): string[][] {
   const visited = new Set<string>();
   const islands: string[][] = [];
@@ -795,7 +815,7 @@ function layoutIsland(islandInfos: Map<string, NodeInfo>): {
     .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
 
   const rowOf = assignRows(islandInfos, order, chainMap);
-  const xFwd = forwardPass(islandInfos, primaryRoot.id, order, rowOf);
+  const xFwd = forwardPass(islandInfos, primaryRoot.id, order);
   const xAfterRule4 = applyRule4(
     islandInfos,
     primaryRoot.id,
@@ -809,7 +829,6 @@ function layoutIsland(islandInfos: Map<string, NodeInfo>): {
   const xFinal = reconcilePass(
     islandInfos,
     order,
-    rowOf,
     primaryRoot.id,
     xAfterRule4,
     rule3Map,
@@ -820,17 +839,6 @@ function layoutIsland(islandInfos: Map<string, NodeInfo>): {
   return { xFinal, yFinal, rowOf };
 }
 
-// ─── Island Collision Resolution ──────────────────────────────────────────────
-//
-// Sort islands by their primary root y (ascending). For each island, query a
-// shared sorted interval structure (built from all already-placed islands' nodes)
-// to find the precise max bottom-Y across each node's x-range. The uniform shift
-// for the island = max(interval_query(node) + GAP - node.y) across all nodes.
-// Apply that shift, then insert this island's nodes into the shared structure.
-//
-// This is more precise than bbox-vs-bbox: two islands whose bounding boxes
-// overlap but whose actual node footprints don't will not be shifted.
-
 interface IslandLayout {
   nodeIds: string[];
   infos: Map<string, NodeInfo>;
@@ -839,6 +847,18 @@ interface IslandLayout {
   primaryRootY: number;
 }
 
+/**
+ * Island Collision Resolution
+ *
+ * Sort islands by their primary root y (ascending). For each island, query a
+ * shared sorted interval structure (built from all already-placed islands' nodes)
+ * to find the precise max bottom-Y across each node's x-range. The uniform shift
+ * for the island = max(interval_query(node) + GAP - node.y) across all nodes.
+ * Apply that shift, then insert this island's nodes into the shared structure.
+ *
+ * This is more precise than bbox-vs-bbox: two islands whose bounding boxes
+ * overlap but whose actual node footprints don't will not be shifted.
+ */
 function resolveIslandCollisions(islands: IslandLayout[]): void {
   islands.sort((a, b) => a.primaryRootY - b.primaryRootY);
 
@@ -906,6 +926,7 @@ export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
     const primaryRoot = [...islandInfos.values()]
       .filter((n) => n.role === "root")
       .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
+
     return {
       nodeIds,
       infos: islandInfos,
@@ -933,10 +954,6 @@ export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
   }
 
   return result;
-}
-
-export function analyze(graph: Graph) {
-  return analyzeLayout(graph);
 }
 
 export function autoformat<T extends Graph>(graph: T): T {
