@@ -3200,6 +3200,17 @@
       "created_at": "2026-03-01T18:44:37.731227+01:00",
       "updated_at": "2026-03-01T18:44:37.731227+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"6ae9d12\",\"confidence\":95}"
+    },
+    {
+      "id": 292,
+      "change_id": "7e63e298-201a-4e7c-bcef-f388cbc220e8",
+      "node_type": "outcome",
+      "title": "Cleaned up autoformat: JSDoc comments, removed unused rowOf params and analyze export",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-02T00:59:50.072172+01:00",
+      "updated_at": "2026-03-02T00:59:50.072172+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"e582b71\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -6095,6 +6106,17 @@
       "weight": 1.0,
       "rationale": "Bug fix",
       "created_at": "2026-03-01T18:44:37.748400+01:00"
+    },
+    {
+      "id": 264,
+      "from_node_id": 289,
+      "to_node_id": 292,
+      "from_change_id": "eba6d0ee-4944-4a53-ac4d-354f8a1d2dca",
+      "to_change_id": "7e63e298-201a-4e7c-bcef-f388cbc220e8",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Cleanup",
+      "created_at": "2026-03-02T00:59:50.108046+01:00"
     }
   ]
 }
