@@ -1,19 +1,43 @@
 [
   {
+    "hash": "38fc5e6d872a65a019aa3f45a1fa022508853908",
+    "short_hash": "38fc5e6",
+    "author": "bigmistqke",
+    "date": "2026-03-01T18:40:17+01:00",
+    "message": "feat: add router to autoformat workshop, display single case",
+    "files_changed": 5
+  },
+  {
+    "hash": "94b9545de1a43ed4c6fa2c8920697a6f03a0990d",
+    "short_hash": "94b9545",
+    "author": "bigmistqke",
+    "date": "2026-03-01T18:31:23+01:00",
+    "message": "chore: sync deciduous graph",
+    "files_changed": 2
+  },
+  {
+    "hash": "94b9545de1a43ed4c6fa2c8920697a6f03a0990d",
+    "short_hash": "94b9545",
+    "author": "bigmistqke",
+    "date": "2026-03-01T18:31:23+01:00",
+    "message": "chore: sync deciduous graph",
+    "files_changed": 2
+  },
+  {
+    "hash": "058a40ca0b0a7c397f343bdb0eb02daca6aa00d9",
+    "short_hash": "058a40c",
+    "author": "bigmistqke",
+    "date": "2026-03-01T18:31:20+01:00",
+    "message": "test: add row placement test case, update expected positions",
+    "files_changed": 25
+  },
+  {
     "hash": "30292bfff45399260a4e4c7bee900699d2f27552",
     "short_hash": "30292bf",
     "author": "bigmistqke",
     "date": "2026-03-01T18:20:42+01:00",
     "message": "refactor: split graph package into create-graph and svg-graph",
     "files_changed": 77
-  },
-  {
-    "hash": "afd5f088dbb6d52e0fbbc7bb7b939ad15e454f82",
-    "short_hash": "afd5f08",
-    "author": "bigmistqke",
-    "date": "2026-03-01T03:53:55+01:00",
-    "message": "refactor: simplify autoformat test case expected format to Record<string, {x, y}>",
-    "files_changed": 22
   },
   {
     "hash": "afd5f088dbb6d52e0fbbc7bb7b939ad15e454f82",
@@ -576,19 +600,19 @@
     "files_changed": 10
   },
   {
-    "hash": "95daa5143cc8cb5e24891f3fd5b37d91f4916593",
-    "short_hash": "95daa51",
-    "author": "bigmistqke",
-    "date": "2026-02-22T13:40:25+01:00",
-    "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Make GraphEditor generic and domain-agnostic: takes config, store,\n  context, and onClick as props with no audio/worklet knowledge\n- Extract GraphRoute (src/routes/graph-route.tsx) as the application\n  layer: sidebar, worklet setup, save callbacks, node placement\n- Move graph internals into src/graph/ (editor, nodes, edges, ports,\n  context, constants, create-graph)\n- Add graph/setGraph to ConstructProps so constructs can access the\n  store directly (e.g. audioworklet reads its own node type)\n- Move saveType/saveAsNewType from SolidJS GraphContext to\n  AudioGraphContext (construct context), keeping GraphContext pure UI\n- Extract GraphAPI type for typed references in component props\n- Rename props.ctx to props.context, audio to audioContext\n- Lowercase all filenames, simplify App.tsx to just routing",
-    "files_changed": 41
-  },
-  {
     "hash": "ce2cd469724a633d76f3c14d2448558e2aef6fdf",
     "short_hash": "ce2cd46",
     "author": "bigmistqke",
     "date": "2026-02-22T13:40:25+01:00",
     "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Move graph components into src/graph/ (editor, nodes, edges, ports, context, constants)\n- Split GraphRoute into src/routes/graph-route.tsx\n- Lowercase all filenames (Select→select, HorizontalSlider→horizontal-slider, etc.)\n- Move GraphNodeContent to src/ui/node-content.tsx\n- Delete unused lib/minni.ts and old GraphEditor.tsx",
+    "files_changed": 41
+  },
+  {
+    "hash": "95daa5143cc8cb5e24891f3fd5b37d91f4916593",
+    "short_hash": "95daa51",
+    "author": "bigmistqke",
+    "date": "2026-02-22T13:40:25+01:00",
+    "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Make GraphEditor generic and domain-agnostic: takes config, store,\n  context, and onClick as props with no audio/worklet knowledge\n- Extract GraphRoute (src/routes/graph-route.tsx) as the application\n  layer: sidebar, worklet setup, save callbacks, node placement\n- Move graph internals into src/graph/ (editor, nodes, edges, ports,\n  context, constants, create-graph)\n- Add graph/setGraph to ConstructProps so constructs can access the\n  store directly (e.g. audioworklet reads its own node type)\n- Move saveType/saveAsNewType from SolidJS GraphContext to\n  AudioGraphContext (construct context), keeping GraphContext pure UI\n- Extract GraphAPI type for typed references in component props\n- Rename props.ctx to props.context, audio to audioContext\n- Lowercase all filenames, simplify App.tsx to just routing",
     "files_changed": 41
   },
   {

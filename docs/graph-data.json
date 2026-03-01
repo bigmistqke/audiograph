@@ -3134,6 +3134,61 @@
       "created_at": "2026-03-01T18:20:56.513228+01:00",
       "updated_at": "2026-03-01T18:20:56.513228+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"30292bf\",\"confidence\":95}"
+    },
+    {
+      "id": 286,
+      "change_id": "6d346a50-751e-46ec-89c2-765b2f80d1aa",
+      "node_type": "outcome",
+      "title": "Committed: add row placement test case, update expected positions",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-01T18:31:45.242166+01:00",
+      "updated_at": "2026-03-01T18:31:45.242166+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"058a40c\",\"confidence\":95}"
+    },
+    {
+      "id": 287,
+      "change_id": "057303f6-8c56-468d-bf29-aa7e5296aa54",
+      "node_type": "outcome",
+      "title": "Committed: sync deciduous graph",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-01T18:31:45.327364+01:00",
+      "updated_at": "2026-03-01T18:31:45.327364+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"94b9545\",\"confidence\":95}"
+    },
+    {
+      "id": 288,
+      "change_id": "6a4ca0d5-8354-4efa-a3d3-3722886ee7a6",
+      "node_type": "goal",
+      "title": "Update autoformat workshop routing",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-01T18:32:46.457124+01:00",
+      "updated_at": "2026-03-01T18:32:46.457124+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"update autoformat workshop to display single case -> use router -> if no /:id -> fallback to first case\"}"
+    },
+    {
+      "id": 289,
+      "change_id": "eba6d0ee-4944-4a53-ac4d-354f8a1d2dca",
+      "node_type": "action",
+      "title": "Add @solidjs/router, restructure workshop to show single case via /:id route",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-01T18:35:20.381199+01:00",
+      "updated_at": "2026-03-01T18:35:20.381199+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85,\"files\":[\"packages/autoformat/workshop/index.tsx\",\"packages/autoformat/workshop/app.tsx\",\"packages/autoformat/package.json\"]}"
+    },
+    {
+      "id": 290,
+      "change_id": "12c560ad-b8b6-4c4f-82b9-b541d2a86989",
+      "node_type": "outcome",
+      "title": "Added @solidjs/router to workshop, single-case view with /:id routing and fallback to first case",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-01T18:40:24.390614+01:00",
+      "updated_at": "2026-03-01T18:40:24.390614+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"38fc5e6\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -5985,6 +6040,39 @@
       "weight": 1.0,
       "rationale": "Committed",
       "created_at": "2026-03-01T18:20:56.545471+01:00"
+    },
+    {
+      "id": 260,
+      "from_node_id": 284,
+      "to_node_id": 286,
+      "from_change_id": "b7992658-f1da-4e90-add6-789b42d93b57",
+      "to_change_id": "6d346a50-751e-46ec-89c2-765b2f80d1aa",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-03-01T18:31:45.269613+01:00"
+    },
+    {
+      "id": 261,
+      "from_node_id": 288,
+      "to_node_id": 289,
+      "from_change_id": "6a4ca0d5-8354-4efa-a3d3-3722886ee7a6",
+      "to_change_id": "eba6d0ee-4944-4a53-ac4d-354f8a1d2dca",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation",
+      "created_at": "2026-03-01T18:35:23.774160+01:00"
+    },
+    {
+      "id": 262,
+      "from_node_id": 289,
+      "to_node_id": 290,
+      "from_change_id": "eba6d0ee-4944-4a53-ac4d-354f8a1d2dca",
+      "to_change_id": "12c560ad-b8b6-4c4f-82b9-b541d2a86989",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation complete",
+      "created_at": "2026-03-01T18:40:27.547113+01:00"
     }
   ]
 }
