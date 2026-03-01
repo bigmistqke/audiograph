@@ -6,8 +6,6 @@ import {
   For,
   mapArray,
   onCleanup,
-  onMount,
-  Show,
 } from "solid-js";
 import { produce } from "solid-js/store";
 import { action } from "~/lib/action";
@@ -43,15 +41,9 @@ function makeNodeDef(
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface Comment {
-  role: "user" | "assistant";
-  text: string;
-}
-
 interface TestCase {
   id: string;
   title: string;
-  comments: Comment[];
   initial: Graph;
   expected: Graph;
 }
@@ -64,15 +56,6 @@ async function fetchCases(): Promise<TestCase[]> {
     return await res.json();
   } catch {
     return [];
-  }
-}
-
-async function fetchCase(id: string): Promise<TestCase | null> {
-  try {
-    const res = await fetch(`/api/autoformat-case/${id}`);
-    return await res.json();
-  } catch {
-    return null;
   }
 }
 
@@ -123,59 +106,6 @@ function compare(expected: Graph, result: Graph): Diff {
   };
 }
 
-// ─── Comment thread ───────────────────────────────────────────────────────────
-
-function CommentThread(props: {
-  comments: Comment[];
-  onAdd: (text: string) => void;
-  collapsed: boolean;
-}) {
-  const [draft, setDraft] = createSignal("");
-
-  const submit = () => {
-    const text = draft().trim();
-    if (!text) return;
-    props.onAdd(text);
-    setDraft("");
-  };
-
-  return (
-    <Show when={!props.collapsed}>
-      <div class={styles.commentThread}>
-        <For each={props.comments}>
-          {(comment) => (
-            <div
-              class={
-                comment.role === "user"
-                  ? styles.userComment
-                  : styles.assistantComment
-              }
-            >
-              <span class={styles.commentRole}>
-                {comment.role === "user" ? "You" : "Claude"}
-              </span>
-              <p class={styles.commentText}>{comment.text}</p>
-            </div>
-          )}
-        </For>
-        <textarea
-          class={styles.commentInput}
-          placeholder="Add a note… (Enter to send, Shift+Enter for newline)"
-          rows={2}
-          value={draft()}
-          onInput={(e) => setDraft(e.currentTarget.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              submit();
-            }
-          }}
-        />
-      </div>
-    </Show>
-  );
-}
-
 // ─── Diff badges ─────────────────────────────────────────────────────────────
 
 function AxisBadge(props: { diff: AxisDiff; axis: "x" | "y" }) {
@@ -200,36 +130,13 @@ function AxisBadge(props: { diff: AxisDiff; axis: "x" | "y" }) {
 // ─── Main route ───────────────────────────────────────────────────────────────
 
 export function AutoformatRoute() {
-  const [_cases] = createResource(fetchCases);
-  const [cases, setCases] = createWritableStore(
-    () => _cases() ?? ([] as Array<TestCase>),
-  );
+  const [_cases] = createResource(fetchCases, { initialValue: [] });
+  const [cases, setCases] = createWritableStore(_cases);
 
   const save = action
     .phase("prepare save", () => wait())
     .phase("saving", () => saveCases(cases))
     .phase("saved", () => wait());
-
-  onMount(() => {
-    // WebSocket: receive comment updates from file edits (e.g. by Claude)
-    if (import.meta.hot) {
-      import.meta.hot.on(
-        "autoformat-updated",
-        async ({ id }: { id: string }) => {
-          if (save.pending()) return;
-          const index = cases.findIndex((c) => c.id === id);
-          if (index === -1) return;
-          const updated = await fetchCase(id);
-          if (!updated) return;
-          const cur = JSON.stringify(cases[index]!.comments);
-          const next = JSON.stringify(updated.comments);
-          if (cur !== next) {
-            setCases(index, "comments", updated.comments);
-          }
-        },
-      );
-    }
-  });
 
   const addCase = () => {
     setCases(
@@ -237,7 +144,6 @@ export function AutoformatRoute() {
         prev.push({
           id: crypto.randomUUID(),
           title: "",
-          comments: [],
           initial: { nodes: {}, edges: [] },
           expected: { nodes: {}, edges: [] },
         }),
@@ -252,7 +158,6 @@ export function AutoformatRoute() {
   const duplicateCase = (index: number) => {
     setCases((prev) => {
       const copy = structuredClone(prev[index]!);
-      copy.comments = [];
       copy.id = crypto.randomUUID();
       copy.title = "";
       return [...prev.slice(0, index + 1), copy, ...prev.slice(index + 1)];
@@ -263,7 +168,6 @@ export function AutoformatRoute() {
     mapArray(
       () => cases,
       (_case) => {
-        console.log("THIS HAPPENS??");
         return createMemo(() => autoformat(_case.initial));
       },
     ),
@@ -317,7 +221,6 @@ export function AutoformatRoute() {
         <div class={styles.cases}>
           <For each={cases}>
             {(c, index) => {
-              const [collapsed, setCollapsed] = createSignal(true);
               const diff = createMemo(() => diffs()[index()]!);
               const result = createMemo(() => results()[index()]());
 
@@ -397,11 +300,6 @@ export function AutoformatRoute() {
                 <div
                   id={`case-${c.id}`}
                   class={styles.row}
-                  style={{
-                    "grid-template-rows": collapsed()
-                      ? "auto minmax(300px, 1fr)"
-                      : "auto auto minmax(300px, 1fr)",
-                  }}
                 >
                   <div class={styles.rowHeader}>
                     <span class={styles.caseNumber}>#{index() + 1}</span>
@@ -418,15 +316,6 @@ export function AutoformatRoute() {
                     <span class={styles.caseId}>{c.id}.json</span>
                     <div class={styles.rowActions}>
                       <button
-                        class={styles.collapseBtn}
-                        onClick={() => setCollapsed((v) => !v)}
-                        title={
-                          collapsed() ? "Expand messages" : "Collapse messages"
-                        }
-                      >
-                        {collapsed() ? "▸ msg" : "▾ msg"}
-                      </button>
-                      <button
                         class={styles.duplicateBtn}
                         onClick={() => duplicateCase(index())}
                       >
@@ -440,16 +329,6 @@ export function AutoformatRoute() {
                       </button>
                     </div>
                   </div>
-                  <CommentThread
-                    comments={cases[index()].comments}
-                    collapsed={collapsed()}
-                    onAdd={(text) =>
-                      setCases(index(), "comments", (prev) => [
-                        ...prev,
-                        { role: "user" as const, text },
-                      ])
-                    }
-                  />
                   <div class={styles.panels}>
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Initial</span>

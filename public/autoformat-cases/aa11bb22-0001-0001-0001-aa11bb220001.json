@@ -1,12 +1,6 @@
 {
   "id": "aa11bb22-0001-0001-0001-aa11bb220001",
   "title": "Merge-split node (2 inputs, 2 outputs)",
-  "comments": [
-    {
-      "role": "assistant",
-      "text": "M has 2 parents (A, B) and 2 children (C, D), so its role is 'merge-split'.\n\nA is the primary root (y=0). B is a secondary root (y=200).\n\nRow assignment: A→M chain claims M for row 0 (spine of A). B→M: M already claimed at row 0; B gets row 1 (its own). M→C: spine of M, C gets row 0. M→D: D gets row 2.\n\nForward pass: A.x=0 (anchored). B.x=0 (secondary root default). M.x = max(A.right, B.right) + gap = max(100,100)+30 = 130. C.x = 260, D.x = 260.\n\nRule 4: B has no split role; as secondary root, findBestRule4Pull finds M (primary merge, row 0 < row 1). xExcl(M, B) = A.right + gap = 130. pathWidth = B.width + gap = 130. pull = 130 - 130 = 0. No movement.\n\nY pass (DFS row order): row 0 first (A, M, C), then row 2 (D, same x-column as C so it goes below C), then row 1 (B, same x-column as A so it goes below A which hits the C/D column too).\n\nRow 0 → y=0. Row 2 → queryMaxBottomY(260, 360) = C.bottom = 80 → y=110. Row 1 → queryMaxBottomY(0, 100) = A.bottom = 80 → y=110.\n\nRule tested: merge-split role recognition; Rule 2 x placement from 2 parents; two output chains get separate rows."
-    }
-  ],
   "initial": {
     "nodes": {
       "A": {

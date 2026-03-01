@@ -1,7 +1,6 @@
 {
   "id": "30fefa7c-864d-4733-92cd-b6c950ffef73",
   "title": "Edge from merge to multiple nodes in same chain links to first node",
-  "comments": [],
   "initial": {
     "nodes": {
       "A": {

@@ -1,16 +1,6 @@
 {
   "id": "54876d1b-1b17-4dd4-b000-e9ad7f88b011",
   "title": "Connecting two branches merges them into the same row",
-  "comments": [
-    {
-      "role": "user",
-      "text": "once D and E are connected, they become part of the same row"
-    },
-    {
-      "role": "assistant",
-      "text": "Same as case 5 except D now has an edge to E. This promotes E from a leaf to a merge node (two inputs: from B and from D), making it a chain boundary.\n\nD and E now form chain [A,D,E]. This chain is placed as a unit. Its x-span is 130–360. Max occupied bottom in that range = B.bottom = 140 (B is h=140 at x=130–230). Chain y = 140 + 30 = 170.\n\nBoth D and E land at y=170. Previously (case 5) E was independently at y=110 — now it's pulled down to 170 because it shares a chain with D, whose x-range is blocked by the tall B.\n\nRule tested: adding an edge that creates a merge promotes E to a chain boundary, merging two previously independent chains into one, and the whole unit's y is determined by the tallest obstacle in its combined x-span."
-    }
-  ],
   "initial": {
     "nodes": {
       "A": {

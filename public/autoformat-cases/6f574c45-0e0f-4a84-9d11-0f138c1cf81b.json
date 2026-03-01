@@ -1,28 +1,6 @@
 {
   "id": "6f574c45-0e0f-4a84-9d11-0f138c1cf81b",
   "title": "Split pulled toward merge across three branches (longer chains)",
-  "comments": [
-    {
-      "role": "assistant",
-      "text": "A is a root/split with 3 output chains. B is also a split. Expected has 3 rows:\n- Row 0 (y=0): A → B → C\n- Row 1 (y=110): D, E\n- Row 2 (y=220): F, G, H\n\nThe interesting part is B at x=270 — it's pulled far right. B's longest downstream path is B→E→C (spanning two chains). minChildPathWidth across that path = E.width + gap + C.width = 100+30+100 = 230. Backward pull: B.x = C.x − 230 − gap = 530 − 230 − 30 = 270.\n\nThis resolves open question #16: minChildPathWidth is accumulated across chain boundaries by summing all node widths + gaps along the longest downstream path to a merge.\n\nD and E are in the same row (y=110), so D stays sequential (no pull): D.x = A.right + gap = 130 (expected shows 140 — small gap discrepancy, may be rounding or different gap constant used here). E.x = max(D.right+gap, B.right+gap) from forward pass merge rule."
-    },
-    {
-      "role": "user",
-      "text": "30 (expected shows 140 — small gap discrepancy) -> this was a human error on my end, i corrected this."
-    },
-    {
-      "role": "assistant",
-      "text": "Good, so corrected positions confirm gap=30 everywhere. Updated numbers:\n- B.x = 260: C.x(520) − 230 − 30 = 260 ✓\n- C.x = 520: E.right(490) + 30 = 520 ✓\n- D.x = 130: A.right(100) + 30 = 130 ✓\n- E.x = 390: max(D.right+30, B.right+30) = max(260, 390) = 390 ✓\n- F.x = 130: A.right(100) + 30 = 130 ✓\n- G.x = 260: F.right(230) + 30 = 260 ✓\n- H.x = 390: G.right(360) + 30 = 390 ✓\n\nAll consistent with gap=30 throughout."
-    },
-    {
-      "role": "user",
-      "text": "B's position is not determined by B→E→C, it is determind by the position of the H-node: so it is the chain A→F→G→H that is determining it's x-position"
-    },
-    {
-      "role": "assistant",
-      "text": "Right — my earlier analysis was wrong. B.x = H.x − H.width − gap = 390 − 100 − 30 = 260.\n\nThree candidates for pulling B, all ruled out except H:\n- B→C: C is in the same row as B (row 0). No pull — same-row rule.\n- B→E: E.x = max(D.right, B.right) + gap — E's position depends on B via the forward pass. Pulling B toward E would be circular.\n- B→H: H.x is fixed by chain A→F→G→H, entirely independent of B. Pull is well-defined.\n\nSo the pull rule for split nodes is more precise: only pull toward merges whose x-position is determined independently of the split — i.e., by a chain that doesn't pass through it."
-    }
-  ],
   "initial": {
     "nodes": {
       "A": {

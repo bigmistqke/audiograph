@@ -1,12 +1,6 @@
 {
   "id": "aa11bb22-0006-0006-0006-aa11bb220006",
-  "title": "Three levels of nested splits (spine propagates through S1→S2→S3)",
-  "comments": [
-    {
-      "role": "assistant",
-      "text": "Three chained splits: R→S1, S1→S2 (spine)/X, S2→S3 (spine)/Y, S3→Z1 (spine)/Z2/Z3.\n\nRow assignment — spine always follows the child with smallest initialY:\n  R=0, S1=0 (R's spine), S2=0 (S1's spine), S3=0 (S2's spine), Z1=0 (S3's spine).\n  Non-spine branches: X=row1 (S1's 2nd child), Y=row2 (S2's 2nd child), Z2=row3 (S3's 2nd child), Z3=row4 (S3's 3rd child).\n\nForward pass (no merges, no Rule 4 pull for any split since all leaf paths have no merge targets):\n  R=0, S1=130, S2=260, S3=390, Z1=520.\n  X=260 (S1.right+gap), Y=390 (S2.right+gap), Z2=520 (S3.right+gap), Z3=520.\n\nY pass (DFS from R): row0 encountered first (R,S1,S2,S3,Z1), then DFS dives into S3→Z2 before backtracking.\nDFS visits children in initialY order. S3 children: Z1(y=0) then Z2(y=200) then Z3(y=400).\nAfter row0 (Z1), Z2→row3, Z3→row4. Then DFS backtracks: S2→Y row2. S1→X row1.\nrowOrder=[0, 3, 4, 2, 1].\n\nRow 0 (R,S1,S2,S3,Z1, xSpan [0,620]) → y=0.\nRow 3 (Z2, x=[520,620]) → queryMaxBottomY=Z1.bottom=80 → y=110.\nRow 4 (Z3, x=[520,620]) → max(Z1.bottom=80, Z2.bottom=190) → y=220.\nRow 2 (Y, x=[390,490]) → queryMaxBottomY: S3{390,490,80} → max=80 → y=110.\nRow 1 (X, x=[260,360]) → queryMaxBottomY: S2{260,360,80} → max=80 → y=110.\n\nRule tested: visitedBoundaries depth-3 traversal in Rule 4; DFS row order correctly interleaves 5 distinct rows from 3 split levels."
-    }
-  ],
+  "title": "Three levels of nested splits (spine propagates through S1\u2192S2\u2192S3)",
   "initial": {
     "nodes": {
       "R": {

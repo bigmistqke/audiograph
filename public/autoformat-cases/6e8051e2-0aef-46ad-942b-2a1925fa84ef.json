@@ -1,16 +1,6 @@
 {
   "id": "6e8051e2-0aef-46ad-942b-2a1925fa84ef",
   "title": "Diamond: split children top-aligned at the same x-column",
-  "comments": [
-    {
-      "role": "user",
-      "text": "diamond structure: we aim for consecutive chains to be top-aligned and try to keep the nodes at the higher branches"
-    },
-    {
-      "role": "assistant",
-      "text": "Classic diamond: A→B, A→C, both→D (merge). Chains: [A,B,D] and [A,C,D].\n\nForward pass: D.x = max(B.right, C.right) + gap = max(230, 230) + 30 = 260. Both paths are equal length.\n\nRow assignment: chain [A,B] gets row 0. Chain [A,C] starts at x=130 — same as B, x-ranges overlap, drops to row 1 (y=110). D belongs to row 0 as end boundary of [A,B,D].\n\nRule tested: merge x = max(parents.right) + gap via CPM forward pass; top-alignment preference cascades chains downward on x-range conflict."
-    }
-  ],
   "initial": {
     "nodes": {
       "A": {

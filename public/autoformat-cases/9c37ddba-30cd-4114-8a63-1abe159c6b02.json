@@ -1,16 +1,6 @@
 {
   "id": "9c37ddba-30cd-4114-8a63-1abe159c6b02",
   "title": "Split pulled right to align with downstream merge",
-  "comments": [
-    {
-      "role": "user",
-      "text": "an example of a split node being pulled towards its parent (F) and its parents position is determined by its preceding chain (A-D-E-C)"
-    },
-    {
-      "role": "assistant",
-      "text": "Chains: [A,B] (A split → B split), [B,C] (B → C merge, no internals), [A,D,E,C] (A → D → E → C merge, E is last internal), [B,F] (B → F leaf).\n\nForward pass: E.x = D.right + gap = 260 (sequential). C.x = max(B.right, E.right) + gap — but B isn't placed yet, so C is driven by E: C.x = 360 + 30 = 390.\n\nBackward pass: B (split) is pulled toward C — its longest child path to C has minChildPathWidth = 100 (just node C). B.x = max(A.right + gap, C.x - 100 - 30) = max(130, 260) = 260.\n\nRule tested: CPM backward pass — split node B is pulled rightward so its child chain snaps flush against the downstream merge."
-    }
-  ],
   "initial": {
     "nodes": {
       "A": {

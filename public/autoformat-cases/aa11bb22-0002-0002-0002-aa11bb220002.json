@@ -1,12 +1,6 @@
 {
   "id": "aa11bb22-0002-0002-0002-aa11bb220002",
   "title": "Secondary root with no downstream merge keeps node at original position",
-  "comments": [
-    {
-      "role": "assistant",
-      "text": "A is a standalone root (no children). B is a secondary root whose chain B→C→D ends in a leaf (not a merge). Since findBestRule4Pull traverses B's chain and only finds leaf D (not a merge-like node), it returns -Infinity — no pull applies. B stays at x=0 (its forward-pass default).\n\nA is the primary root (y=0 < B.y=200). A anchors at x=0.\n\nRow assignment: A gets row 0 (no chains). B gets row 1; chain B→C→D claims C and D for row 1.\n\nForward pass: A.x=0, B.x=0, C.x=130, D.x=260.\n\nY pass: row 0 (A alone) → y=0. Row 1 (B, C, D spanning x=0..360) → queryMaxBottomY(0,360) = A.bottom=80 → y=110.\n\nRule tested: secondary root with no reachable merge target — Rule 4 pull is -Infinity, root stays at x=0."
-    }
-  ],
   "initial": {
     "nodes": {
       "A": {

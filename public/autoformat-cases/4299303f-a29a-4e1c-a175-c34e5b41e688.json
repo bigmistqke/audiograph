@@ -1,7 +1,6 @@
 {
   "id": "4299303f-a29a-4e1c-a175-c34e5b41e688",
   "title": "Row y depends on available space, not row index (part 2)",
-  "comments": [],
   "initial": {
     "nodes": {
       "A": {

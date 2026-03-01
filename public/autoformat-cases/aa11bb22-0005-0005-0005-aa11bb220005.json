@@ -1,12 +1,6 @@
 {
   "id": "aa11bb22-0005-0005-0005-aa11bb220005",
   "title": "Rule 3 with 3 internal nodes (last internal identified correctly)",
-  "comments": [
-    {
-      "role": "assistant",
-      "text": "Chain [C, p, q, L, M] has 3 internal nodes. Rule 3 applies only to the LAST internal (L), not to p or q. The rule3Map must correctly identify L with prevId=q.\n\nGraph: A (primary root, y=0) → M (merge). B (secondary root, y=200) → C (split) → p → q → L → M; C → T (leaf).\n\nRow assignment: A=row0, M=row0 (from A's spine). B=row1. C=row1 (from B's chain). Chain C→p→q→L→M: M already at row0, chainRow=1 (spine of C) ≥ 0 → no reassign; p=1,q=1,L=1. T=row2.\n\nForward pass: A.x=0, M.x=650 (merge: max(A.right,L.right)+30=max(100,620)+30=650). B.x=0, C.x=130, p.x=260, q.x=390, L.x=520, T.x=260.\n\nRule 4: C (split) pull = xExcl(M,C)-pathWidth = (A.right+gap)-(C.width+gap+p+q+L+3*gap) = 130-520=-390. max(B.right+gap,−390)=130. No change. B (secondary root) chain B→C: C is split, not merge-like → no pull.\n\nrule3Map: chain [C,p,q,L,M], endRow=0 < startRow=1 → L is Rule3 node, prevId=q.\n\nReconcile for L: max(q.right+gap, xExcl−L.width−gap) = max(490+30, 130−100−30) = max(520,0) = 520. Sequential wins (external chain is short), but the Rule3 path fires correctly.\n\nM.x = max(A.right,L.right)+30 = max(100,620)+30 = 650.\n\nY: row0 (A,M) → y=0. Row1 (B,C,p,q,L) → y=110. Row2 (T) → queryMaxBottomY(260,360)=p.bottom=190 → y=220.\n\nRule tested: rule3Map identifies the 3rd internal (L) as the last-before-merge node; Rule 3 fires on a 3-internal chain."
-    }
-  ],
   "initial": {
     "nodes": {
       "A": {

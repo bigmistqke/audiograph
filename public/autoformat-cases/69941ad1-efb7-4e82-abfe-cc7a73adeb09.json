@@ -1,7 +1,6 @@
 {
   "id": "69941ad1-efb7-4e82-abfe-cc7a73adeb09",
   "title": "multiple chains on the same row ([A]-C-D and D-E)",
-  "comments": [],
   "initial": {
     "nodes": {
       "A": {

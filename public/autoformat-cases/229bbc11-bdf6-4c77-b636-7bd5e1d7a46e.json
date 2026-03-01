@@ -1,16 +1,6 @@
 {
   "id": "229bbc11-bdf6-4c77-b636-7bd5e1d7a46e",
   "title": "Basic split: two children stacked in separate rows",
-  "comments": [
-    {
-      "role": "user",
-      "text": "simple case of 1 split node with 2 children"
-    },
-    {
-      "role": "assistant",
-      "text": "A is a root/split. B and C are both leaves, placed at x = A.right + gap = 130. They share the same x-column because both are direct children with no internal nodes between them.\n\nB gets row 0 (y=0, inheriting A's row). C can't share row 0 — its x-range overlaps B's — so it drops to row 1: y = A.bottom + gap = 80 + 30 = 110.\n\nRule tested: basic split layout — children land in the same x-column, stacked vertically by row."
-    }
-  ],
   "initial": {
     "nodes": {
       "A": {

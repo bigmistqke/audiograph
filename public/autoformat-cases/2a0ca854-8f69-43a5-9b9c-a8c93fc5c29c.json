@@ -1,7 +1,6 @@
 {
   "id": "2a0ca854-8f69-43a5-9b9c-a8c93fc5c29c",
   "title": "Large fan-out with cross-row edges and multiple secondary splits",
-  "comments": [],
   "initial": {
     "nodes": {
       "A": {

@@ -1,16 +1,6 @@
 {
   "id": "1b2e9d45-34bb-4760-a051-20f8b3ad11ea",
   "title": "Y placement queries the full x-span across all higher rows",
-  "comments": [
-    {
-      "role": "user",
-      "text": "the y query takes into account all higher rows"
-    },
-    {
-      "role": "assistant",
-      "text": "Same structure as case 5 but with an extra node F: chain [A,D,F] where D.x=130, F.x=D.right+gap=260.\n\nF lands at x=260, which is in the same column as E (placed at y=110–190 from row 1). So in x-range 260–360, the occupied bottom is E.bottom = 190.\n\nThe whole chain [A,D,F] must be placed as a unit. Its y = max occupied bottom across the full chain x-span (130–360) = max(B.bottom=140, C.bottom=80, E.bottom=190) = 190. Chain y = 190 + 30 = 220.\n\nD ends up at y=220 even though its own x-range (130–230) would only require y=170 — because F's x-range pulls the whole chain down.\n\nRule tested: a chain's row y is the max occupied bottom across the entire chain's x-span, not each node's individual x-range."
-    }
-  ],
   "initial": {
     "nodes": {
       "A": {

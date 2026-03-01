@@ -1,20 +1,6 @@
 {
   "id": "a7bed139-71d4-478a-b40d-f153ae4935db",
   "title": "No pull when merge is in the same row as the split",
-  "comments": [
-    {
-      "role": "assistant",
-      "text": "Two paths from A to C (merge): short path A→B→C and long path A→D→E→C. Chains: [A,B,C] (B is last internal) and [A,D,E,C] (E is last internal).\n\nForward pass: C.x = max(B.right, E.right) + gap = max(230, 360) + 30 = 390 — driven by the longer path.\n\nBackward pass for B (last internal in [A,B,C]): pull rule gives max(A.right+gap, C.x−B.width−gap) = max(130, 260) = 260. But the expected output shows B at x=130, not 260.\n\nB stays sequential at A.right+gap=130. The long diagonal B→C (from x=230 to x=390) is accepted. This appears to be the cross-row alignment rule in effect: the shorter chain's internal node is not pulled toward the merge when the merge's position is determined by a different, longer chain in a different row.\n\nRule tested: when two chains converge at a merge and one is much longer, the shorter chain's internals stay sequential — they are not pulled. The result is a long diagonal edge, accepted as a trade-off."
-    },
-    {
-      "role": "user",
-      "text": "we only pull away if there is a diagonal. the edge B-C is NOT a diagonal: it is a horizontal edge, as B and C are both in the same row."
-    },
-    {
-      "role": "assistant",
-      "text": "Right — this refines the backward pass pull rule. The pull on the last internal node is only meaningful when it would reduce a diagonal (cross-row) edge. B and C are both in row 0, so B→C is already horizontal regardless of how far apart they are. Pulling B from 130 to 260 would just create an unnecessary gap after A without any visual benefit.\n\nSo the rule is more precisely: the last internal node is pulled only when the end boundary is in a different row. If they share a row, the node stays sequential."
-    }
-  ],
   "initial": {
     "nodes": {
       "A": {
