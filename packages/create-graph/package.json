@@ -1,5 +1,5 @@
 {
-  "name": "@audiograph/utils",
+  "name": "@audiograph/create-graph",
   "version": "0.0.0",
   "type": "module",
   "exports": {
@@ -9,7 +9,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@audiograph/utils": "workspace:*",
     "@bigmistqke/minni": "^0.0.11",
+    "clsx": "^2.1.1"
+  },
+  "peerDependencies": {
     "solid-js": "^1.9.5"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 {
-  "name": "@audiograph/graph",
+  "name": "@audiograph/svg-graph",
   "version": "0.0.0",
   "type": "module",
   "exports": {
@@ -8,15 +8,14 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@audiograph/create-graph": "workspace:*",
+    "@bigmistqke/minni": "^0.0.11",
+    "solid-js": "^1.9.5",
+    "clsx": "^2.1.1"
+  },
   "devDependencies": {
     "typescript": "^5.7.2",
     "vite": "^7.1.4"
-  },
-  "peerDependencies": {
-    "solid-js": "^1.9.5"
-  },
-  "dependencies": {
-    "@bigmistqke/minni": "^0.0.11",
-    "clsx": "^2.1.1"
   }
 }

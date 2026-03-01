@@ -1,15 +1,20 @@
 // Generates src/autoformat.test.ts from public/autoformat-cases/*.json.
 // Run with: pnpm generate:tests
 
+import type { Edges, Nodes } from "@audiograph/create-graph";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import type { Graph } from "@audiograph/graph";
+
+interface Graph {
+  nodes: Nodes;
+  edges: Edges;
+}
 
 interface TestCase {
   id: string;
   title: string;
   initial: Graph;
-  expected: Graph;
+  expected: Record<string, { x: number; y: number }>;
 }
 
 const root = import.meta.dirname + "/..";
@@ -19,26 +24,46 @@ const ids: string[] = JSON.parse(
   readFileSync(join(casesDir, "index.json"), "utf8"),
 );
 
-function labelX(graph: Graph): Record<string, number> {
+function labelX(
+  expected: Record<string, { x: number; y: number }>,
+): Record<string, number> {
   const result: Record<string, number> = {};
-  for (const [id, node] of Object.entries(graph.nodes)) {
+  for (const [id, node] of Object.entries(expected)) {
     result[id] = node.x;
   }
   return result;
 }
 
-function labelY(graph: Graph): Record<string, number> {
+function labelY(
+  expected: Record<string, { x: number; y: number }>,
+): Record<string, number> {
   const result: Record<string, number> = {};
-  for (const [id, node] of Object.entries(graph.nodes)) {
+  for (const [id, node] of Object.entries(expected)) {
     result[id] = node.y;
   }
   return result;
 }
 
+function addStateToTestCaseInitial(graph: Graph) {
+  return {
+    edges: graph.edges,
+    nodes: Object.fromEntries(
+      Object.entries(graph.nodes).map(([key, value]) => [
+        key,
+        { ...value, state: {} },
+      ]),
+    ),
+  };
+}
+
 function generateXCase(testCase: TestCase): string {
   const description = testCase.title || testCase.id;
   const expected = labelX(testCase.expected);
-  const initialStr = JSON.stringify(testCase.initial, null, 4)
+  const initialStr = JSON.stringify(
+    addStateToTestCaseInitial(testCase.initial),
+    null,
+    4,
+  )
     .split("\n")
     .join("\n    ");
 
@@ -51,7 +76,11 @@ function generateXCase(testCase: TestCase): string {
 function generateYCase(testCase: TestCase): string {
   const description = testCase.title || testCase.id;
   const expected = labelY(testCase.expected);
-  const initialStr = JSON.stringify(testCase.initial, null, 4)
+  const initialStr = JSON.stringify(
+    addStateToTestCaseInitial(testCase.initial),
+    null,
+    4,
+  )
     .split("\n")
     .join("\n    ");
 
@@ -68,6 +97,12 @@ const testCases = ids.map((id) => {
   return data;
 });
 
+for (const tc of testCases) {
+  if (Object.keys(tc.expected).length === 0) {
+    throw new Error(`"${tc.title || tc.id}" has empty expected.nodes`);
+  }
+}
+
 const xCases = testCases.map(generateXCase);
 const yCases = testCases.map(generateYCase);
 
@@ -77,7 +112,12 @@ const output = `\
 
 import { describe, it, expect } from "vitest";
 import { autoformat } from ".";
-import type { Graph } from "@audiograph/graph";
+import type { Nodes, Edges } from "@audiograph/create-graph";
+
+interface Graph {
+  nodes: Nodes;
+  edges: Edges;
+}
 
 function labelX(graph: Graph): Record<string, number> {
   const result: Record<string, number> = {};

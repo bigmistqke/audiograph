@@ -13,6 +13,7 @@
     "moduleResolution": "bundler",
     "noEmit": true,
     "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
 
     // Type Checking & Safety
     "strict": true,

@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@audiograph/graph": "workspace:*",
+    "@audiograph/create-graph": "workspace:*",
+    "@audiograph/svg-graph": "workspace:*",
     "@audiograph/utils": "workspace:*",
     "solid-js": "^1.9.5"
   },

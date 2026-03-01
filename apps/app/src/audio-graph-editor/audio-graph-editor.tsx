@@ -1,11 +1,11 @@
 import { autoformat } from "@audiograph/autoformat";
 import type {
-  Edge,
   EdgeHandle,
-  Graph,
+  Edges,
   GraphAPI,
   GraphConfig,
-} from "@audiograph/graph";
+  Nodes,
+} from "@audiograph/create-graph";
 import {
   GraphEditor,
   GRID,
@@ -14,11 +14,11 @@ import {
   PORT_RADIUS,
   snapToGrid,
   TITLE_HEIGHT,
-} from "@audiograph/graph";
+} from "@audiograph/svg-graph";
 import { makePersisted } from "@solid-primitives/storage";
 import clsx from "clsx";
-import { createSignal, For, Setter, Show } from "solid-js";
-import { createStore, reconcile } from "solid-js/store";
+import { createSignal, For, type Setter, Show } from "solid-js";
+import { createStore, produce, reconcile } from "solid-js/store";
 import {
   createWorkletFileSystem,
   getSourceBoilerplate,
@@ -26,9 +26,14 @@ import {
 } from "~/lib/worklet-file-system";
 import { Button } from "~/ui/button";
 import styles from "./audio-graph-editor.module.css";
-import { AudioGraphContext, builtIns } from "./built-ins";
+import { type AudioGraphContext, builtIns } from "./built-ins";
 
 const audioContext = new AudioContext();
+
+interface Graph {
+  nodes: Nodes;
+  edges: Edges;
+}
 
 function SideBar(props: {
   config: GraphConfig<AudioGraphContext>;
@@ -173,7 +178,7 @@ export function AudioGraphEditor(props: {
 }) {
   // const params = useParams();
   const workletFS = createWorkletFileSystem();
-  const [config, setConfig] = createStore<GraphConfig<AudioGraphContext>>({
+  const [config, setConfig] = createStore<GraphConfig>({
     ...builtIns,
   });
   const [selectedNodeType, setSelectedNodeType] = createSignal<
@@ -188,16 +193,10 @@ export function AudioGraphEditor(props: {
   const [hoveredPortKind, setHoveredPortKind] = createSignal<
     "in" | "out" | undefined
   >();
-  const [hoveredEdge, setHoveredEdge] = createSignal<
-    | {
-        output: { node: string; port: string };
-        input: { node: string; port: string };
-      }
-    | undefined
-  >();
+  const [hoveredEdgeId, setHoveredEdgeId] = createSignal<string | undefined>();
 
   const [graphStore, setGraphStore] = makePersisted(
-    createStore<Graph>({ nodes: {}, edges: [] }),
+    createStore<Graph>({ nodes: {}, edges: {} }),
     {
       name: `audiograph-${props.id}`,
     },
@@ -262,9 +261,11 @@ export function AudioGraphEditor(props: {
       visited.add(currentId);
       const node = graphStore.nodes[currentId];
       if (!node) break;
-      const upstreamRight = node.x + node.dimensions.x;
+      const upstreamRight = node.x + node.width;
 
-      const edge = graphStore.edges.find((e) => e.output.node === currentId);
+      const edge = Object.values(graphStore.edges).find(
+        (e) => e.output.node === currentId,
+      );
       if (!edge) break;
       const downstream = graphStore.nodes[edge.input.node];
       if (!downstream) break;
@@ -284,38 +285,41 @@ export function AudioGraphEditor(props: {
 
   /** Create a node of selectedNodeType, splice it into an edge, center it, and resolve overlaps. */
   function spliceSelectedOntoEdge(
-    edge: Edge,
+    edgeId: string,
     graph: GraphAPI<GraphConfig<AudioGraphContext>>,
   ) {
     const type = selectedNodeType();
     if (!type) return;
+
+    const edge = graphStore.edges[edgeId];
 
     const typeDef = config[type];
     const upstreamNode = graphStore.nodes[edge.output.node];
     const downstreamNode = graphStore.nodes[edge.input.node];
     if (!upstreamNode || !downstreamNode) return;
 
-    const id = graph.addNode(type, {
+    const nodeId = graph.addNode({
+      type,
       x: downstreamNode.x,
       y: downstreamNode.y,
     });
 
     if (typeDef?.state && "code" in typeDef.state) {
-      const name = `custom-${id}`;
+      const name = `custom-${nodeId}`;
       const code = typeDef.state.code || getSourceBoilerplate();
-      setGraphStore("nodes", id, "state", "name", name);
-      setGraphStore("nodes", id, "state", "code", code);
+      setGraphStore("nodes", nodeId, "state", "name", name);
+      setGraphStore("nodes", nodeId, "state", "code", code);
       workletFS.writeFile(`/${name}/source.js`, code);
       workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
     }
 
-    const newNode = graphStore.nodes[id];
+    const newNode = graphStore.nodes[nodeId];
     if (!newNode) return;
 
-    const newNodeWidth = newNode.dimensions.x;
-    const upstreamRight = upstreamNode.x + upstreamNode.dimensions.x;
+    const newNodeWidth = newNode.width;
+    const upstreamRight = upstreamNode.x + upstreamNode.width;
 
-    graph.spliceNodeIntoEdge(edge, id);
+    graph.spliceNodeIntoEdge(edgeId, nodeId);
 
     const gap = downstreamNode.x - upstreamRight;
     const minGap = GRID * 3;
@@ -326,13 +330,13 @@ export function AudioGraphEditor(props: {
         : snapToGrid(upstreamRight + minGap);
     const centerY = snapToGrid((upstreamNode.y + downstreamNode.y) / 2);
 
-    setGraphStore("nodes", id, "x", centerX);
-    setGraphStore("nodes", id, "y", centerY);
+    setGraphStore("nodes", nodeId, "x", centerX);
+    setGraphStore("nodes", nodeId, "y", centerY);
 
-    resolveOverlaps(id);
+    resolveOverlaps(nodeId);
 
     setSelectedNodeType(undefined);
-    setHoveredEdge(undefined);
+    setHoveredEdgeId(undefined);
   }
 
   function ghostNode() {
@@ -356,26 +360,27 @@ export function AudioGraphEditor(props: {
     const targetKind = portDragKind() ?? hoveredPortKind();
     const anchorAtOutput = targetKind === "in" || !hasInputPorts;
     const anchorX = anchorAtOutput
-      ? typeDef.dimensions.x - PORT_INSET
+      ? typeDef.dimensions.width - PORT_INSET
       : PORT_INSET;
     const anchorY = TITLE_HEIGHT + PORT_RADIUS;
 
     // When hovering over a spliceable edge, snap ghost to center between nodes
-    const edge = hoveredEdge();
-    if (edge) {
+    const edgeId = hoveredEdgeId();
+    if (edgeId) {
+      const edge = graphStore.edges[edgeId];
       const upstreamNode = graphStore.nodes[edge.output.node];
       const downstreamNode = graphStore.nodes[edge.input.node];
       if (upstreamNode && downstreamNode) {
-        const upstreamRight = upstreamNode.x + upstreamNode.dimensions.x;
+        const upstreamRight = upstreamNode.x + upstreamNode.width;
         const centerX = snapToGrid(
           upstreamRight +
-            (downstreamNode.x - upstreamRight - typeDef.dimensions.x) / 2,
+            (downstreamNode.x - upstreamRight - typeDef.dimensions.width) / 2,
         );
         const centerY = snapToGrid((upstreamNode.y + downstreamNode.y) / 2);
         return {
           x: centerX,
           y: centerY,
-          dimensions: typeDef.dimensions,
+          ...typeDef.dimensions,
           title: typeDef.title || type,
           borderColor,
           ports: typeDef.ports,
@@ -386,7 +391,7 @@ export function AudioGraphEditor(props: {
     return {
       x: snapToGrid(pos.x - anchorX),
       y: snapToGrid(pos.y - anchorY),
-      dimensions: typeDef.dimensions,
+      ...typeDef.dimensions,
       title: typeDef.title || type,
       borderColor,
       ports: typeDef.ports,
@@ -442,47 +447,27 @@ export function AudioGraphEditor(props: {
       <GraphEditor
         context={context}
         config={config}
-        graphStore={graphStore}
-        setGraphStore={setGraphStore}
-        onCursorMove={setCursorPos}
-        onEdgeHover={(event) => setHoveredEdge(event?.edge)}
-        onNodePointerDown={({ node, nativeEvent, preventDefault, graph }) => {
-          if (!nativeEvent.altKey) return;
-          preventDefault();
-
-          const typeDef = config[node.type];
-          const inPorts = typeDef?.ports.in ?? [];
-          const outPorts = typeDef?.ports.out ?? [];
-
-          // Find edges connected to this node before deleting
-          const incomingEdges = graphStore.edges.filter(
-            (e) => e.input.node === node.id,
-          );
-          const outgoingEdges = graphStore.edges.filter(
-            (e) => e.output.node === node.id,
-          );
-
-          graph.deleteNode(node.id);
-
-          // Bridge A→B(deleted)→C into A→C when port kinds match
-          for (const incoming of incomingEdges) {
-            const inPortDef = inPorts.find(
-              (p) => p.name === incoming.input.port,
-            );
-            if (!inPortDef) continue;
-            for (const outgoing of outgoingEdges) {
-              const outPortDef = outPorts.find(
-                (p) => p.name === outgoing.output.port,
-              );
-              if (!outPortDef) continue;
-              if (inPortDef.kind === outPortDef.kind) {
-                graph.link(incoming.output, outgoing.input);
-              }
-            }
-          }
-
-          setSelectedNodeType(node.type);
+        nodes={graphStore.nodes}
+        edges={graphStore.edges}
+        onEdgeAdd={({ edgeId, edge }) => setGraphStore("edges", edgeId, edge)}
+        onEdgeDelete={({ edgeId }) =>
+          setGraphStore(
+            "edges",
+            produce((edges) => delete edges[edgeId]),
+          )
+        }
+        onNodeAdd={({ nodeId, node }) => setGraphStore("nodes", nodeId, node)}
+        onNodeDelete={({ nodeId }) =>
+          setGraphStore(
+            "nodes",
+            produce((nodes) => delete nodes[nodeId]),
+          )
+        }
+        onNodeUpdate={({ nodeId, callback }) => {
+          setGraphStore("nodes", nodeId, produce(callback));
         }}
+        onCursorMove={setCursorPos}
+        onEdgeHover={({ edgeId }) => setHoveredEdgeId(edgeId)}
         onClick={({ x, y, graph }) => {
           const type = selectedNodeType();
           if (!type) return;
@@ -490,7 +475,7 @@ export function AudioGraphEditor(props: {
           const typeDef = config[type];
 
           // If hovering an edge, splice into it
-          const edge = hoveredEdge();
+          const edge = hoveredEdgeId();
           if (edge) {
             spliceSelectedOntoEdge(edge, graph);
             return;
@@ -499,11 +484,12 @@ export function AudioGraphEditor(props: {
           const hasInputPorts = (typeDef.ports.in?.length ?? 0) > 0;
           const anchorAtOutput = !hasInputPorts;
           const anchorX = anchorAtOutput
-            ? typeDef.dimensions.x - PORT_INSET
+            ? typeDef.dimensions.width - PORT_INSET
             : PORT_INSET;
           const anchorY = TITLE_HEIGHT + PORT_RADIUS;
 
-          const id = graph.addNode(type, {
+          const id = graph.addNode({
+            type,
             x: snapToGrid(x - anchorX),
             y: snapToGrid(y - anchorY),
           });
@@ -520,8 +506,8 @@ export function AudioGraphEditor(props: {
           }
           setSelectedNodeType(undefined);
         }}
-        onEdgeClick={({ edge, graph }) => {
-          spliceSelectedOntoEdge(edge, graph);
+        onEdgeClick={({ edgeId, graph }) => {
+          spliceSelectedOntoEdge(edgeId, graph);
         }}
         onEdgeSpliceValidate={({ edge }) => {
           const type = selectedNodeType();
@@ -594,10 +580,11 @@ export function AudioGraphEditor(props: {
 
           const anchorAtOutput = kind === "in";
           const anchorX = anchorAtOutput
-            ? typeDef.dimensions.x - PORT_INSET
+            ? typeDef.dimensions.width - PORT_INSET
             : PORT_INSET;
           const anchorY = TITLE_HEIGHT + PORT_RADIUS;
-          const id = graph.addNode(type, {
+          const id = graph.addNode({
+            type,
             x: snapToGrid(x - anchorX),
             y: snapToGrid(y - anchorY),
           });
@@ -615,12 +602,18 @@ export function AudioGraphEditor(props: {
           if (kind === "in") {
             const firstOut = typeDef.ports.out?.[0];
             if (firstOut) {
-              graph.link({ node: id, port: firstOut.name }, handle);
+              graph.addEdge({
+                output: { node: id, port: firstOut.name },
+                input: handle,
+              });
             }
           } else {
             const firstIn = typeDef.ports.in?.[0];
             if (firstIn) {
-              graph.link(handle, { node: id, port: firstIn.name });
+              graph.addEdge({
+                output: handle,
+                input: { node: id, port: firstIn.name },
+              });
             }
           }
 
@@ -637,7 +630,8 @@ export function AudioGraphEditor(props: {
 function GhostNode(props: {
   x: number;
   y: number;
-  dimensions: { x: number; y: number };
+  width: number;
+  height: number;
   title: string;
   borderColor: string;
   ports?: {

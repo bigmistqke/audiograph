@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ComponentProps } from "solid-js";
+import type { ComponentProps } from "solid-js";
 import styles from "./node-content.module.css";
 
 export function GraphNodeContent(

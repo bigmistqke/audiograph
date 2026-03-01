@@ -1,12 +1,13 @@
 import type { JSX } from "solid-js";
 import { headerHeight } from "../constants";
-import { PortShell } from "./port-shell";
 import styles from "./node.module.css";
+import { PortShell } from "./port-shell";
 
 export function NodeShell(props: {
   x: number;
   y: number;
-  dimensions: { x: number; y: number };
+  width: number;
+  height: number;
   title: string;
   borderColor: string;
   ports?: {
@@ -25,10 +26,7 @@ export function NodeShell(props: {
   opacity?: number;
 }) {
   const maxPorts = () =>
-    Math.max(
-      props.ports?.in?.length ?? 0,
-      props.ports?.out?.length ?? 0,
-    );
+    Math.max(props.ports?.in?.length ?? 0, props.ports?.out?.length ?? 0);
 
   const contentY = () => headerHeight(maxPorts());
 
@@ -39,11 +37,8 @@ export function NodeShell(props: {
       pointer-events={props["pointer-events"]}
       opacity={props.opacity}
     >
-      <foreignObject width={props.dimensions.x} height={props.dimensions.y}>
-        <div
-          class={styles.node}
-          data-selected={props.selected || undefined}
-        >
+      <foreignObject width={props.width} height={props.height}>
+        <div class={styles.node} data-selected={props.selected || undefined}>
           <div
             class={styles.nodeHeader}
             style={{ height: `${contentY()}px` }}
@@ -62,7 +57,7 @@ export function NodeShell(props: {
               name={port.name}
               index={i}
               kind="in"
-              width={props.dimensions.x}
+              width={props.width}
               dataKind={port.kind}
               hideLabels={props.hideLabels}
             />
@@ -72,7 +67,7 @@ export function NodeShell(props: {
               name={port.name}
               index={i}
               kind="out"
-              width={props.dimensions.x}
+              width={props.width}
               dataKind={port.kind}
               hideLabels={props.hideLabels}
             />

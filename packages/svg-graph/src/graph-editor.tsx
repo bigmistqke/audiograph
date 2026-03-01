@@ -1,3 +1,12 @@
+import type {
+  CreateGraphAPIConfig,
+  Edge,
+  EdgeHandle,
+  GraphAPI,
+  GraphConfig,
+  Node,
+} from "@audiograph/create-graph";
+import { createGraph } from "@audiograph/create-graph";
 import { minni } from "@bigmistqke/minni";
 import clsx from "clsx";
 import { For, type JSX, mergeProps, Show, splitProps } from "solid-js";
@@ -19,46 +28,43 @@ import {
   snapToGrid,
   TITLE_HEIGHT,
 } from "./constants";
-import { GraphContext, GraphContextType, type TemporaryEdge } from "./context";
-import type {
-  CreateGraphAPIConfig,
-  Edge,
-  EdgeHandle,
-  GraphAPI,
-  NodeInstance,
-} from "./create-graph-api";
-import { createGraphAPI } from "./create-graph-api";
+import {
+  GraphContext,
+  type GraphContextType,
+  type TemporaryEdge,
+} from "./context";
 import styles from "./graph-editor.module.css";
 
 function getNodesInRect(
-  nodes: Record<string, NodeInstance>,
+  nodes: Record<string, Node>,
   rect: { x: number; y: number; width: number; height: number },
 ): string[] {
   return Object.values(nodes)
     .filter(
       (node) =>
         node.x < rect.x + rect.width &&
-        node.x + node.dimensions.x > rect.x &&
+        node.x + node.width > rect.x &&
         node.y < rect.y + rect.height &&
-        node.y + node.dimensions.y > rect.y,
+        node.y + node.height > rect.y,
     )
     .map((n) => n.id);
 }
 
 export interface GraphEditorProps<
-  TConfig extends Record<string, any>,
-> extends CreateGraphAPIConfig<unknown, TConfig> {
+  TConfig extends GraphConfig<Record<string, any>>,
+> extends CreateGraphAPIConfig<TConfig> {
   style?: JSX.CSSProperties;
   class?: string;
   onClick?(event: { x: number; y: number; graph: GraphAPI<TConfig> }): void;
   /** Called when pointer down on a node header. Call preventDefault() to block normal drag. */
   onNodePointerDown?(event: {
-    node: NodeInstance;
+    node: Node;
     nativeEvent: PointerEvent;
     graph: GraphAPI<TConfig>;
     preventDefault(): void;
   }): void;
   onEdgeClick?(event: {
+    edgeId: string;
     edge: Edge;
     x: number;
     y: number;
@@ -99,7 +105,7 @@ export interface GraphEditorProps<
   /** Fires when cursor position changes in SVG coordinates. */
   onCursorMove?(position: { x: number; y: number } | undefined): void;
   /** Called when cursor enters/leaves a spliceable edge. */
-  onEdgeHover?(event: { edge: Edge } | undefined): void;
+  onEdgeHover?(event: { edgeId: string | undefined }): void;
   /** Called on double-click on the SVG background. */
   onDoubleClick?(event: {
     x: number;
@@ -108,8 +114,8 @@ export interface GraphEditorProps<
   }): void;
 }
 
-export function GraphEditor<TContext extends Record<string, any>>(
-  props: GraphEditorProps<TContext>,
+export function GraphEditor<TConfig extends GraphConfig<Record<string, any>>>(
+  props: GraphEditorProps<TConfig>,
 ) {
   const [UIState, setUIState] = createStore<{
     origin: { x: number; y: number };
@@ -135,16 +141,22 @@ export function GraphEditor<TContext extends Record<string, any>>(
     selectionBox: undefined,
     selectedNodes: [],
   });
+
   const [graphProps, rest] = splitProps(props, [
     "config",
     "context",
-    "setGraphStore",
-    "graphStore",
+    "onEdgeAdd",
+    "onEdgeDelete",
+    "onNodeAdd",
+    "onNodeUpdate",
+    "onNodeDelete",
+    "nodes",
+    "edges",
   ]);
 
-  const graphAPI = createGraphAPI(graphProps);
+  const graph = createGraph(graphProps);
 
-  const context = mergeProps(graphAPI, {
+  const context = mergeProps(graph, {
     setTemporaryEdge(edge: TemporaryEdge) {
       setUIState("temporaryEdge", edge);
     },
@@ -164,51 +176,34 @@ export function GraphEditor<TContext extends Record<string, any>>(
     get selectedNodes() {
       return UIState.selectedNodes;
     },
-    setSelectedNodes(ids: string[]) {
+    setSelectedNodes(ids) {
       setUIState("selectedNodes", ids);
     },
-    onNodePointerDown(event: {
-      node: NodeInstance;
-      nativeEvent: PointerEvent;
-      preventDefault(): void;
-    }) {
-      rest.onNodePointerDown?.({ ...event, graph: graphAPI });
+    onNodePointerDown(event) {
+      rest.onNodePointerDown?.({ ...event, graph: graph });
     },
-    onEdgeClick(event: { edge: Edge; x: number; y: number }) {
-      rest.onEdgeClick?.({ ...event, graph: graphAPI });
+    onEdgeClick(event) {
+      rest.onEdgeClick?.({ ...event, graph: graph });
     },
-    onEdgeSpliceValidate(event: { edge: Edge }) {
+    onEdgeSpliceValidate(event) {
       return rest.onEdgeSpliceValidate?.(event) ?? true;
     },
-    onPortHover(event: {
-      handle: EdgeHandle;
-      kind: "in" | "out";
-      preventDefault(): void;
-    }) {
-      rest.onPortHover?.({ ...event, graph: graphAPI });
+    onPortHover(event) {
+      rest.onPortHover?.({ ...event, graph: graph });
     },
-    onPortHoverEnd(event: { handle: EdgeHandle; kind: "in" | "out" }) {
-      rest.onPortHoverEnd?.({ ...event, graph: graphAPI });
+    onPortHoverEnd(event) {
+      rest.onPortHoverEnd?.({ ...event, graph: graph });
     },
-    onPortDragStart(event: {
-      handle: EdgeHandle;
-      kind: "in" | "out";
-      preventDefault(): void;
-    }) {
-      rest.onPortDragStart?.({ ...event, graph: graphAPI });
+    onPortDragStart(event) {
+      rest.onPortDragStart?.({ ...event, graph: graph });
     },
-    onEdgeHover(event: { edge: Edge } | undefined) {
+    onEdgeHover(event) {
       rest.onEdgeHover?.(event);
     },
-    onPortDragEnd(event: {
-      handle: EdgeHandle;
-      kind: "in" | "out";
-      x: number;
-      y: number;
-    }) {
-      rest.onPortDragEnd?.({ ...event, graph: graphAPI });
+    onPortDragEnd(event) {
+      rest.onPortDragEnd?.({ ...event, graph: graph });
     },
-  }) satisfies GraphContextType;
+  } satisfies Partial<GraphContextType>);
 
   return (
     <GraphContext.Provider value={context}>
@@ -240,7 +235,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
           if (event.target !== event.currentTarget) return;
           const x = snapToGrid(event.offsetX - UIState.origin.x);
           const y = snapToGrid(event.offsetY + UIState.origin.y);
-          rest.onDoubleClick?.({ x, y, graph: graphAPI });
+          rest.onDoubleClick?.({ x, y, graph: graph });
         }}
         onPointerMove={(event) => {
           const rect = event.currentTarget.getBoundingClientRect();
@@ -261,7 +256,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
             if (selected.length === 0) return;
             event.preventDefault();
             for (const id of selected) {
-              graphAPI.deleteNode(id);
+              graph.deleteNode(id);
             }
             setUIState("selectedNodes", []);
           }
@@ -298,7 +293,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
 
               setUIState(
                 "selectedNodes",
-                getNodesInRect(props.graphStore.nodes, {
+                getNodesInRect(props.nodes, {
                   x,
                   y,
                   width,
@@ -328,7 +323,7 @@ export function GraphEditor<TContext extends Record<string, any>>(
             setUIState("selectedNodes", []);
             const x = snapToGrid(event.offsetX - UIState.origin.x);
             const y = snapToGrid(event.offsetY + UIState.origin.y);
-            rest.onClick?.({ x, y, graph: graphAPI });
+            rest.onClick?.({ x, y, graph: graph });
           }
         }}
       >
@@ -358,11 +353,11 @@ export function GraphEditor<TContext extends Record<string, any>>(
           pointer-events="none"
           opacity={0.6}
         />
-        <For each={props.graphStore.edges}>
-          {(edge) => <GraphEdge {...edge} />}
+        <For each={Object.keys(props.edges)}>
+          {(edgeId) => <GraphEdge edgeId={edgeId} edge={props.edges[edgeId]} />}
         </For>
-        <For each={Object.values(props.graphStore.nodes)}>
-          {(node) => <GraphNode node={node} />}
+        <For each={Object.keys(props.nodes)}>
+          {(nodeId) => <GraphNode nodeId={nodeId} node={props.nodes[nodeId]} />}
         </For>
         <Show when={UIState.temporaryEdge}>
           {(edge) => <GraphTemporaryEdge {...edge()} />}

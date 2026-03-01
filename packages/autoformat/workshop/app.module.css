@@ -104,10 +104,9 @@
 .cases {
   overflow-y: auto;
   padding: 16px;
-  display: flex;
+  display: grid;
   gap: 16px;
   align-content: start;
-  flex-direction: column;
 }
 
 .row {
@@ -116,8 +115,6 @@
   border-radius: 6px;
   overflow: hidden;
   display: grid;
-  resize: vertical;
-  flex-shrink: 0;
 }
 
 .rowHeader {
@@ -193,6 +190,18 @@
 .panels {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
+  overflow: hidden;
+}
+
+.resizeHandle {
+  height: 6px;
+  cursor: ns-resize;
+  background: #f0f0f0;
+  border-top: 1px solid #ddd;
+
+  &:hover {
+    background: #e0e7ff;
+  }
 }
 
 .panelWrap {

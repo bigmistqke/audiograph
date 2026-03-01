@@ -8,64 +8,52 @@
         "type": "node",
         "x": 0,
         "y": 0,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
+        "width": 100,
+        "height": 80
       },
       "S": {
         "id": "S",
         "type": "node",
         "x": 200,
         "y": 10,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
+        "width": 100,
+        "height": 80
       },
       "B1": {
         "id": "B1",
         "type": "node",
         "x": 400,
         "y": -60,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
+        "width": 100,
+        "height": 80
       },
       "B2": {
         "id": "B2",
         "type": "node",
         "x": 350,
         "y": 80,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
+        "width": 100,
+        "height": 80
       },
       "B3": {
         "id": "B3",
         "type": "node",
         "x": 420,
         "y": 200,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
+        "width": 100,
+        "height": 80
       },
       "B4": {
         "id": "B4",
         "type": "node",
         "x": 380,
         "y": 330,
-        "dimensions": {
-          "x": 100,
-          "y": 80
-        }
+        "width": 100,
+        "height": 80
       }
     },
-    "edges": [
-      {
+    "edges": {
+      "R:out->S:in": {
         "output": {
           "node": "R",
           "port": "out"
@@ -75,7 +63,7 @@
           "port": "in"
         }
       },
-      {
+      "S:out->B1:in": {
         "output": {
           "node": "S",
           "port": "out"
@@ -85,7 +73,7 @@
           "port": "in"
         }
       },
-      {
+      "S:out->B2:in": {
         "output": {
           "node": "S",
           "port": "out"
@@ -95,7 +83,7 @@
           "port": "in"
         }
       },
-      {
+      "S:out->B3:in": {
         "output": {
           "node": "S",
           "port": "out"
@@ -105,7 +93,7 @@
           "port": "in"
         }
       },
-      {
+      "S:out->B4:in": {
         "output": {
           "node": "S",
           "port": "out"
@@ -115,7 +103,7 @@
           "port": "in"
         }
       }
-    ]
+    }
   },
   "expected": {
     "R": {

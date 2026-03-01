@@ -1,3 +1,4 @@
+import type { Edge } from "@audiograph/create-graph";
 import { createMemo, Show } from "solid-js";
 import {
   PORT_INSET,
@@ -6,24 +7,23 @@ import {
   TITLE_HEIGHT,
 } from "../constants";
 import { useGraph } from "../context";
-import type { EdgeHandle } from "../create-graph-api";
 import styles from "./edge.module.css";
 
 function portY(index: number) {
   return index * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS;
 }
 
-export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
+export function GraphEdge(props: { edgeId: string; edge: Edge }) {
   const graph = useGraph();
 
-  const fromNode = createMemo(() => graph.graphStore.nodes[props.output.node]);
-  const toNode = createMemo(() => graph.graphStore.nodes[props.input.node]);
+  const fromNode = createMemo(() => graph.nodes[props.edge.output.node]);
+  const toNode = createMemo(() => graph.nodes[props.edge.input.node]);
 
   const fromPort = () => {
     const node = fromNode();
     if (!node) return undefined;
     return graph.config[node.type].ports.out?.find(
-      (p: any) => p.name === props.output.port,
+      (p: any) => p.name === props.edge.output.port,
     );
   };
 
@@ -38,7 +38,7 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
     if (!node) return -1;
     return (
       graph.config[node.type].ports.in?.findIndex(
-        (p: any) => p.name === props.input.port,
+        (p: any) => p.name === props.edge.input.port,
       ) ?? -1
     );
   };
@@ -48,18 +48,12 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
     return `var(--color-port-${kind})`;
   };
 
-  const x1 = () => fromNode()!.x + fromNode()!.dimensions.x - PORT_INSET;
+  const x1 = () => fromNode()!.x + fromNode()!.width - PORT_INSET;
   const y1 = () => fromNode()!.y + portY(fromPortIndex());
   const x2 = () => toNode()!.x + PORT_INSET;
   const y2 = () => toNode()!.y + portY(toPortIndex());
 
-  const spliceValid = () =>
-    graph.onEdgeSpliceValidate?.({
-      edge: {
-        output: props.output,
-        input: props.input,
-      },
-    }) ?? false;
+  const spliceValid = () => graph.onEdgeSpliceValidate?.(props) ?? false;
 
   return (
     <Show when={fromNode() && toNode()}>
@@ -88,12 +82,10 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
             stroke-width={10}
             class={styles.hitTarget}
             onPointerEnter={() => {
-              graph.onEdgeHover?.({
-                edge: { output: props.output, input: props.input },
-              });
+              graph.onEdgeHover?.({ edgeId: props.edgeId });
             }}
             onPointerLeave={() => {
-              graph.onEdgeHover?.(undefined);
+              graph.onEdgeHover?.({ edgeId: undefined });
             }}
             onPointerDown={(event) => {
               event.stopPropagation();
@@ -103,7 +95,7 @@ export function GraphEdge(props: { output: EdgeHandle; input: EdgeHandle }) {
               const x = event.clientX - rect.left + viewBox.x;
               const y = event.clientY - rect.top + viewBox.y;
               graph.onEdgeClick?.({
-                edge: { output: props.output, input: props.input },
+                ...props,
                 x,
                 y,
               });

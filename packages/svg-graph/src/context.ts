@@ -1,16 +1,16 @@
-import { createContext, useContext } from "solid-js";
 import type {
   Edge,
   EdgeHandle,
   GraphAPI,
-  NodeInstance,
-  NodeTypeDef,
-} from "./create-graph-api";
+  Node,
+  NodeDefinition,
+} from "@audiograph/create-graph";
+import { createContext, useContext } from "solid-js";
 
 export interface TemporaryEdge {
   kind: "in" | "out";
-  node: string;
-  port: string;
+  nodeId: string;
+  portId: string;
   x?: number;
   y?: number;
 }
@@ -25,12 +25,17 @@ export type GraphContextType = GraphAPI & {
   setSelectedNodes(ids: string[]): void;
   /** Called when pointer down on a node header. Call preventDefault() to block normal drag. */
   onNodePointerDown?(event: {
-    node: NodeInstance;
+    node: Node;
     nativeEvent: PointerEvent;
     preventDefault(): void;
   }): void;
-  onEdgeClick?(event: { edge: Edge; x: number; y: number }): void;
-  onEdgeSpliceValidate?(event: { edge: Edge }): boolean;
+  onEdgeClick?(event: {
+    edgeId: string;
+    edge: Edge;
+    x: number;
+    y: number;
+  }): void;
+  onEdgeSpliceValidate?(event: { edgeId: string; edge: Edge }): boolean;
   /** Called when pointer enters a port. Call preventDefault() to disable all port interaction. */
   onPortHover?(event: {
     handle: EdgeHandle;
@@ -46,7 +51,7 @@ export type GraphContextType = GraphAPI & {
     preventDefault(): void;
   }): void;
   /** Called when cursor enters/leaves a spliceable edge. */
-  onEdgeHover?(event: { edge: Edge } | undefined): void;
+  onEdgeHover?(event: { edgeId: string | undefined }): void;
   /** Called when port drag ends (pointer released). */
   onPortDragEnd?(event: {
     handle: EdgeHandle;
@@ -65,8 +70,8 @@ export function useGraph() {
 }
 
 export const NodeContext = createContext<{
-  node: NodeInstance;
-  typeDef: NodeTypeDef;
+  node: Node;
+  typeDef: NodeDefinition;
 }>();
 
 export function useNode() {

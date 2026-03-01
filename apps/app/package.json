@@ -9,11 +9,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@audiograph/graph": "workspace:*",
+    "@audiograph/create-graph": "workspace:*",
+    "@audiograph/svg-graph": "workspace:*",
     "@audiograph/autoformat": "workspace:*",
     "@bigmistqke/minni": "^0.0.11",
     "@bigmistqke/repl": "^0.2.7",
-    "@bigmistqke/rpc": "^0.1.5",
+    "@bigmistqke/rpc": "^0.1.6",
     "@bigmistqke/solid-whenever": "^0.1.1",
     "@solid-primitives/map": "^0.7.2",
     "@solid-primitives/storage": "^4.3.3",

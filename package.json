@@ -11,7 +11,8 @@
     "build": "pnpm --filter @audiograph/app build",
     "test": "pnpm --filter @audiograph/autoformat test",
     "workshop": "pnpm --filter @audiograph/autoformat dev",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "autoformat:generate:tests": "pnpm --filter @audiograph/autoformat generate:tests"
   },
   "license": "MIT"
 }

@@ -15,17 +15,17 @@ export function GraphTemporaryEdge(props: TemporaryEdge) {
   const graph = useGraph();
 
   const port = () => {
-    const node = graph.graphStore.nodes[props.node];
+    const node = graph.nodes[props.nodeId];
     if (!node) return undefined;
     const ports =
       props.kind === "in"
         ? graph.config[node.type].ports.in
         : graph.config[node.type].ports.out;
-    return ports?.find((p: any) => p.name === props.port);
+    return ports?.find((p: any) => p.name === props.portId);
   };
 
   const portIndex = () => {
-    const node = graph.graphStore.nodes[props.node];
+    const node = graph.nodes[props.nodeId];
     if (!node) return -1;
     const ports =
       props.kind === "in"
@@ -44,7 +44,7 @@ export function GraphTemporaryEdge(props: TemporaryEdge) {
       when={
         props.x !== undefined &&
         props.y !== undefined &&
-        graph.graphStore.nodes[props.node]
+        graph.nodes[props.nodeId]
       }
     >
       {(node) => (
@@ -52,9 +52,7 @@ export function GraphTemporaryEdge(props: TemporaryEdge) {
           pointer-events="none"
           x1={
             node().x +
-            (props.kind === "in"
-              ? PORT_INSET
-              : node().dimensions.x - PORT_INSET)
+            (props.kind === "in" ? PORT_INSET : node().width - PORT_INSET)
           }
           y1={node().y + portY(portIndex())}
           x2={props.x}

@@ -1,10 +1,10 @@
 import type {
-  ConstructProps,
+  ConstructOptions,
   ConstructResult,
   GraphConfig,
-  NodeTypeDef,
-} from "@audiograph/graph";
-import { calcNodeHeight } from "@audiograph/graph";
+  NodeDefinition,
+} from "@audiograph/create-graph";
+import { calcNodeHeight } from "@audiograph/svg-graph";
 import { when } from "@bigmistqke/solid-whenever";
 import { ReactiveMap } from "@solid-primitives/map";
 import {
@@ -37,16 +37,16 @@ export interface AudioGraphContext {
 }
 
 function createNodeDef<S extends Record<string, any> = Record<string, any>>(
-  config: Omit<NodeTypeDef<S, AudioGraphContext>, "construct">,
+  config: Omit<NodeDefinition<S, AudioGraphContext>, "construct">,
   construct: (
-    props: Omit<ConstructProps<S, AudioGraphContext>, "context"> & {
+    props: Omit<ConstructOptions<S, AudioGraphContext>, "context"> & {
       context: AudioGraphContext;
     },
   ) => ConstructResult,
-): NodeTypeDef<S, AudioGraphContext> {
+): NodeDefinition<S, AudioGraphContext> {
   return {
     ...config,
-    construct: construct as NodeTypeDef<S, AudioGraphContext>["construct"],
+    construct: construct as NodeDefinition<S, AudioGraphContext>["construct"],
   };
 }
 
@@ -72,7 +72,7 @@ export const builtIns = {
   oscillator: createNodeDef(
     {
       title: "oscillator",
-      dimensions: { x: 180, y: calcNodeHeight(1, 2, true) },
+      dimensions: { width: 180, height: calcNodeHeight(1, 2, true) },
       ports: {
         in: [{ name: "frequency", kind: "param" }],
         out: [{ name: "audio" }],
@@ -107,14 +107,22 @@ export const builtIns = {
               title="kind"
               value={props.state.type}
               options={["sine", "square", "sawtooth", "triangle"] as const}
-              onChange={(value) => props.setState("type", value)}
+              onChange={(value) =>
+                props.setState((state) => {
+                  state.type = value;
+                })
+              }
             />
             <HorizontalSlider
               title="frequency"
               value={props.state.frequency}
               output={`${Math.round(props.state.frequency)}Hz`}
               disabled={props.isInputConnected("frequency")}
-              onInput={(value) => props.setState("frequency", value)}
+              onInput={(value) =>
+                props.setState((state) => {
+                  state.frequency = value;
+                })
+              }
             />
           </GraphNodeContent>
         ),
@@ -124,7 +132,7 @@ export const builtIns = {
   gain: createNodeDef(
     {
       title: "gain",
-      dimensions: { x: 180, y: calcNodeHeight(2, 1) },
+      dimensions: { width: 180, height: calcNodeHeight(2, 1) },
       ports: {
         in: [{ name: "audio" }, { name: "gain", kind: "param" }],
         out: [{ name: "audio" }],
@@ -151,7 +159,11 @@ export const builtIns = {
               max={1}
               step={0.001}
               disabled={props.isInputConnected("gain")}
-              onInput={(value) => props.setState("gain", value)}
+              onInput={(gain) =>
+                props.setState((state) => {
+                  state.gain = gain;
+                })
+              }
             />
           </GraphNodeContent>
         ),
@@ -161,7 +173,7 @@ export const builtIns = {
   constant: createNodeDef(
     {
       title: "constant",
-      dimensions: { x: 180, y: calcNodeHeight(1, 1) },
+      dimensions: { width: 180, height: calcNodeHeight(1, 1) },
       ports: {
         in: [],
         out: [{ name: "value", kind: "param" }],
@@ -187,7 +199,11 @@ export const builtIns = {
               title="value"
               output={props.state.value}
               value={props.state.value}
-              onInput={(value) => props.setState("value", value)}
+              onInput={(value) =>
+                props.setState((state) => {
+                  state.value = value;
+                })
+              }
             />
           </GraphNodeContent>
         ),
@@ -197,7 +213,7 @@ export const builtIns = {
   scale: createNodeDef(
     {
       title: "scale",
-      dimensions: { x: 180, y: calcNodeHeight(1, 1) },
+      dimensions: { width: 180, height: calcNodeHeight(1, 1) },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [{ name: "scaled", kind: "param" }],
@@ -223,7 +239,11 @@ export const builtIns = {
               min={-10000}
               max={10000}
               step={1}
-              onInput={(value) => props.setState("factor", value)}
+              onInput={(factor) =>
+                props.setState((state) => {
+                  state.factor = factor;
+                })
+              }
             />
           </GraphNodeContent>
         ),
@@ -233,7 +253,7 @@ export const builtIns = {
   range: createNodeDef(
     {
       title: "range",
-      dimensions: { x: 180, y: calcNodeHeight(1, 2) },
+      dimensions: { width: 180, height: calcNodeHeight(1, 2) },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [{ name: "mapped", kind: "param" }],
@@ -271,7 +291,11 @@ export const builtIns = {
               min={0}
               max={10000}
               step={1}
-              onInput={(value) => props.setState("min", value)}
+              onInput={(min) =>
+                props.setState((state) => {
+                  state.min = min;
+                })
+              }
             />
             <HorizontalSlider
               title="max"
@@ -280,7 +304,11 @@ export const builtIns = {
               min={0}
               max={10000}
               step={1}
-              onInput={(value) => props.setState("max", value)}
+              onInput={(max) =>
+                props.setState((state) => {
+                  state.max = max;
+                })
+              }
             />
           </GraphNodeContent>
         ),
@@ -290,7 +318,7 @@ export const builtIns = {
   filter: createNodeDef(
     {
       title: "filter",
-      dimensions: { x: 180, y: calcNodeHeight(3, 2) },
+      dimensions: { width: 180, height: calcNodeHeight(3, 2) },
       ports: {
         in: [
           { name: "audio" },
@@ -331,7 +359,11 @@ export const builtIns = {
               max={20000}
               step={1}
               disabled={props.isInputConnected("frequency")}
-              onInput={(value) => props.setState("frequency", value)}
+              onInput={(frequency) =>
+                props.setState((state) => {
+                  state.frequency = frequency;
+                })
+              }
             />
             <HorizontalSlider
               title="q"
@@ -341,7 +373,11 @@ export const builtIns = {
               max={20}
               step={0.1}
               disabled={props.isInputConnected("Q")}
-              onInput={(value) => props.setState("Q", value)}
+              onInput={(Q) =>
+                props.setState((state) => {
+                  state.Q = Q;
+                })
+              }
             />
           </GraphNodeContent>
         ),
@@ -351,7 +387,7 @@ export const builtIns = {
   delay: createNodeDef(
     {
       title: "delay",
-      dimensions: { x: 180, y: calcNodeHeight(2, 1) },
+      dimensions: { width: 180, height: calcNodeHeight(2, 1) },
       ports: {
         in: [{ name: "audio" }, { name: "delayTime", kind: "param" }],
         out: [{ name: "audio" }],
@@ -378,7 +414,11 @@ export const builtIns = {
               max={1}
               step={0.01}
               disabled={props.isInputConnected("delayTime")}
-              onInput={(value) => props.setState("delayTime", value)}
+              onInput={(delayTime) =>
+                props.setState((state) => {
+                  state.delayTime = delayTime;
+                })
+              }
             />
           </GraphNodeContent>
         ),
@@ -388,7 +428,7 @@ export const builtIns = {
   panner: createNodeDef(
     {
       title: "panner",
-      dimensions: { x: 180, y: calcNodeHeight(2, 1) },
+      dimensions: { width: 180, height: calcNodeHeight(2, 1) },
       ports: {
         in: [{ name: "audio" }, { name: "pan", kind: "param" }],
         out: [{ name: "audio" }],
@@ -415,7 +455,11 @@ export const builtIns = {
               max={1}
               step={0.01}
               disabled={props.isInputConnected("pan")}
-              onInput={(value) => props.setState("pan", value)}
+              onInput={(pan) =>
+                props.setState((state) => {
+                  state.pan = pan;
+                })
+              }
             />
           </GraphNodeContent>
         ),
@@ -425,7 +469,7 @@ export const builtIns = {
   compressor: createNodeDef(
     {
       title: "compressor",
-      dimensions: { x: 180, y: calcNodeHeight(1, 4) },
+      dimensions: { width: 180, height: calcNodeHeight(1, 4) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -466,7 +510,11 @@ export const builtIns = {
               min={-100}
               max={0}
               step={1}
-              onInput={(v) => props.setState("threshold", v)}
+              onInput={(threshold) =>
+                props.setState((state) => {
+                  state.threshold = threshold;
+                })
+              }
             />
             <HorizontalSlider
               title="ratio"
@@ -475,7 +523,11 @@ export const builtIns = {
               min={1}
               max={20}
               step={0.1}
-              onInput={(v) => props.setState("ratio", v)}
+              onInput={(ratio) =>
+                props.setState((state) => {
+                  state.ratio = ratio;
+                })
+              }
             />
             <HorizontalSlider
               title="attack"
@@ -484,7 +536,11 @@ export const builtIns = {
               min={0}
               max={1}
               step={0.001}
-              onInput={(v) => props.setState("attack", v)}
+              onInput={(attack) =>
+                props.setState((state) => {
+                  state.attack = attack;
+                })
+              }
             />
             <HorizontalSlider
               title="release"
@@ -493,7 +549,11 @@ export const builtIns = {
               min={0}
               max={1}
               step={0.01}
-              onInput={(v) => props.setState("release", v)}
+              onInput={(release) =>
+                props.setState((state) => {
+                  state.release = release;
+                })
+              }
             />
           </GraphNodeContent>
         ),
@@ -503,7 +563,7 @@ export const builtIns = {
   reverb: createNodeDef(
     {
       title: "reverb",
-      dimensions: { x: 180, y: calcNodeHeight(1, 2) },
+      dimensions: { width: 180, height: calcNodeHeight(1, 2) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -575,7 +635,11 @@ export const builtIns = {
               max={10}
               step={0.1}
               disabled={props.isInputConnected("decay")}
-              onInput={(value) => props.setState("decay", value)}
+              onInput={(decay) =>
+                props.setState((state) => {
+                  state.decay = decay;
+                })
+              }
             />
             <HorizontalSlider
               title="mix"
@@ -584,7 +648,11 @@ export const builtIns = {
               min={0}
               max={1}
               step={0.01}
-              onInput={(value) => props.setState("mix", value)}
+              onInput={(mix) =>
+                props.setState((state) => {
+                  state.mix = mix;
+                })
+              }
             />
           </GraphNodeContent>
         ),
@@ -594,7 +662,7 @@ export const builtIns = {
   waveshaper: createNodeDef(
     {
       title: "waveshaper",
-      dimensions: { x: 180, y: calcNodeHeight(1, 1) },
+      dimensions: { width: 180, height: calcNodeHeight(1, 1) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -645,7 +713,11 @@ export const builtIns = {
               max={100}
               step={1}
               disabled={props.isInputConnected("amount")}
-              onInput={(value) => props.setState("amount", value)}
+              onInput={(amount) =>
+                props.setState((state) => {
+                  state.amount = amount;
+                })
+              }
             />
           </GraphNodeContent>
         ),
@@ -655,7 +727,7 @@ export const builtIns = {
   analyser: createNodeDef(
     {
       title: "analyser",
-      dimensions: { x: 200, y: calcNodeHeight(1, 3) },
+      dimensions: { width: 200, height: calcNodeHeight(1, 3) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -714,7 +786,7 @@ export const builtIns = {
   meter: createNodeDef(
     {
       hideLabels: true,
-      dimensions: { x: 30, y: calcNodeHeight(1, 3) },
+      dimensions: { width: 30, height: calcNodeHeight(1, 3) },
       ports: {
         in: [{ name: "audio" }],
         out: [{ name: "audio" }],
@@ -779,7 +851,7 @@ export const builtIns = {
   debug: createNodeDef(
     {
       title: "debug",
-      dimensions: { x: 180, y: calcNodeHeight(1, 1) },
+      dimensions: { width: 180, height: calcNodeHeight(1, 1) },
       ports: {
         in: [{ name: "signal", kind: "param" }],
         out: [],
@@ -822,7 +894,7 @@ export const builtIns = {
   noise: createNodeDef(
     {
       title: "noise",
-      dimensions: { x: 120, y: calcNodeHeight(1, 0) },
+      dimensions: { width: 120, height: calcNodeHeight(1, 0) },
       ports: {
         in: [],
         out: [{ name: "audio" }],
@@ -855,7 +927,7 @@ export const builtIns = {
   lfo: createNodeDef(
     {
       title: "lfo",
-      dimensions: { x: 180, y: calcNodeHeight(1, 2) },
+      dimensions: { width: 180, height: calcNodeHeight(1, 2) },
       ports: {
         in: [],
         out: [{ name: "modulation", kind: "param" }],
@@ -898,7 +970,11 @@ export const builtIns = {
               min={0.01}
               max={20}
               step={0.01}
-              onInput={(value) => props.setState("rate", value)}
+              onInput={(rate) =>
+                props.setState((state) => {
+                  state.rate = rate;
+                })
+              }
             />
             <HorizontalSlider
               title="depth"
@@ -907,7 +983,11 @@ export const builtIns = {
               min={0}
               max={1}
               step={0.01}
-              onInput={(value) => props.setState("depth", value)}
+              onInput={(depth) =>
+                props.setState((state) => {
+                  state.depth = depth;
+                })
+              }
             />
           </GraphNodeContent>
         ),
@@ -917,7 +997,7 @@ export const builtIns = {
   envelope: createNodeDef(
     {
       title: "envelope",
-      dimensions: { x: 180, y: calcNodeHeight(1, 5) },
+      dimensions: { width: 180, height: calcNodeHeight(1, 5) },
       ports: {
         in: [{ name: "gate", kind: "param" }],
         out: [{ name: "envelope", kind: "param" }],
@@ -986,7 +1066,11 @@ export const builtIns = {
               min={0.001}
               max={2}
               step={0.001}
-              onInput={(value) => props.setState("attack", value)}
+              onInput={(attack) =>
+                props.setState((state) => {
+                  state.attack = attack;
+                })
+              }
             />
             <HorizontalSlider
               title="decay"
@@ -995,7 +1079,11 @@ export const builtIns = {
               min={0.001}
               max={2}
               step={0.001}
-              onInput={(value) => props.setState("decay", value)}
+              onInput={(decay) =>
+                props.setState((state) => {
+                  state.decay = decay;
+                })
+              }
             />
             <HorizontalSlider
               title="sustain"
@@ -1004,7 +1092,11 @@ export const builtIns = {
               min={0}
               max={1}
               step={0.01}
-              onInput={(value) => props.setState("sustain", value)}
+              onInput={(sustain) =>
+                props.setState((state) => {
+                  state.sustain = sustain;
+                })
+              }
             />
             <HorizontalSlider
               title="release"
@@ -1013,7 +1105,11 @@ export const builtIns = {
               min={0.001}
               max={5}
               step={0.001}
-              onInput={(value) => props.setState("release", value)}
+              onInput={(release) =>
+                props.setState((state) => {
+                  state.release = release;
+                })
+              }
             />
             <Button
               style={{
@@ -1034,7 +1130,7 @@ export const builtIns = {
   sequencer: createNodeDef(
     {
       title: "sequencer",
-      dimensions: { x: 280, y: calcNodeHeight(1, 3) },
+      dimensions: { width: 280, height: calcNodeHeight(1, 3) },
       resizable: true,
       ports: {
         in: [],
@@ -1143,7 +1239,11 @@ export const builtIns = {
                 min={20}
                 max={300}
                 step={1}
-                onInput={(value) => props.setState("bpm", value)}
+                onInput={(bpm) =>
+                  props.setState((state) => {
+                    state.bpm = +bpm;
+                  })
+                }
               />
               <div
                 style={{
@@ -1168,9 +1268,11 @@ export const builtIns = {
                         "border-radius": "2px",
                       }}
                       onPointerDown={(e) => e.stopPropagation()}
-                      onClick={() =>
-                        props.setState("steps", i(), !props.state.steps[i()])
-                      }
+                      onClick={() => {
+                        props.setState(({ steps }) => {
+                          steps[i()] = !steps[i()];
+                        });
+                      }}
                     />
                   )}
                 </For>
@@ -1214,7 +1316,7 @@ export const builtIns = {
   destination: createNodeDef(
     {
       title: "output",
-      dimensions: { x: 120, y: calcNodeHeight(1, 0) },
+      dimensions: { width: 120, height: calcNodeHeight(1, 0) },
       ports: {
         in: [{ name: "audio" }],
         out: [],
@@ -1229,7 +1331,7 @@ export const builtIns = {
   audioworklet: createNodeDef(
     {
       title: "audioworklet",
-      dimensions: { x: 280, y: calcNodeHeight(1, 7) },
+      dimensions: { width: 280, height: calcNodeHeight(1, 7) },
       resizable: true,
       ports: {
         in: [{ name: "audio" }],
@@ -1306,7 +1408,7 @@ export const builtIns = {
               : undefined;
           };
 
-          const nodeType = () => props.graphStore.nodes[props.id]?.type;
+          const nodeType = () => props.nodes[props.id]?.type;
           const isSaved = () => nodeType() !== "audioworklet";
 
           createEffect(
@@ -1366,7 +1468,9 @@ export const builtIns = {
                   spellcheck={false}
                   onInput={(e) => {
                     const newCode = e.currentTarget.value;
-                    props.setState("code", newCode);
+                    props.setState((state) => {
+                      state.code = newCode;
+                    });
                     props.context.workletFS.writeFile(
                       `/${props.state.name}/source.js`,
                       newCode,

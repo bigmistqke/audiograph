@@ -1,30 +1,39 @@
-import {
-  type Graph,
-  GraphEditor,
-  GRID,
-  type NodeTypeDef,
-} from "@audiograph/graph";
+import type {
+  Edges,
+  Node,
+  NodeDefinition,
+  Nodes,
+} from "@audiograph/create-graph";
+import { GraphEditor, GRID } from "@audiograph/svg-graph";
 import { action, createWritableStore, wait } from "@audiograph/utils";
 import {
   createEffect,
   createMemo,
   createResource,
+  createSignal,
   For,
   mapArray,
-  onCleanup,
 } from "solid-js";
 import { produce } from "solid-js/store";
 import { autoformat } from "../src/index";
 import styles from "./app.module.css";
 
+interface Graph {
+  nodes: Nodes;
+  edges: Edges;
+}
+
 // ─── Workshop node types ──────────────────────────────────────────────────────
 
 function makeNodeDef(
   resizable: boolean,
-): NodeTypeDef<Record<string, never>, null> {
+): NodeDefinition<Record<string, never>, null> {
   return {
     title: "node",
-    dimensions: { x: 100, y: GRID * 8 },
+    dimensions: {
+      width: 100,
+      height: GRID * 8,
+    },
     ports: {
       in: [{ name: "in" }],
       out: [{ name: "out" }],
@@ -45,7 +54,7 @@ interface TestCase {
   id: string;
   title: string;
   initial: Graph;
-  expected: Graph;
+  expected: Record<string, { x: number; y: number }>;
 }
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
@@ -144,8 +153,8 @@ export function App() {
         prev.push({
           id: crypto.randomUUID(),
           title: "",
-          initial: { nodes: {}, edges: [] },
-          expected: { nodes: {}, edges: [] },
+          initial: { nodes: {}, edges: {} },
+          expected: {},
         }),
       ),
     );
@@ -164,7 +173,7 @@ export function App() {
     });
   };
 
-  const results = createMemo(
+  const resultCases = createMemo(
     mapArray(
       () => cases,
       (_case) => {
@@ -173,9 +182,35 @@ export function App() {
     ),
   );
 
+  const expectedCases = createMemo(
+    mapArray(
+      () => cases,
+      (_case) => {
+        return createMemo(() => ({
+          edges: _case.initial.edges,
+          nodes: Object.fromEntries(
+            Object.entries(_case.expected).map(
+              ([key, value]) =>
+                [key, { ..._case.initial.nodes[key], ...value }] as const,
+            ),
+          ),
+        }));
+      },
+    ),
+  );
+
   const diffs = createMemo(
-    mapArray(results, (result, index) =>
-      compare(cases[index()].expected, result()),
+    mapArray(resultCases, (result, index) =>
+      compare(expectedCases()[index()]!(), result()),
+    ),
+  );
+
+  const paneHeights = createMemo(
+    mapArray(
+      () => cases,
+      (_case) => {
+        return createSignal(300);
+      },
     ),
   );
 
@@ -218,35 +253,19 @@ export function App() {
         </nav>
 
         {/* ── Cases ── */}
-        <div class={styles.cases}>
+        <div
+          class={styles.cases}
+          style={{
+            "grid-template-rows": paneHeights()
+              .map((height) => `${height[0]()}px`)
+              .join(" "),
+          }}
+        >
           <For each={cases}>
             {(c, index) => {
               const diff = createMemo(() => diffs()[index()]!);
-              const result = createMemo(() => results()[index()]());
-
-              // Sync edges from Initial to Expected
-              createEffect(
-                mapArray(
-                  () => cases[index()].initial.edges,
-                  (edge, index) => {
-                    createEffect(() => {
-                      setCases(index(), "expected", "edges", index(), edge);
-
-                      // Remove from Expected when edge is removed from Initial
-                      onCleanup(() => {
-                        setCases(
-                          index(),
-                          "expected",
-                          "edges",
-                          produce((edges) => {
-                            edges.splice(index(), 1);
-                          }),
-                        );
-                      });
-                    });
-                  },
-                ),
-              );
+              const result = createMemo(() => resultCases()[index()]());
+              const expected = createMemo(() => expectedCases()[index()]!());
 
               // Per-node sync: seed on add, track dimensions, remove on cleanup
               createEffect(
@@ -254,50 +273,39 @@ export function App() {
                   () => Object.keys(cases[index()].initial.nodes),
                   (key) => {
                     // Seed node in Expected if not yet present
-                    if (!cases[index()].expected.nodes[key]) {
+                    if (!cases[index()].expected[key]) {
                       const node = cases[index()].initial.nodes[key];
-                      setCases(index(), "expected", "nodes", key, {
-                        ...node,
-                        dimensions: { ...node.dimensions },
+                      setCases(index(), "expected", key, {
+                        x: node.x,
+                        y: node.y,
                       });
                     }
-
-                    // Track dimension changes for this node
-                    createEffect(() => {
-                      const dims =
-                        cases[index()].initial.nodes[key]?.dimensions;
-                      if (dims) {
-                        setCases(
-                          index(),
-                          "expected",
-                          "nodes",
-                          key,
-                          "dimensions",
-                          {
-                            x: dims.x,
-                            y: dims.y,
-                          },
-                        );
-                      }
-                    });
-
-                    // Remove from Expected when node is removed from Initial
-                    onCleanup(() => {
-                      setCases(
-                        index(),
-                        "expected",
-                        "nodes",
-                        produce((nodes) => {
-                          delete nodes[key];
-                        }),
-                      );
-                    });
                   },
                 ),
               );
 
+              const onHandlePointerDown = (e: PointerEvent) => {
+                const startY = e.clientY;
+                const startH = paneHeights()[index()][0]();
+                const onMove = (ev: PointerEvent) => {
+                  paneHeights()[index()][1](
+                    Math.max(80, startH + ev.clientY - startY),
+                  );
+                };
+                const onUp = () => {
+                  window.removeEventListener("pointermove", onMove);
+                  window.removeEventListener("pointerup", onUp);
+                };
+                window.addEventListener("pointermove", onMove);
+                window.addEventListener("pointerup", onUp);
+              };
+
               return (
-                <div id={`case-${c.id}`} class={styles.row}>
+                <div
+                  id={`case-${c.id}`}
+                  class={styles.row}
+                  // style={{ "grid-template-rows": `auto ${panelsHeight()}px auto` }}
+                >
                   <div class={styles.rowHeader}>
                     <span class={styles.caseNumber}>#{index() + 1}</span>
                     <AxisBadge diff={diff().x} axis="x" />
@@ -333,13 +341,58 @@ export function App() {
                         context={null}
                         config={{ node: makeNodeDef(true) }}
                         class={styles.graphPanel}
-                        graphStore={cases[index()].initial}
-                        setGraphStore={(...args: any[]) =>
-                          // @ts-expect-error
-                          setCases(index(), "initial", ...args)
+                        {...cases[index()].initial}
+                        onNodeAdd={({ nodeId, node }) =>
+                          setCases(
+                            index(),
+                            "initial",
+                            "nodes",
+                            produce((nodes) => {
+                              nodes[nodeId] = node;
+                            }),
+                          )
                         }
-                        onEdgeClick={({ edge, graph }) =>
-                          graph.unlink(edge.output, edge.input)
+                        onNodeDelete={({ nodeId }) =>
+                          setCases(
+                            index(),
+                            "initial",
+                            "nodes",
+                            produce((nodes) => {
+                              delete nodes[nodeId];
+                            }),
+                          )
+                        }
+                        onNodeUpdate={({ nodeId, callback }) => {
+                          setCases(
+                            index(),
+                            "initial",
+                            "nodes",
+                            nodeId,
+                            produce(callback),
+                          );
+                        }}
+                        onEdgeAdd={({ edgeId, edge }) =>
+                          setCases(
+                            index(),
+                            "initial",
+                            "edges",
+                            produce((edges) => {
+                              edges[edgeId] = edge;
+                            }),
+                          )
+                        }
+                        onEdgeDelete={({ edgeId }) =>
+                          setCases(
+                            index(),
+                            "initial",
+                            "edges",
+                            produce((edges) => {
+                              delete edges[edgeId];
+                            }),
+                          )
+                        }
+                        onEdgeClick={({ edgeId, graph }) =>
+                          graph.deleteEdge(edgeId)
                         }
                         onDoubleClick={({ x, y, graph }) => {
                           const existing = new Set(
@@ -351,34 +404,43 @@ export function App() {
                             ).find((l) => !existing.has(l)) ??
                             crypto.randomUUID();
 
-                          graph.addNode("node", { x, y, id });
+                          graph.addNode({ type: "node", x, y, id });
                         }}
                       />
                     </div>
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Expected</span>
                       <GraphEditor
+                        {...expected()}
                         context={null}
                         config={{ node: makeNodeDef(false) }}
                         class={styles.graphPanel}
-                        graphStore={cases[index()].expected}
-                        setGraphStore={(...args: any[]) =>
-                          // @ts-expect-error
-                          setCases(index(), "expected", ...args)
-                        }
+                        onNodeUpdate={({ nodeId, callback }) => {
+                          setCases(
+                            index(),
+                            "expected",
+                            nodeId,
+                            produce((node) => {
+                              callback(node as Node);
+                            }),
+                          );
+                        }}
                       />
                     </div>
                     <div class={styles.panelWrap}>
                       <span class={styles.panelLabel}>Result</span>
                       <GraphEditor
+                        {...result()}
                         context={null}
                         config={{ node: makeNodeDef(false) }}
                         class={styles.graphPanel}
-                        graphStore={result()}
-                        setGraphStore={() => {}}
                       />
                     </div>
                   </div>
+                  <div
+                    class={styles.resizeHandle}
+                    onPointerDown={onHandlePointerDown}
+                  />
                 </div>
               );
             }}

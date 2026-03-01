@@ -13,9 +13,12 @@ importers:
       '@audiograph/autoformat':
         specifier: workspace:*
         version: link:../../packages/autoformat
-      '@audiograph/graph':
+      '@audiograph/create-graph':
         specifier: workspace:*
-        version: link:../../packages/graph
+        version: link:../../packages/create-graph
+      '@audiograph/svg-graph':
+        specifier: workspace:*
+        version: link:../../packages/svg-graph
       '@bigmistqke/minni':
         specifier: ^0.0.11
         version: 0.0.11
@@ -23,8 +26,8 @@ importers:
         specifier: ^0.2.7
         version: 0.2.7(@babel/standalone@7.29.1)(dom-serializer@2.0.0)(domutils@3.2.2)(htmlparser2@10.1.0)(monaco-editor@0.52.2)(solid-js@1.9.9)(typescript@5.9.2)
       '@bigmistqke/rpc':
-        specifier: ^0.1.5
-        version: 0.1.5(typescript@5.9.2)
+        specifier: ^0.1.6
+        version: 0.1.6(typescript@5.9.2)
       '@bigmistqke/solid-whenever':
         specifier: ^0.1.1
         version: 0.1.1(solid-js@1.9.9)
@@ -65,9 +68,12 @@ importers:
 
   packages/autoformat:
     dependencies:
-      '@audiograph/graph':
+      '@audiograph/create-graph':
         specifier: workspace:*
-        version: link:../graph
+        version: link:../create-graph
+      '@audiograph/svg-graph':
+        specifier: workspace:*
+        version: link:../svg-graph
       '@audiograph/utils':
         specifier: workspace:*
         version: link:../utils
@@ -88,8 +94,33 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@22.19.11)(jiti@2.6.1)(yaml@2.8.2)
 
-  packages/graph:
+  packages/create-graph:
     dependencies:
+      '@audiograph/utils':
+        specifier: workspace:*
+        version: link:../utils
+      '@bigmistqke/minni':
+        specifier: ^0.0.11
+        version: 0.0.11
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      solid-js:
+        specifier: ^1.9.5
+        version: 1.9.9
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.2
+      vite:
+        specifier: ^7.1.4
+        version: 7.1.10(@types/node@22.19.11)(jiti@2.6.1)(yaml@2.8.2)
+
+  packages/svg-graph:
+    dependencies:
+      '@audiograph/create-graph':
+        specifier: workspace:*
+        version: link:../create-graph
       '@bigmistqke/minni':
         specifier: ^0.0.11
         version: 0.0.11
@@ -115,6 +146,13 @@ importers:
       solid-js:
         specifier: ^1.9.5
         version: 1.9.9
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.2
+      vite:
+        specifier: ^7.1.4
+        version: 7.1.10(@types/node@22.19.11)(jiti@2.6.1)(yaml@2.8.2)
 
 packages:
 
@@ -224,8 +262,8 @@ packages:
       solid-js: ^1.6.0
       typescript: ^5.1.6
 
-  '@bigmistqke/rpc@0.1.5':
-    resolution: {integrity: sha512-Yg/lTh/ZVXDXK9pIIBRfCz0yF0YWmQIV8Hxxv0pbXBlN6EXLoAkTzKw9PTczh2SCHTv7DeGtlba/ET2n96jKOw==}
+  '@bigmistqke/rpc@0.1.6':
+    resolution: {integrity: sha512-+KpB0v+u77NNX7ZD7pWPLEgK4CB0AASBFCbeYngXeRp/X5VRTi21BSQrEV2I/bFDONdRAc+OM5mbGTceUKRmNQ==}
 
   '@bigmistqke/solid-whenever@0.1.1':
     resolution: {integrity: sha512-BhAtrauFOsYsNVhoNV93CPNIcj++R3tPzCok4eWB6BVCYVPedHGDtvqlUcAvftt67bOq9yAkF8DSJMjx3zfYeQ==}
@@ -1308,7 +1346,7 @@ snapshots:
       solid-js: 1.9.9
       typescript: 5.9.2
 
-  '@bigmistqke/rpc@0.1.5(typescript@5.9.2)':
+  '@bigmistqke/rpc@0.1.6(typescript@5.9.2)':
     dependencies:
       '@types/node': 22.19.11
       bumpp: 10.4.1

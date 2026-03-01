@@ -1,3 +1,4 @@
+import type { EdgeHandle } from "@audiograph/create-graph";
 import { minni } from "@bigmistqke/minni";
 import { createSignal } from "solid-js";
 import {
@@ -7,7 +8,6 @@ import {
   TITLE_HEIGHT,
 } from "../constants";
 import { useGraph, useNode } from "../context";
-import type { EdgeHandle } from "../create-graph-api";
 import { PortShell } from "./port-shell";
 import styles from "./port.module.css";
 
@@ -21,8 +21,7 @@ export function Port(props: {
   const { node } = useNode();
   const graph = useGraph();
 
-  const cx = () =>
-    props.kind === "in" ? PORT_INSET : node.dimensions.x - PORT_INSET;
+  const cx = () => (props.kind === "in" ? PORT_INSET : node.width - PORT_INSET);
   const cy = () => props.index * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS;
 
   const [hovered, setHovered] = createSignal(false);
@@ -33,7 +32,7 @@ export function Port(props: {
       name={props.name}
       index={props.index}
       kind={props.kind}
-      width={node.dimensions.x}
+      width={node.width}
       dataKind={props.dataKind}
       hideLabels={props.hideLabels}
       class={hovered() && !disabled() ? styles.hovered : undefined}
@@ -69,15 +68,15 @@ export function Port(props: {
 
         const output: EdgeHandle =
           props.kind === "in"
-            ? { node: edgeHandle.node, port: edgeHandle.port }
+            ? { node: edgeHandle.nodeId, port: edgeHandle.portId }
             : { node: node.id, port: props.name };
 
         const input: EdgeHandle =
           props.kind === "out"
-            ? { node: edgeHandle.node, port: edgeHandle.port }
+            ? { node: edgeHandle.nodeId, port: edgeHandle.portId }
             : { node: node.id, port: props.name };
 
-        graph.link(output, input);
+        graph.addEdge({ output, input });
       }}
       onPointerDown={async (event: PointerEvent) => {
         event.stopPropagation();
@@ -96,13 +95,14 @@ export function Port(props: {
 
         // Detach existing edge from in-port and re-drag from upstream node
         if (!defaultPrevented && props.kind === "in") {
-          const existingEdge = graph.graphStore.edges.find(
-            (e) => e.input.node === node.id && e.input.port === props.name,
+          const existingEdgeEntry = Object.entries(graph.edges).find(
+            ([, e]) => e.input.node === node.id && e.input.port === props.name,
           );
 
-          if (existingEdge) {
-            graph.unlink(existingEdge.output, existingEdge.input);
-            const fromNode = graph.graphStore.nodes[existingEdge.output.node];
+          if (existingEdgeEntry) {
+            const [edgeId, edge] = existingEdgeEntry;
+            graph.deleteEdge(edgeId);
+            const fromNode = graph.nodes[edge.output.node];
             if (fromNode) {
               const position = {
                 x: node.x + cx(),
@@ -110,9 +110,9 @@ export function Port(props: {
               };
 
               graph.setTemporaryEdge({
-                node: fromNode.id,
+                nodeId: fromNode.id,
                 kind: "out",
-                port: existingEdge.output.port,
+                portId: edge.output.port,
                 x: position.x,
                 y: position.y,
               });
@@ -133,9 +133,9 @@ export function Port(props: {
         }
 
         graph.setTemporaryEdge({
-          node: node.id,
+          nodeId: node.id,
           kind: props.kind,
-          port: props.name,
+          portId: props.name,
         });
         const position = {
           x: node.x + cx(),

@@ -1,4 +1,9 @@
-import type { Graph } from "@audiograph/graph";
+import type { Edges, Nodes } from "@audiograph/create-graph";
+
+interface Graph {
+  nodes: Nodes;
+  edges: Edges;
+}
 
 const GAP = 30;
 
@@ -39,8 +44,8 @@ function buildTopology(graph: Graph): Map<string, NodeInfo> {
       children: [],
       initialX: node.x,
       initialY: node.y,
-      width: node.dimensions.x,
-      height: node.dimensions.y,
+      width: node.width,
+      height: node.height,
     });
   }
 
@@ -48,7 +53,7 @@ function buildTopology(graph: Graph): Map<string, NodeInfo> {
   const parentSets = new Map<string, Set<string>>();
   const childSets = new Map<string, Set<string>>();
 
-  for (const edge of graph.edges) {
+  for (const edge of Object.values(graph.edges)) {
     const outId = edge.output.node;
     const inId = edge.input.node;
     if (!childSets.has(outId)) childSets.set(outId, new Set());
