@@ -1,19 +1,27 @@
 [
   {
+    "hash": "5d3891ee6060f1fec79d39e280248fd1a0486e65",
+    "short_hash": "5d3891e",
+    "author": "bigmistqke",
+    "date": "2026-03-02T01:07:19+01:00",
+    "message": "refactor: rename xFwd, xExcl, and computeXExcl to descriptive names",
+    "files_changed": 1
+  },
+  {
+    "hash": "14b13166351970317fa9f57a7a71f2db7123a429",
+    "short_hash": "14b1316",
+    "author": "bigmistqke",
+    "date": "2026-03-02T01:04:22+01:00",
+    "message": "chore: sync deciduous graph",
+    "files_changed": 2
+  },
+  {
     "hash": "8a9ec738d16e35a6fa3cd042bd0cae32552178ec",
     "short_hash": "8a9ec73",
     "author": "bigmistqke",
     "date": "2026-03-02T01:03:49+01:00",
     "message": "refactor: rename rule-numbered functions to descriptive names in autoformat",
     "files_changed": 1
-  },
-  {
-    "hash": "6ecac28648e49131acd7fb591a292627049a2bd7",
-    "short_hash": "6ecac28",
-    "author": "bigmistqke",
-    "date": "2026-03-02T00:59:57+01:00",
-    "message": "chore: sync deciduous graph",
-    "files_changed": 2
   },
   {
     "hash": "e582b71351aba4da5d6c4570acd7c7ccdb0398ed",

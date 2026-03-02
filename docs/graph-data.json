@@ -3233,6 +3233,17 @@
       "created_at": "2026-03-02T01:04:07.712636+01:00",
       "updated_at": "2026-03-02T01:04:07.712636+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"8a9ec73\",\"confidence\":95}"
+    },
+    {
+      "id": 295,
+      "change_id": "48996a5b-78d4-45ba-bb52-3506beb76d95",
+      "node_type": "outcome",
+      "title": "Renamed xFwd→initialXPositions, computeXExcl→computeMergeXExcludingSubtree, xExcl→xWithoutSubtree",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-02T01:07:34.381074+01:00",
+      "updated_at": "2026-03-02T01:07:34.381074+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"5d3891e\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -6161,6 +6172,17 @@
       "weight": 1.0,
       "rationale": "Committed",
       "created_at": "2026-03-02T01:04:07.727242+01:00"
+    },
+    {
+      "id": 267,
+      "from_node_id": 293,
+      "to_node_id": 295,
+      "from_change_id": "3556cd9b-e71f-4754-8849-0f3f96411192",
+      "to_change_id": "48996a5b-78d4-45ba-bb52-3506beb76d95",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-03-02T01:07:34.394786+01:00"
     }
   ]
 }
