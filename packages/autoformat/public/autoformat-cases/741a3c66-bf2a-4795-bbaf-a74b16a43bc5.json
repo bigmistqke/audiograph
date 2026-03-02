@@ -1,6 +1,6 @@
 {
   "id": "741a3c66-bf2a-4795-bbaf-a74b16a43bc5",
-  "title": "",
+  "title": "Secondary root row ordered by initialY, not discovery order",
   "initial": {
     "nodes": {
       "B": {

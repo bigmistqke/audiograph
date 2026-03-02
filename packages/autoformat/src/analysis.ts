@@ -1,4 +1,3 @@
-import { assertedNotNullish } from "@audiograph/utils";
 import {
   isBoundary,
   isMergeLike,
@@ -427,59 +426,31 @@ export function buildMergeApproachMap(
 }
 
 /**
- * DFS Row Order
+ * Row Order
  *
- * Rows are visited in DFS order (not row-index order): starting at the primary
- * root, children are sorted by initialY ascending, each subtree fully exhausted
- * before the next sibling. Secondary roots follow in top-left order.
+ * Collect all rows via DFS (to discover them), then sort by the minimum
+ * initialY of each row's nodes. This ensures rows are placed in visual
+ * top-to-bottom order regardless of topology or discovery order.
  */
-export function buildDFSRowOrder(
+export function buildRowOrder(
   infos: Map<string, NodeInfo>,
   rowOf: Map<string, number>,
-  primaryRootId: string,
 ): number[] {
-  const rowsEncountered = new Set<number>();
-  const rowOrder: number[] = [];
-  const visited = new Set<string>();
+  // Build row → min initialY
+  const rowMinY = new Map<number, number>();
 
-  function dfs(nodeId: string) {
-    if (visited.has(nodeId)) {
-      return;
-    }
+  for (const [id, row] of rowOf) {
+    const y = infos.get(id)!.initialY;
+    const current = rowMinY.get(row);
 
-    visited.add(nodeId);
-    const row = rowOf.get(nodeId);
-
-    if (row !== undefined && !rowsEncountered.has(row)) {
-      rowsEncountered.add(row);
-      rowOrder.push(row);
-    }
-
-    const info = assertedNotNullish(
-      infos.get(nodeId),
-      `Expected infos to contain ${nodeId}`,
-    );
-    const sortedChildren = [...info.children].sort(
-      (a, b) => infos.get(a)!.initialY - infos.get(b)!.initialY,
-    );
-
-    for (const childId of sortedChildren) {
-      dfs(childId);
+    if (current === undefined || y < current) {
+      rowMinY.set(row, y);
     }
   }
 
-  dfs(primaryRootId);
-
-  // Secondary roots in top-left order (smallest y, tie-break smallest x)
-  const secondaryRoots = [...infos.values()]
-    .filter((n) => n.role === "root" && n.id !== primaryRootId)
-    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX);
-
-  for (const root of secondaryRoots) {
-    dfs(root.id);
-  }
-
-  return rowOrder;
+  return [...rowMinY.keys()].sort(
+    (a, b) => rowMinY.get(a)! - rowMinY.get(b)!,
+  );
 }
 
 /**
@@ -496,7 +467,7 @@ export function analysis(infos: Map<string, NodeInfo>): AnalysisResult {
 
   const rowOf = assignRows(infos, order, chainMap);
   const mergeApproachMap = buildMergeApproachMap(infos, rowOf, chainMap);
-  const rowOrder = buildDFSRowOrder(infos, rowOf, primaryRoot.id);
+  const rowOrder = buildRowOrder(infos, rowOf);
 
   return {
     infos,

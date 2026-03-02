@@ -3031,7 +3031,7 @@ describe("autoformat — x-positions", () => {
     });
   });
 
-  it("741a3c66-bf2a-4795-bbaf-a74b16a43bc5", () => {
+  it("Secondary root row ordered by initialY, not discovery order", () => {
     const initial: Graph = {
         "edges": {
             "ca0f3857-8f8e-4164-8638-e24a7c0a94ea": {
@@ -6198,7 +6198,7 @@ describe("autoformat — y-positions", () => {
     });
   });
 
-  it("741a3c66-bf2a-4795-bbaf-a74b16a43bc5", () => {
+  it("Secondary root row ordered by initialY, not discovery order", () => {
     const initial: Graph = {
         "edges": {
             "ca0f3857-8f8e-4164-8638-e24a7c0a94ea": {
