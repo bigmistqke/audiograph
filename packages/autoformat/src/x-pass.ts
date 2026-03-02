@@ -10,9 +10,13 @@ import {
  * Compute provisional x-positions for all nodes in topological order.
  *
  * Placement rules:
- *   - Primary root: anchored to current user position (Anchor rule).
- *   - Merge/merge-split: max(parent.right for ALL parents) + gap (Merge Alignment rule).
- *   - All others: prev.right + gap; secondary roots start at 0 (Sequential rule).
+ *   - `Anchor rule`
+ *     - primary root: anchored to current user position.
+ *   - `Merge Alignment rule`
+ *     - merge/merge-split: max(parent.right for ALL parents) + gap.
+ *   - `Sequential rule`
+ *     - all others: prev.right + gap
+ *     - secondary roots start at 0.
  */
 function computeInitialXPositions(
   ctx: AnalysisResult,
