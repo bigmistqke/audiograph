@@ -31,7 +31,9 @@ export function GraphTemporaryEdge(props: TemporaryEdge) {
       props.kind === "in"
         ? graph.config[node.type].ports.in
         : graph.config[node.type].ports.out;
-    return ports?.indexOf(port()!) ?? -1;
+    return (
+      ports?.findIndex((p: any) => p.name === props.portId) ?? -1
+    );
   };
 
   const edgeColor = () => {
