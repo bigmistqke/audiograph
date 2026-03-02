@@ -1,4 +1,4 @@
-import { autoformat } from "@audiograph/autoformat";
+import { computeLayoutMap } from "@audiograph/autoformat";
 import type {
   EdgeHandle,
   Edges,
@@ -17,8 +17,8 @@ import {
 } from "@audiograph/svg-graph";
 import { makePersisted } from "@solid-primitives/storage";
 import clsx from "clsx";
-import { createSignal, For, type Setter, Show } from "solid-js";
-import { createStore, produce, reconcile } from "solid-js/store";
+import { batch, createSignal, For, type Setter, Show } from "solid-js";
+import { createStore, produce } from "solid-js/store";
 import {
   createWorkletFileSystem,
   getSourceBoilerplate,
@@ -142,13 +142,17 @@ function SideBar(props: {
 function TopRightHUD(props: {
   id: string;
   onOpenProject(id: string): void;
-  onAutoformat(): void;
+  autoformatEnabled: boolean;
+  onToggleAutoformat(): void;
 }) {
   // const navigate = useNavigate();
   return (
     <div class={styles.topRight}>
       <span class={styles.graphName}>{props.id}</span>
-      <Button onClick={props.onAutoformat} class={styles.button}>
+      <Button
+        onClick={props.onToggleAutoformat}
+        class={clsx(styles.button, props.autoformatEnabled && styles.selected)}
+      >
         autoformat
       </Button>
       <Button
@@ -194,6 +198,11 @@ export function AudioGraphEditor(props: {
     "in" | "out" | undefined
   >();
   const [hoveredEdgeId, setHoveredEdgeId] = createSignal<string | undefined>();
+  const [autoformatEnabled, setAutoformatEnabled] = createSignal(false);
+  const [autoformatDrag, setAutoformatDrag] = createSignal<{
+    draggedIds: Set<string>;
+    snapshot: Record<string, { x: number; y: number }>;
+  } | null>(null);
 
   const [graphStore, setGraphStore] = makePersisted(
     createStore<Graph>({ nodes: {}, edges: {} }),
@@ -442,7 +451,8 @@ export function AudioGraphEditor(props: {
       <TopRightHUD
         id={props.id ?? ""}
         onOpenProject={props.onOpenProject}
-        onAutoformat={() => setGraphStore(reconcile(autoformat(graphStore)))}
+        autoformatEnabled={autoformatEnabled()}
+        onToggleAutoformat={() => setAutoformatEnabled((prev) => !prev)}
       />
       <GraphEditor
         context={context}
@@ -463,8 +473,65 @@ export function AudioGraphEditor(props: {
             produce((nodes) => delete nodes[nodeId]),
           )
         }
+        onNodePointerDown={({ node }) => {
+          if (!autoformatEnabled()) return;
+
+          const snapshot: Record<string, { x: number; y: number }> = {};
+          for (const [id, n] of Object.entries(graphStore.nodes)) {
+            snapshot[id] = { x: n.x, y: n.y };
+          }
+
+          const draggedIds = new Set([node.id]);
+          setAutoformatDrag({ draggedIds, snapshot });
+
+          window.addEventListener(
+            "pointerup",
+            () => {
+              // Only snap if the node actually moved
+              const orig = snapshot[node.id];
+              const current = graphStore.nodes[node.id];
+              if (
+                current &&
+                orig &&
+                (current.x !== orig.x || current.y !== orig.y)
+              ) {
+                const layout = computeLayoutMap(graphStore);
+                batch(() => {
+                  for (const id of draggedIds) {
+                    const result = layout.get(id);
+                    if (result) {
+                      setGraphStore("nodes", id, "x", result.x);
+                      setGraphStore("nodes", id, "y", result.y);
+                    }
+                  }
+                });
+              }
+
+              setAutoformatDrag(null);
+            },
+            { once: true },
+          );
+        }}
         onNodeUpdate={({ nodeId, callback }) => {
-          setGraphStore("nodes", nodeId, produce(callback));
+          const drag = autoformatDrag();
+          if (!drag) {
+            setGraphStore("nodes", nodeId, produce(callback));
+            return;
+          }
+
+          drag.draggedIds.add(nodeId);
+
+          batch(() => {
+            setGraphStore("nodes", nodeId, produce(callback));
+
+            const layout = computeLayoutMap(graphStore);
+            for (const [id, result] of layout) {
+              if (!drag.draggedIds.has(id)) {
+                setGraphStore("nodes", id, "x", result.x);
+                setGraphStore("nodes", id, "y", result.y);
+              }
+            }
+          });
         }}
         onCursorMove={setCursorPos}
         onEdgeHover={({ edgeId }) => setHoveredEdgeId(edgeId)}
