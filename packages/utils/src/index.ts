@@ -1,5 +1,6 @@
 export * from "./action";
 export * from "./create-writable";
+export * from "./debug";
 export * from "./guards";
 export * from "./props";
 export * from "./type-utils";
