@@ -362,7 +362,7 @@ export function App(props: ParentProps) {
                             }),
                           )
                         }
-                        onNodeDelete={({ nodeId }) =>
+                        onNodeDelete={({ nodeId }) => {
                           setCases(
                             index(),
                             "initial",
@@ -370,8 +370,15 @@ export function App(props: ParentProps) {
                             produce((nodes) => {
                               delete nodes[nodeId];
                             }),
-                          )
-                        }
+                          );
+                          setCases(
+                            index(),
+                            "expected",
+                            produce((expected) => {
+                              delete expected[nodeId];
+                            }),
+                          );
+                        }}
                         onNodeUpdate={({ nodeId, callback }) => {
                           setCases(
                             index(),

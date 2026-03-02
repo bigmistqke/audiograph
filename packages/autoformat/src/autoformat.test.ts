@@ -3181,17 +3181,14 @@ describe("autoformat — x-positions", () => {
         }
     };
     expect(labelX(autoformat(initial))).toMatchObject({
-          "A": 0,
           "B": 0,
           "C": 130,
-          "D": 0,
           "E": 130,
           "F": 260,
           "G": 390,
           "H": 130,
           "I": 260,
-          "J": 390,
-          "K": 110
+          "J": 390
     });
   });
 });
@@ -6351,17 +6348,14 @@ describe("autoformat — y-positions", () => {
         }
     };
     expect(labelY(autoformat(initial))).toMatchObject({
-          "A": 0,
           "B": 0,
           "C": 0,
-          "D": 220,
           "E": 220,
           "F": 0,
           "G": 0,
           "H": 110,
           "I": 220,
-          "J": 220,
-          "K": 140
+          "J": 220
     });
   });
 });
