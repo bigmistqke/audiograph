@@ -1,13 +1,4 @@
-import {
-  assignRows,
-  buildAncestorSets,
-  buildChainMap,
-  buildDFSRowOrder,
-  buildMergeApproachMap,
-  buildTopology,
-  findIslands,
-  topologicalSort,
-} from "./analysis";
+import { analysis, buildTopology, findIslands } from "./analysis";
 import type {
   AutoformatOptions,
   Graph,
@@ -15,16 +6,12 @@ import type {
   LayoutNode,
   NodeInfo,
 } from "./types";
-import {
-  computeInitialXPositions,
-  pullSplitsTowardMerges,
-  reconcileXPositions,
-} from "./x-pass";
+import { xPass } from "./x-pass";
 import { resolveIslandCollisions, yPass } from "./y-pass";
 
 export type { AutoformatOptions, LayoutNode } from "./types";
 
-const GAP = 30;
+const DEFAULT_GAP = 30;
 
 /**
  * Per Island Layout
@@ -37,47 +24,26 @@ function layoutIsland(
   yFinal: Map<string, number>;
   rowOf: Map<string, number>;
 } {
-  // ── Analysis ──────────────────────────────────────────────────────────────
-  const order = topologicalSort(islandInfos);
-  const chainMap = buildChainMap(islandInfos);
-  const ancestorSets = buildAncestorSets(islandInfos, order);
-
-  const primaryRoot = [...islandInfos.values()]
-    .filter((n) => n.role === "root")
-    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
-
-  const rowOf = assignRows(islandInfos, order, chainMap);
-  const mergeApproachMap = buildMergeApproachMap(islandInfos, rowOf, chainMap);
-  const rowOrder = buildDFSRowOrder(islandInfos, rowOf, primaryRoot.id);
-
-  // ── X-Pass ────────────────────────────────────────────────────────────────
-  const initialXPositions = computeInitialXPositions(
-    islandInfos,
-    primaryRoot.id,
+  const {
     order,
-    options,
-  );
-  const xAfterSplitPull = pullSplitsTowardMerges(
+    chainMap,
+    ancestorSets,
+    primaryRoot,
+    rowOf,
+    mergeApproachMap,
+    rowOrder,
+  } = analysis(islandInfos);
+
+  const xFinal = xPass(
     islandInfos,
     primaryRoot.id,
     order,
     rowOf,
-    initialXPositions,
     chainMap,
     ancestorSets,
-    options,
-  );
-  const xFinal = reconcileXPositions(
-    islandInfos,
-    order,
-    primaryRoot.id,
-    xAfterSplitPull,
     mergeApproachMap,
-    ancestorSets,
     options,
   );
-
-  // ── Y-Pass ────────────────────────────────────────────────────────────────
   const yFinal = yPass(
     islandInfos,
     xFinal,
@@ -92,7 +58,7 @@ function layoutIsland(
 
 export function computeLayoutMap(
   graph: Graph,
-  { gap = GAP }: Partial<AutoformatOptions> = { gap: GAP },
+  { gap = DEFAULT_GAP }: Partial<AutoformatOptions> = { gap: DEFAULT_GAP },
 ): Map<string, LayoutNode> {
   if (Object.keys(graph.nodes).length === 0) {
     return new Map();

@@ -475,3 +475,22 @@ export function buildDFSRowOrder(
 
   return rowOrder;
 }
+
+/**
+ * Run the full analysis pipeline for an island.
+ */
+export function analysis(islandInfos: Map<string, NodeInfo>) {
+  const order = topologicalSort(islandInfos);
+  const chainMap = buildChainMap(islandInfos);
+  const ancestorSets = buildAncestorSets(islandInfos, order);
+
+  const primaryRoot = [...islandInfos.values()]
+    .filter((n) => n.role === "root")
+    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
+
+  const rowOf = assignRows(islandInfos, order, chainMap);
+  const mergeApproachMap = buildMergeApproachMap(islandInfos, rowOf, chainMap);
+  const rowOrder = buildDFSRowOrder(islandInfos, rowOf, primaryRoot.id);
+
+  return { order, chainMap, ancestorSets, primaryRoot, rowOf, mergeApproachMap, rowOrder };
+}

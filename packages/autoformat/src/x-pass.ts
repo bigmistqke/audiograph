@@ -485,3 +485,38 @@ export function reconcileXPositions(
 
   return result;
 }
+
+/**
+ * Run the full x-positioning pipeline: initial placement → split pull → reconcile.
+ */
+export function xPass(
+  infos: Map<string, NodeInfo>,
+  primaryRootId: string,
+  order: string[],
+  rowOf: Map<string, number>,
+  chainMap: Map<string, Map<string, string[]>>,
+  ancestorSets: Map<string, Set<string>>,
+  mergeApproachMap: Map<string, { endId: string; prevId: string; startId: string }>,
+  options: AutoformatOptions,
+): Map<string, number> {
+  const initialXPositions = computeInitialXPositions(infos, primaryRootId, order, options);
+  const xAfterSplitPull = pullSplitsTowardMerges(
+    infos,
+    primaryRootId,
+    order,
+    rowOf,
+    initialXPositions,
+    chainMap,
+    ancestorSets,
+    options,
+  );
+  return reconcileXPositions(
+    infos,
+    order,
+    primaryRootId,
+    xAfterSplitPull,
+    mergeApproachMap,
+    ancestorSets,
+    options,
+  );
+}
