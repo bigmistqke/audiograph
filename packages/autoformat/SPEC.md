@@ -4,29 +4,48 @@
 
 This algorithm is **prettier for audio graphs**.
 
-Prettier takes messy code and reformats it into a clean, consistent structure — but it isn't purely mechanical. It respects some of your intent: if you put arguments on separate lines, prettier keeps them on separate lines. It's opinionated about *structure*, deferential about *ordering*.
+Prettier takes messy code and reformats it into a clean, consistent structure — but it isn't purely mechanical. It respects some of your intent: if you put arguments on separate lines, prettier keeps them on separate lines. It's opinionated about _structure_, deferential about _ordering_.
 
 This algorithm does the same thing for graphs:
+
 - **Opinionated about structure**: nodes snap to a clean grid, x-positions follow strict alignment rules, y-positions are computed from a spatial interval structure.
 - **Deferential about ordering**: the user's current y-positions of branch-start nodes determine which row each branch lands in. If you put one branch below another, the algorithm keeps it there.
 
-The result is a layout that is always tidy, but still feels like *yours*.
+The result is a layout that is always tidy, but still feels like _yours_.
 
-The algorithm is **not** a single DFS traversal — it requires four sequential phases over a topological sort. The reason is a fundamental causal conflict: the Merge Alignment and Sequential rules are *forward causal* ("given my parents' positions, place me"), while the Split Pull rule is *backward causal* ("look downstream at a merge's final position, then pull myself upstream to fit"). A single forward pass cannot satisfy both directions simultaneously. See *Why Four Phases* for details.
+The algorithm is **not** a single DFS traversal — it requires four sequential phases over a topological sort. The reason is a fundamental causal conflict: the Merge Alignment and Sequential rules are _forward causal_ ("given my parents' positions, place me"), while the Split Pull rule is _backward causal_ ("look downstream at a merge's final position, then pull myself upstream to fit"). A single forward pass cannot satisfy both directions simultaneously. See _Why Four Phases_ for details.
 
 ---
 
 ## Terminology
 
 ### Node Types
+
 - **Simple node**: exactly one input, one output
 - **Split node**: one input (or root), multiple outputs
 - **Merge node**: multiple inputs, one output (or leaf)
 - **Merge-split node**: multiple inputs AND multiple outputs
 
+```
+[A]──>[B]──>[C]          Simple (B): one input, one output
+
+     ┌──>[B]
+[A]──┤                   Split (A): one input, multiple outputs
+     └──>[C]
+
+[A]──┐
+     ├──>[C]             Merge (C): multiple inputs, one output
+[B]──┘
+
+[A]──┐     ┌──>[C]
+     ├──>[M]┤            Merge-split (M): multiple inputs AND outputs
+[B]──┘     └──>[D]
+```
+
 ### Chain
 
 A **chain** is a linear sequence of nodes where:
+
 - The **first** and **last** nodes are boundary nodes (split, merge, merge-split, root, or leaf)
 - All **internal** nodes are simple nodes (exactly one parent, one child)
 - Boundary nodes are **included** as the first/last node of the chain
@@ -36,9 +55,24 @@ A chain runs from one boundary node to the next. Every simple node belongs to ex
 Zero-internal chains like `[A, B]` are valid — two boundary nodes directly connected, no internals between them.
 
 **Examples:**
+
 - `[A, D, E, C]` — A (split) → D (simple) → E (simple) → C (merge)
 - `[A, B]` — A (split) → B (split), no internals
 - `[B]` — a merge-split as a single-node chain
+
+```
+Chain [A, D, E, C]:
+
+[A]──>[D]──>[E]──>[C]
+ ↑    └─ simple ─┘  ↑
+split               merge
+
+Chain [A, B]:
+
+[A]──>[B]
+ ↑     ↑
+split  split (zero-internal chain)
+```
 
 ### Row
 
@@ -48,6 +82,16 @@ Row ordering is determined by the **user's current y-positions of branch-start n
 
 Row assignment is per-chain, not per-node. A boundary node that starts multiple chains has no single "home row"; each chain it starts may land in a different row.
 
+```
+     ┌──>[B]──>[C]──>[D]     ← Row 0 (B had lowest initial y)
+[A]──┤              ↑
+     └──>[E]────────┘         ← Row 1 (E had higher initial y)
+
+A is a split. At A, outgoing branches are sorted by initial y:
+  - B (lower y) → continues in current row (Row 0)
+  - E (higher y) → opens new row (Row 1)
+```
+
 ---
 
 ## Graph Preprocessing
@@ -56,7 +100,7 @@ Before topology analysis, the raw graph edges are normalized:
 
 **Edge deduplication:** All edges between the same pair of nodes are collapsed into a single logical parent/child relationship. Sub-port distinctions (which specific input/output port was used) are ignored — the algorithm only considers whether a connection exists between two nodes, not how many times or via which ports.
 
-This is a current design decision: the algorithm treats nodes as having a single logical input and output for the purpose of layout. Multi-port graphs where the same two nodes are connected via different port combinations are handled correctly as long as the layout only needs to know *that* a connection exists.
+This is a current design decision: the algorithm treats nodes as having a single logical input and output for the purpose of layout. Multi-port graphs where the same two nodes are connected via different port combinations are handled correctly as long as the layout only needs to know _that_ a connection exists.
 
 ---
 
@@ -80,6 +124,18 @@ Process boundary nodes in topological order. At each node, sort its outgoing bra
 - Each subsequent branch **opens a new row** below. If the end boundary is already row-assigned, the interior nodes of the chain still open their own row — only the end boundary keeps its existing row assignment.
 
 Row-claiming is **first-come-first-served in y-order** across the whole traversal, with one exception: **merge and merge-split end boundaries prefer the highest-priority (lowest-index) row**. If a later chain reaches a merge that was previously assigned to a lower-priority row, the merge is updated to the higher-priority row.
+
+```
+     ┌──>[B]──>[C]──>[D]──>[F]     ← Row 0 (spine)
+[A]──┤              ↑
+     └──>[E]────────┘               ← Row 1
+
+Row 0 chains: [A, B, C, D] and [D, F]  — B had lowest initial y (spine continuation)
+Row 1 chain:  [A, E, D]               — E had higher initial y (new row)
+
+D is a merge: first reached via Row 0, so D is assigned Row 0.
+The Row 1 chain ends at D but D keeps its Row 0 assignment.
+```
 
 #### Step 2b: Forward Pass
 
@@ -113,9 +169,26 @@ After x-positions are finalized (Steps 2a–2d), build an **interval structure**
 
 Rows are the unit of y-placement — all nodes in a row share the same y-coordinate. Rows are processed in the order they are first encountered by the same DFS traversal as Step 2a (children visited in ascending initial-y order, each subtree fully exhausted before the next sibling). This is critical: it ensures that by the time a row is placed, all rows whose x-ranges might block it have already been inserted into the interval structure.
 
-**Do not process rows in row-index order.** A row with a low index may need to be placed *after* a row with a higher index if the higher-index row's subtree occupies an x-range that overlaps with the low-index row. The DFS traversal handles this automatically — branches that come later in the y-sorted sibling order are always processed after the earlier siblings' full subtrees.
+**Do not process rows in row-index order.** A row with a low index may need to be placed _after_ a row with a higher index if the higher-index row's subtree occupies an x-range that overlaps with the low-index row. The DFS traversal handles this automatically — branches that come later in the y-sorted sibling order are always processed after the earlier siblings' full subtrees.
+
+```
+                ┌──>[B]──>[C]──>[D]              Row 0 (spine)
+                │         │
+[A]─────────────┤         └──>[E]──>[F]          Row 2 (C's child)
+                │
+                └──>[G]──>[H]                    Row 1
+
+DFS order visits: Row 0 → Row 2 → Row 1
+  (NOT Row 0 → Row 1 → Row 2)
+
+Row 0 is placed first. Then C's subtree is fully exhausted (Row 2)
+before G's branch (Row 1) is visited. This ensures Row 2's occupied
+x-range is recorded before Row 1 is placed — so Row 1 can query
+whether its x-span overlaps with already-placed rows.
+```
 
 For each row in DFS order:
+
 1. Collect all chains in the row. Determine the row's **full x-span** — the union of all nodes' x-ranges across every chain in the row.
 2. Query the interval structure for the **maximum occupied bottom-Y** across the full x-span.
 3. Place all nodes in the row at `y = max_bottom_y + gap`.
@@ -134,8 +207,18 @@ Using per-node intervals (rather than one interval spanning the full row) allows
 Only the **first node** in each downstream chain gets x-aligned to its upstream split. Deeper connections within the same chain (edges skipping internal nodes to reach the end boundary) are accepted as-is and may produce longer diagonal edges.
 
 **Example:** If A connects to both D (first internal) and F (end boundary) in chain `[A, D, E, F]`:
+
 - D is already x-constrained (sequential right after A) — no adjustment needed
 - F's position is determined by E and the merge rule, not by the A→F edge
+
+```
+[A]──>[D]──>[E]──>[F]
+ │                  ↑
+ └──────────────────┘   (skip-edge: A→F, not used for x-alignment)
+
+Only A→D (first node in chain) drives x-alignment.
+The A→F skip-edge may produce a longer diagonal — that's accepted.
+```
 
 ### Placement Rules
 
@@ -147,6 +230,13 @@ Every node's x-position is determined by exactly one rule. The rules form a prio
 
 The primary root is anchored to its current user position — it is never moved. All other nodes are placed relative to it.
 
+```
+[A]──>[B]──>[C]
+ ↑
+ primary root: stays at user position
+ B, C placed relative to A
+```
+
 #### Merge Alignment Rule
 
 **Applies to:** merge and merge-split nodes.
@@ -154,6 +244,22 @@ The primary root is anchored to its current user position — it is never moved.
 `x = max(parent.right for ALL parents) + gap`
 
 All parents are considered regardless of row. Because merges are recomputed in the reconcile pass (Step 2d), they always reflect the final positions of every parent.
+
+```
+         ┌──>[B]──>[C]──>[D]──>[E]──┐
+[A]──────┤                          ├──>[G]
+         └──>[F]────────────────────┘
+
+Assuming width=100, gap=30:
+  A=0, B=130, C=260, D=390, E=520, F=130
+  E.right = 620, F.right = 230
+
+  G.x = max(E.right, F.right) + gap
+      = max(620, 230) + 30 = 650
+
+G aligns to its rightmost parent (E), not its closest one (F).
+The long edge F→G is a consequence — the merge never "meets in the middle".
+```
 
 #### Merge Approach Rule
 
@@ -164,6 +270,36 @@ All parents are considered regardless of row. Because merges are recomputed in t
 If the end boundary is not a merge, is in the same row, or is in a lower-priority row, the node falls through to the Sequential rule.
 
 This rule is applied only during the reconcile pass (Step 2d). It uses `end.x_excl` — the end merge's position excluding `start`'s subtree — rather than `end.x` directly. This breaks a circular dependency: the end merge's Merge Alignment position includes `lastInternal` as a parent, so reading `end.x` would be self-referential. `end.x_excl` is computed as the max right-edge of the merge's parents that are **not** downstream of `start`, plus gap.
+
+```
+Row 0: [X]──>[Y]──>[Z]──>[W]──────>[D]
+                                     ↑
+Row 1: [A]──>[B]──>[C]──────────>[F]─┘
+
+Chain [A, B, C, F, D]: starts at A (Row 1), ends at D (merge, Row 0).
+D is in a higher-priority row → Merge Approach applies to F (last internal).
+
+Without Merge Approach (Sequential):
+  F.x = C.right + gap = 360 + 30 = 390
+
+With Merge Approach:
+  D.x_excl = W.right + gap = 490 + 30 = 520  (excluding A's subtree)
+  F.x = max(C.right + gap,  D.x_excl - F.width - gap)
+      = max(390, 520 - 100 - 30)
+      = max(390, 390) = 390
+
+  If the Row 0 path were longer, F would be pulled further right,
+  keeping the cross-row edge to D short:
+
+Row 0: [X]──>[Y]──>[Z]──>[W]──>[V]──>[U]──>[D]
+                                            ↑
+Row 1: [A]──>[B]──>[C]─────────────────>[F]─┘
+
+  D.x_excl = U.right + gap = 750 + 30 = 780
+  F.x = max(390, 780 - 100 - 30) = max(390, 650) = 650
+
+  F jumps from 390 to 650, approaching D closely.
+```
 
 #### Split Pull Rule
 
@@ -179,6 +315,35 @@ This rule is applied only during the reconcile pass (Step 2d). It uses `end.x_ex
 
 This rule unifies split-pull and secondary-root placement: both place a chain start so its full path fits exactly between itself and a downstream merge.
 
+```
+Secondary root pulled toward a shared merge (width=100, gap=30):
+
+Without Split Pull (R defaults to x=0):
+
+Row 0: [A]──>[B]──>[C]──>[D]──>[E]──>[F]──>[G]
+        0    130   260   390   520   650   780
+                                            ↑
+Row 1: [R]──>[H]────────────────────────────┘
+        0    130
+        Long diagonal edge from H (x=130) to G (x=780)!
+
+With Split Pull:
+
+Row 0: [A]──>[B]──>[C]──>[D]──>[E]──>[F]──>[G]
+        0    130   260   390   520   650   780
+                                            ↑
+Row 1:                          [R]──>[H]───┘
+                                520   650
+
+  G.x_excl  = F.right + gap = 750 + 30 = 780  (F is not downstream of R)
+  min_path_width = R.width + gap + H.width + gap = 100+30+100+30 = 260
+  R.x = G.x_excl - min_path_width = 780 - 260 = 520
+  H.x = R.right + gap = 520 + 100 + 30 = 650
+
+  R is pulled from x=0 to x=520. The cross-row edge (H→G) is now
+  650+100+30 = 780 = G.x — a clean short connection.
+```
+
 Adding an edge can **promote** a node from simple → merge, making it a new chain boundary and splitting the chain it previously belonged to.
 
 #### Sequential Rule
@@ -187,14 +352,23 @@ Adding an edge can **promote** a node from simple → merge, making it a new cha
 
 `x = prev.right + gap`
 
+```
+[A]────>[B]────>[C]
+x=0    x=130   x=260
+
+Assuming width=100, gap=30:
+  B.x = A.x + A.width + gap = 0 + 100 + 30 = 130
+  C.x = B.x + B.width + gap = 130 + 100 + 30 = 260
+```
+
 ---
 
 ## Why Four Phases
 
 The algorithm cannot be reduced to a single traversal because **Split Pull operates in the opposite causal direction from Merge Alignment and Sequential**:
 
-- **Merge Alignment and Sequential** are *forward causal*: "given my parents' positions, compute mine."
-- **Split Pull** is *backward causal*: "look downstream at a merge's final position, then pull myself upstream to fit."
+- **Merge Alignment and Sequential** are _forward causal_: "given my parents' positions, compute mine."
+- **Split Pull** is _backward causal_: "look downstream at a merge's final position, then pull myself upstream to fit."
 
 A single forward pass can satisfy one direction but not both. The four phases each resolve a specific dependency:
 
@@ -206,6 +380,7 @@ Deeper splits must pull before shallower ones. If a shallow split pulls first, i
 
 **Why the reconcile pass (2d) is necessary:**
 After Split Pulls, the nodes that moved are splits and sequential chains. But merges (Merge Alignment) haven't been updated to reflect their parents' new positions, and Merge Approach nodes haven't been computed at all. The reconcile pass fixes both:
+
 - Merge Alignment nodes are recomputed with finalized parent positions.
 - Merge Approach nodes can now safely read `end.x_excl` — the end merge's Merge Alignment position is final, and using `x_excl` rather than `end.x` avoids the self-referential dependency (the last internal is itself one of the merge's parents).
 
@@ -233,6 +408,18 @@ After all islands are laid out independently, overlapping islands are resolved w
 2. **Anchor each island's root** — the primary root of every island stays at its current user position; the island's internal layout is relative to it.
 3. **Push down on overlap** — for each island (in sorted order), check whether its bounding box overlaps any already-placed island above it. If it does, shift the entire island downward until the gap between it and the lowest overlapping island above is exactly the standard gap (30px). Apply this shift to every node in the island uniformly.
 4. **Cascade** — because islands are processed top-to-bottom, each shift only affects the current island and those below it. Earlier islands are never moved.
+
+```
+Before collision resolution:        After collision resolution:
+
+[A]──>[B]                           [A]──>[B]              ← Island 1 (anchored)
+[C]──>[D]──>[E]                        gap=30
+                                    [C]──>[D]──>[E]        ← Island 2 (pushed down)
+[F]                                    gap=30
+                                    [F]                    ← Island 3 (pushed down)
+
+Islands sorted by root y, then shifted down to maintain 30px gap.
+```
 
 ---
 
