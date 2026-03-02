@@ -60,12 +60,6 @@ function isBoundary(role: NodeRole): boolean {
   return role !== "simple";
 }
 
-/**********************************************************************************/
-/*                                                                                */
-/*                                   Autoformat                                   */
-/*                                                                                */
-/**********************************************************************************/
-
 /**
  * Sorted interval structure for efficient max-bottom-Y queries over x-ranges.
  * Used by both the y-pass (row placement) and island collision resolution.
@@ -96,8 +90,60 @@ class IntervalStructure {
   }
 }
 
+/**********************************************************************************/
+/*                                                                                */
+/*                                    Analysis                                    */
+/*                                                                                */
+/**********************************************************************************/
+
 /**
- * Step 1: Topology Analysis
+ * Island Detection
+ *
+ * Find connected components (islands) via BFS over undirected adjacency.
+ * Each island is an independent subgraph with no edges to any other.
+ */
+function findIslands(infos: Map<string, NodeInfo>): string[][] {
+  const visited = new Set<string>();
+  const islands: string[][] = [];
+
+  for (const id of infos.keys()) {
+    if (visited.has(id)) {
+      continue;
+    }
+
+    const component: string[] = [];
+    const queue = [id];
+    while (queue.length > 0) {
+      const curr = queue.shift()!;
+
+      if (visited.has(curr)) {
+        continue;
+      }
+
+      visited.add(curr);
+      component.push(curr);
+      const info = infos.get(curr)!;
+
+      for (const pid of info.parents) {
+        if (!visited.has(pid)) {
+          queue.push(pid);
+        }
+      }
+
+      for (const cid of info.children) {
+        if (!visited.has(cid)) {
+          queue.push(cid);
+        }
+      }
+    }
+    islands.push(component);
+  }
+
+  return islands;
+}
+
+/**
+ * Topology Analysis
  */
 function buildTopology(graph: Graph): Map<string, NodeInfo> {
   const infos = new Map<string, NodeInfo>();
@@ -264,7 +310,36 @@ function topologicalSort(infos: Map<string, NodeInfo>): string[] {
 }
 
 /**
- * Step 2a: Row Assignment
+ * Ancestor Sets
+ *
+ * Precompute the full ancestor set for every node in one O(n) pass (topological
+ * order guarantees all parents are processed before their children).
+ * Replaces the recursive isDescendantOf + descCache pattern.
+ */
+function buildAncestorSets(
+  infos: Map<string, NodeInfo>,
+  order: string[],
+): Map<string, Set<string>> {
+  const ancestors = new Map<string, Set<string>>();
+
+  for (const id of order) {
+    const anc = new Set<string>();
+
+    for (const pid of infos.get(id)!.parents) {
+      anc.add(pid);
+
+      for (const a of ancestors.get(pid)!) {
+        anc.add(a);
+      }
+    }
+
+    ancestors.set(id, anc);
+  }
+  return ancestors;
+}
+
+/**
+ * Row Assignment
  *
  * Process boundary nodes in topological order. At each node, sort output chains
  * by the initial y of their first child (ascending). The first unclaimed chain
@@ -383,6 +458,126 @@ function assignRows(
 }
 
 /**
+ * Build a map of "merge approach" nodes — the last interior node in a chain
+ * whose end boundary is a merge in a strictly higher-priority row (Merge Approach rule).
+ *
+ * These nodes get special positioning: x = max(prev.right + gap, end.x - width - gap),
+ * pulling them toward the merge they feed into.
+ */
+function buildMergeApproachMap(
+  infos: Map<string, NodeInfo>,
+  rowOf: Map<string, number>,
+  chainMap: Map<string, Map<string, string[]>>,
+): Map<string, { endId: string; prevId: string; startId: string }> {
+  const mergeApproachMap = new Map<
+    string,
+    { endId: string; prevId: string; startId: string }
+  >();
+
+  for (const info of infos.values()) {
+    if (!isBoundary(info.role)) {
+      continue;
+    }
+
+    const startRow = rowOf.get(info.id) ?? 0;
+
+    for (const firstChildId of info.children) {
+      const chain = chainMap.get(info.id)!.get(firstChildId)!;
+      if (chain.length < 3) {
+        continue; // need at least 1 internal node
+      }
+
+      const endId = chain[chain.length - 1];
+
+      if (!isMergeLike(infos.get(endId)!.role)) {
+        continue;
+      }
+
+      const endRow = rowOf.get(endId) ?? 0;
+
+      if (endRow >= startRow) {
+        continue; // end must be strictly higher priority
+      }
+
+      const lastInternalId = chain[chain.length - 2];
+      if (!mergeApproachMap.has(lastInternalId)) {
+        // prev = node just before lastInternal in the chain
+        const prevId = chain.length >= 4 ? chain[chain.length - 3] : info.id;
+        mergeApproachMap.set(lastInternalId, {
+          endId,
+          prevId,
+          startId: info.id,
+        });
+      }
+    }
+  }
+
+  return mergeApproachMap;
+}
+
+/**
+ * DFS Row Order
+ *
+ * Rows are visited in DFS order (not row-index order): starting at the primary
+ * root, children are sorted by initialY ascending, each subtree fully exhausted
+ * before the next sibling. Secondary roots follow in top-left order.
+ */
+function buildDFSRowOrder(
+  infos: Map<string, NodeInfo>,
+  rowOf: Map<string, number>,
+  primaryRootId: string,
+): number[] {
+  const rowsEncountered = new Set<number>();
+  const rowOrder: number[] = [];
+  const visited = new Set<string>();
+
+  function dfs(nodeId: string) {
+    if (visited.has(nodeId)) {
+      return;
+    }
+
+    visited.add(nodeId);
+    const row = rowOf.get(nodeId);
+
+    if (row !== undefined && !rowsEncountered.has(row)) {
+      rowsEncountered.add(row);
+      rowOrder.push(row);
+    }
+
+    const info = assertedNotNullish(
+      infos.get(nodeId),
+      `Expected infos to contain ${nodeId}`,
+    );
+    const sortedChildren = [...info.children].sort(
+      (a, b) => infos.get(a)!.initialY - infos.get(b)!.initialY,
+    );
+
+    for (const childId of sortedChildren) {
+      dfs(childId);
+    }
+  }
+
+  dfs(primaryRootId);
+
+  // Secondary roots in top-left order (smallest y, tie-break smallest x)
+  const secondaryRoots = [...infos.values()]
+    .filter((n) => n.role === "root" && n.id !== primaryRootId)
+    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX);
+
+  for (const root of secondaryRoots) {
+    dfs(root.id);
+  }
+
+  return rowOrder;
+}
+
+/**********************************************************************************/
+/*                                                                                */
+/*                                     X-Pass                                     */
+/*                                                                                */
+/**********************************************************************************/
+
+/**
  * Compute provisional x-positions for all nodes in topological order.
  *
  * Placement rules:
@@ -435,35 +630,6 @@ function computeInitialXPositions(
   }
 
   return x;
-}
-
-/**
- * Ancestor Sets
- *
- * Precompute the full ancestor set for every node in one O(n) pass (topological
- * order guarantees all parents are processed before their children).
- * Replaces the recursive isDescendantOf + descCache pattern.
- */
-function buildAncestorSets(
-  infos: Map<string, NodeInfo>,
-  order: string[],
-): Map<string, Set<string>> {
-  const ancestors = new Map<string, Set<string>>();
-
-  for (const id of order) {
-    const anc = new Set<string>();
-
-    for (const pid of infos.get(id)!.parents) {
-      anc.add(pid);
-
-      for (const a of ancestors.get(pid)!) {
-        anc.add(a);
-      }
-    }
-
-    ancestors.set(id, anc);
-  }
-  return ancestors;
 }
 
 /**
@@ -799,64 +965,6 @@ function pullSplitsTowardMerges(
 }
 
 /**
- * Build a map of "merge approach" nodes — the last interior node in a chain
- * whose end boundary is a merge in a strictly higher-priority row (Merge Approach rule).
- *
- * These nodes get special positioning: x = max(prev.right + gap, end.x - width - gap),
- * pulling them toward the merge they feed into.
- */
-function buildMergeApproachMap(
-  infos: Map<string, NodeInfo>,
-  rowOf: Map<string, number>,
-  chainMap: Map<string, Map<string, string[]>>,
-): Map<string, { endId: string; prevId: string; startId: string }> {
-  const mergeApproachMap = new Map<
-    string,
-    { endId: string; prevId: string; startId: string }
-  >();
-
-  for (const info of infos.values()) {
-    if (!isBoundary(info.role)) {
-      continue;
-    }
-
-    const startRow = rowOf.get(info.id) ?? 0;
-
-    for (const firstChildId of info.children) {
-      const chain = chainMap.get(info.id)!.get(firstChildId)!;
-      if (chain.length < 3) {
-        continue; // need at least 1 internal node
-      }
-
-      const endId = chain[chain.length - 1];
-
-      if (!isMergeLike(infos.get(endId)!.role)) {
-        continue;
-      }
-
-      const endRow = rowOf.get(endId) ?? 0;
-
-      if (endRow >= startRow) {
-        continue; // end must be strictly higher priority
-      }
-
-      const lastInternalId = chain[chain.length - 2];
-      if (!mergeApproachMap.has(lastInternalId)) {
-        // prev = node just before lastInternal in the chain
-        const prevId = chain.length >= 4 ? chain[chain.length - 3] : info.id;
-        mergeApproachMap.set(lastInternalId, {
-          endId,
-          prevId,
-          startId: info.id,
-        });
-      }
-    }
-  }
-
-  return mergeApproachMap;
-}
-
-/**
  * Reconcile x-positions after split pulls.
  *
  * Recomputes all non-fixed nodes in topological order:
@@ -954,70 +1062,23 @@ function reconcileXPositions(
   return result;
 }
 
+/**********************************************************************************/
+/*                                                                                */
+/*                                     Y-Pass                                     */
+/*                                                                                */
+/**********************************************************************************/
+
 /**
- * Determine DFS row visitation order, then assign y-positions.
- *
- * Rows are visited in DFS order (not row-index order): starting at the primary
- * root, children are sorted by initialY ascending, each subtree fully exhausted
- * before the next sibling. Secondary roots follow in top-left order.
+ * Assign y-positions using the pre-computed DFS row order.
  *
  * Each row's y = max_bottom_y across its x-span (via IntervalStructure) + gap.
  * The interval structure is seeded so row 0 lands at primaryRoot.initialY.
  */
-
-function buildDFSRowOrder(
-  infos: Map<string, NodeInfo>,
-  rowOf: Map<string, number>,
-  primaryRootId: string,
-): number[] {
-  const rowsEncountered = new Set<number>();
-  const rowOrder: number[] = [];
-  const visited = new Set<string>();
-
-  function dfs(nodeId: string) {
-    if (visited.has(nodeId)) {
-      return;
-    }
-
-    visited.add(nodeId);
-    const row = rowOf.get(nodeId);
-
-    if (row !== undefined && !rowsEncountered.has(row)) {
-      rowsEncountered.add(row);
-      rowOrder.push(row);
-    }
-
-    const info = assertedNotNullish(
-      infos.get(nodeId),
-      `Expected infos to contain ${nodeId}`,
-    );
-    const sortedChildren = [...info.children].sort(
-      (a, b) => infos.get(a)!.initialY - infos.get(b)!.initialY,
-    );
-
-    for (const childId of sortedChildren) {
-      dfs(childId);
-    }
-  }
-
-  dfs(primaryRootId);
-
-  // Secondary roots in top-left order (smallest y, tie-break smallest x)
-  const secondaryRoots = [...infos.values()]
-    .filter((n) => n.role === "root" && n.id !== primaryRootId)
-    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX);
-
-  for (const root of secondaryRoots) {
-    dfs(root.id);
-  }
-
-  return rowOrder;
-}
-
 function yPass(
   infos: Map<string, NodeInfo>,
   xFinal: Map<string, number>,
   rowOf: Map<string, number>,
+  rowOrder: number[],
   primaryRootId: string,
   options: AutoformatOptions,
 ): Map<string, number> {
@@ -1038,8 +1099,6 @@ function yPass(
   const intervals = new IntervalStructure(
     infos.get(primaryRootId)!.initialY - options.gap,
   );
-
-  const rowOrder = buildDFSRowOrder(infos, rowOf, primaryRootId);
 
   for (const row of rowOrder) {
     const nodeIds = rowNodes.get(row) ?? [];
@@ -1077,110 +1136,6 @@ function yPass(
   }
 
   return yOut;
-}
-
-/**
- * Island Detection
- *
- * Find connected components (islands) via BFS over undirected adjacency.
- * Each island is an independent subgraph with no edges to any other.
- */
-function findIslands(infos: Map<string, NodeInfo>): string[][] {
-  const visited = new Set<string>();
-  const islands: string[][] = [];
-
-  for (const id of infos.keys()) {
-    if (visited.has(id)) {
-      continue;
-    }
-
-    const component: string[] = [];
-    const queue = [id];
-    while (queue.length > 0) {
-      const curr = queue.shift()!;
-
-      if (visited.has(curr)) {
-        continue;
-      }
-
-      visited.add(curr);
-      component.push(curr);
-      const info = infos.get(curr)!;
-
-      for (const pid of info.parents) {
-        if (!visited.has(pid)) {
-          queue.push(pid);
-        }
-      }
-
-      for (const cid of info.children) {
-        if (!visited.has(cid)) {
-          queue.push(cid);
-        }
-      }
-    }
-    islands.push(component);
-  }
-
-  return islands;
-}
-
-// ─── Per-Island Layout ────────────────────────────────────────────────────────
-
-function layoutIsland(
-  islandInfos: Map<string, NodeInfo>,
-  options: AutoformatOptions,
-): {
-  xFinal: Map<string, number>;
-  yFinal: Map<string, number>;
-  rowOf: Map<string, number>;
-} {
-  const order = topologicalSort(islandInfos);
-  const chainMap = buildChainMap(islandInfos);
-  const ancestorSets = buildAncestorSets(islandInfos, order);
-
-  const primaryRoot = [...islandInfos.values()]
-    .filter((n) => n.role === "root")
-    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
-
-  const rowOf = assignRows(islandInfos, order, chainMap);
-  const initialXPositions = computeInitialXPositions(
-    islandInfos,
-    primaryRoot.id,
-    order,
-    options,
-  );
-  const xAfterRule4 = pullSplitsTowardMerges(
-    islandInfos,
-    primaryRoot.id,
-    order,
-    rowOf,
-    initialXPositions,
-    chainMap,
-    ancestorSets,
-    options,
-  );
-  const mergeApproachMap = buildMergeApproachMap(islandInfos, rowOf, chainMap);
-  const xFinal = reconcileXPositions(
-    islandInfos,
-    order,
-    primaryRoot.id,
-    xAfterRule4,
-    mergeApproachMap,
-    ancestorSets,
-    options,
-  );
-  const yFinal = yPass(islandInfos, xFinal, rowOf, primaryRoot.id, options);
-
-  return { xFinal, yFinal, rowOf };
-}
-
-interface IslandLayout {
-  nodeIds: string[];
-  infos: Map<string, NodeInfo>;
-  xFinal: Map<string, number>;
-  yFinal: Map<string, number>;
-  primaryRootY: number;
 }
 
 /**
@@ -1240,7 +1195,78 @@ function resolveIslandCollisions(
   }
 }
 
+// ─── Per-Island Layout ────────────────────────────────────────────────────────
+
+function layoutIsland(
+  islandInfos: Map<string, NodeInfo>,
+  options: AutoformatOptions,
+): {
+  xFinal: Map<string, number>;
+  yFinal: Map<string, number>;
+  rowOf: Map<string, number>;
+} {
+  // ── Analysis ──────────────────────────────────────────────────────────────
+  const order = topologicalSort(islandInfos);
+  const chainMap = buildChainMap(islandInfos);
+  const ancestorSets = buildAncestorSets(islandInfos, order);
+
+  const primaryRoot = [...islandInfos.values()]
+    .filter((n) => n.role === "root")
+    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
+
+  const rowOf = assignRows(islandInfos, order, chainMap);
+  const mergeApproachMap = buildMergeApproachMap(islandInfos, rowOf, chainMap);
+  const rowOrder = buildDFSRowOrder(islandInfos, rowOf, primaryRoot.id);
+
+  // ── X-Pass ────────────────────────────────────────────────────────────────
+  const initialXPositions = computeInitialXPositions(
+    islandInfos,
+    primaryRoot.id,
+    order,
+    options,
+  );
+  const xAfterSplitPull = pullSplitsTowardMerges(
+    islandInfos,
+    primaryRoot.id,
+    order,
+    rowOf,
+    initialXPositions,
+    chainMap,
+    ancestorSets,
+    options,
+  );
+  const xFinal = reconcileXPositions(
+    islandInfos,
+    order,
+    primaryRoot.id,
+    xAfterSplitPull,
+    mergeApproachMap,
+    ancestorSets,
+    options,
+  );
+
+  // ── Y-Pass ────────────────────────────────────────────────────────────────
+  const yFinal = yPass(
+    islandInfos,
+    xFinal,
+    rowOf,
+    rowOrder,
+    primaryRoot.id,
+    options,
+  );
+
+  return { xFinal, yFinal, rowOf };
+}
+
 // ─── Main exports ─────────────────────────────────────────────────────────────
+
+interface IslandLayout {
+  nodeIds: string[];
+  infos: Map<string, NodeInfo>;
+  xFinal: Map<string, number>;
+  yFinal: Map<string, number>;
+  primaryRootY: number;
+}
 
 export function analyzeLayout(
   graph: Graph,
