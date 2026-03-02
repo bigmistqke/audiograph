@@ -1,6 +1,6 @@
 {
-  "id": "f0e50882-a626-437f-81e9-1f4b4d7199f6",
-  "title": "An island that does not cause overlap after layout should not be moved vertically",
+  "id": "081fb6b6-84af-42bf-b15c-866cd6e2f884",
+  "title": "An island that does not cause overlap after layout should not be moved vertically (part 2)",
   "initial": {
     "nodes": {
       "A": {
@@ -51,7 +51,7 @@
       "F": {
         "id": "F",
         "type": "node",
-        "x": 130,
+        "x": 170,
         "y": 120,
         "width": 100,
         "height": 80,
@@ -123,8 +123,8 @@
       "y": 300
     },
     "F": {
-      "x": 130,
-      "y": 120
+      "x": 170,
+      "y": 410
     }
   }
 }

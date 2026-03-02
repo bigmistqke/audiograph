@@ -3423,6 +3423,399 @@ describe("autoformat — x-positions", () => {
           "F": 130
     });
   });
+
+  it("An island that does not cause overlap after layout should not be moved vertically (part 2)", () => {
+    const initial: Graph = {
+        "edges": {
+            "fefb3861-712f-40ae-b487-f57a3c90feec": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            },
+            "d6535f48-41a9-4c80-bfd7-aa1cb45d2a93": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "d5f728bf-3501-4a54-a396-534c2518cdfa": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "df96951c-78c5-43af-8b96-13c4f59fb586": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 260,
+                "y": 0,
+                "width": 100,
+                "height": 270,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 130,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 260,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": 170,
+                "y": 120,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 130,
+          "C": 260,
+          "D": 130,
+          "E": 260,
+          "F": 170
+    });
+  });
+
+  it("secondary merge going into split with negative coordinates", () => {
+    const initial: Graph = {
+        "edges": {
+            "b60c6eb9-3be4-42c7-b26f-2ae6dc53ba7d": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "beff7dea-2a97-451f-bcd9-c959b1b9b6c3": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "f0362333-e2e2-42b5-80f0-2b40077c02f8": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "fe11ffe6-1005-45ed-b216-13a0fca192d2": {
+                "output": {
+                    "node": "E",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "G",
+                    "port": "in"
+                }
+            },
+            "2ad00aeb-96e5-49af-ba8b-5cef819c0d51": {
+                "output": {
+                    "node": "F",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "G",
+                    "port": "in"
+                }
+            },
+            "6069d510-a8ad-4cdd-9fc5-317f81996426": {
+                "output": {
+                    "node": "G",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 0,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 130,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": -260,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": -260,
+                "y": 220,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "G": {
+                "id": "G",
+                "type": "node",
+                "x": -130,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 130,
+          "C": 0,
+          "D": 130,
+          "E": -260,
+          "F": -260,
+          "G": -130
+    });
+  });
+
+  it("secondary merge going into split with only positive coordinates", () => {
+    const initial: Graph = {
+        "edges": {
+            "b60c6eb9-3be4-42c7-b26f-2ae6dc53ba7d": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "beff7dea-2a97-451f-bcd9-c959b1b9b6c3": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "f0362333-e2e2-42b5-80f0-2b40077c02f8": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "fe11ffe6-1005-45ed-b216-13a0fca192d2": {
+                "output": {
+                    "node": "E",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "G",
+                    "port": "in"
+                }
+            },
+            "2ad00aeb-96e5-49af-ba8b-5cef819c0d51": {
+                "output": {
+                    "node": "F",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "G",
+                    "port": "in"
+                }
+            },
+            "6069d510-a8ad-4cdd-9fc5-317f81996426": {
+                "output": {
+                    "node": "G",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 290,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 420,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 290,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 420,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 30,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": 30,
+                "y": 230,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "G": {
+                "id": "G",
+                "type": "node",
+                "x": 160,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "A": 290,
+          "B": 420,
+          "C": 290,
+          "D": 420,
+          "E": 30,
+          "F": 30,
+          "G": 160
+    });
+  });
 });
 
 describe("autoformat — y-positions", () => {
@@ -6817,9 +7210,402 @@ describe("autoformat — y-positions", () => {
           "A": 0,
           "B": 0,
           "C": 0,
-          "D": 310,
-          "E": 310,
+          "D": 300,
+          "E": 300,
           "F": 120
+    });
+  });
+
+  it("An island that does not cause overlap after layout should not be moved vertically (part 2)", () => {
+    const initial: Graph = {
+        "edges": {
+            "fefb3861-712f-40ae-b487-f57a3c90feec": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            },
+            "d6535f48-41a9-4c80-bfd7-aa1cb45d2a93": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "d5f728bf-3501-4a54-a396-534c2518cdfa": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "df96951c-78c5-43af-8b96-13c4f59fb586": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 260,
+                "y": 0,
+                "width": 100,
+                "height": 270,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 130,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 260,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": 170,
+                "y": 120,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 0,
+          "C": 0,
+          "D": 300,
+          "E": 300,
+          "F": 410
+    });
+  });
+
+  it("secondary merge going into split with negative coordinates", () => {
+    const initial: Graph = {
+        "edges": {
+            "b60c6eb9-3be4-42c7-b26f-2ae6dc53ba7d": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "beff7dea-2a97-451f-bcd9-c959b1b9b6c3": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "f0362333-e2e2-42b5-80f0-2b40077c02f8": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "fe11ffe6-1005-45ed-b216-13a0fca192d2": {
+                "output": {
+                    "node": "E",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "G",
+                    "port": "in"
+                }
+            },
+            "2ad00aeb-96e5-49af-ba8b-5cef819c0d51": {
+                "output": {
+                    "node": "F",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "G",
+                    "port": "in"
+                }
+            },
+            "6069d510-a8ad-4cdd-9fc5-317f81996426": {
+                "output": {
+                    "node": "G",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 0,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 130,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": -260,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": -260,
+                "y": 220,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "G": {
+                "id": "G",
+                "type": "node",
+                "x": -130,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 0,
+          "C": 110,
+          "D": 110,
+          "E": 110,
+          "F": 220,
+          "G": 110
+    });
+  });
+
+  it("secondary merge going into split with only positive coordinates", () => {
+    const initial: Graph = {
+        "edges": {
+            "b60c6eb9-3be4-42c7-b26f-2ae6dc53ba7d": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "beff7dea-2a97-451f-bcd9-c959b1b9b6c3": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "f0362333-e2e2-42b5-80f0-2b40077c02f8": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "fe11ffe6-1005-45ed-b216-13a0fca192d2": {
+                "output": {
+                    "node": "E",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "G",
+                    "port": "in"
+                }
+            },
+            "2ad00aeb-96e5-49af-ba8b-5cef819c0d51": {
+                "output": {
+                    "node": "F",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "G",
+                    "port": "in"
+                }
+            },
+            "6069d510-a8ad-4cdd-9fc5-317f81996426": {
+                "output": {
+                    "node": "G",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 290,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 420,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 290,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 420,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 30,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": 30,
+                "y": 230,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "G": {
+                "id": "G",
+                "type": "node",
+                "x": 160,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 0,
+          "C": 110,
+          "D": 110,
+          "E": 110,
+          "F": 220,
+          "G": 110
     });
   });
 });
