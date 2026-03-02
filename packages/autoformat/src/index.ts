@@ -364,7 +364,7 @@ function propagateSequential(
  * This equals the minimum horizontal span from S's left edge to place the next
  * node right after currentBoundary.
  */
-function findBestRule4Pull(
+function findMergePullTarget(
   splitId: string,
   infos: Map<string, NodeInfo>,
   rowOf: Map<string, number>,
@@ -457,7 +457,7 @@ function findBestRule4Pull(
  *    positions — this ensures later secondary roots see updated x_excl values
  *    from already-placed earlier ones.
  */
-function applyRule4(
+function pullSplitsTowardMerges(
   infos: Map<string, NodeInfo>,
   primaryRootId: string,
   order: string[],
@@ -478,7 +478,7 @@ function applyRule4(
   for (const rootInfo of secondaryRoots) {
     const id = rootInfo.id;
 
-    const pull = findBestRule4Pull(id, infos, rowOf, x, ancestorSets, chainMap);
+    const pull = findMergePullTarget(id, infos, rowOf, x, ancestorSets, chainMap);
     if (pull === -Infinity) continue;
 
     // Secondary roots have no prev — pull alone determines x (can be negative).
@@ -499,7 +499,7 @@ function applyRule4(
     const info = infos.get(id)!;
     if (info.role !== "split") continue;
 
-    const pull = findBestRule4Pull(id, infos, rowOf, x, ancestorSets, chainMap);
+    const pull = findMergePullTarget(id, infos, rowOf, x, ancestorSets, chainMap);
     if (pull === -Infinity) continue;
 
     const prevId = info.parents[0];
@@ -529,12 +529,12 @@ function applyRule4(
  * For such a node: x = max(prev.right + gap, end.x - width - gap)
  * where "prev" is the node immediately before it in the chain.
  */
-function computeRule3Map(
+function buildMergeApproachMap(
   infos: Map<string, NodeInfo>,
   rowOf: Map<string, number>,
   chainMap: Map<string, Map<string, string[]>>,
 ): Map<string, { endId: string; prevId: string; startId: string }> {
-  const rule3Map = new Map<
+  const mergeApproachMap = new Map<
     string,
     { endId: string; prevId: string; startId: string }
   >();
@@ -554,15 +554,15 @@ function computeRule3Map(
       if (endRow >= startRow) continue; // end must be strictly higher priority
 
       const lastInternalId = chain[chain.length - 2];
-      if (!rule3Map.has(lastInternalId)) {
+      if (!mergeApproachMap.has(lastInternalId)) {
         // prev = node just before lastInternal in the chain
         const prevId = chain.length >= 4 ? chain[chain.length - 3] : info.id;
-        rule3Map.set(lastInternalId, { endId, prevId, startId: info.id });
+        mergeApproachMap.set(lastInternalId, { endId, prevId, startId: info.id });
       }
     }
   }
 
-  return rule3Map;
+  return mergeApproachMap;
 }
 
 /**
@@ -581,7 +581,7 @@ function reconcilePass(
   order: string[],
   primaryRootId: string,
   x: Map<string, number>,
-  rule3Map: Map<string, { endId: string; prevId: string; startId: string }>,
+  mergeApproachMap: Map<string, { endId: string; prevId: string; startId: string }>,
   ancestorSets: Map<string, Set<string>>,
 ): Map<string, number> {
   const result = new Map(x);
@@ -597,8 +597,8 @@ function reconcilePass(
     // Rule 3: last internal before a higher-priority merge.
     // Use x_excl to avoid circular dependency: endId's Rule 2 position may
     // include this node as a parent, so we exclude the chain's startId subtree.
-    if (rule3Map.has(id)) {
-      const { endId, prevId, startId } = rule3Map.get(id)!;
+    if (mergeApproachMap.has(id)) {
+      const { endId, prevId, startId } = mergeApproachMap.get(id)!;
       const prevInfo = infos.get(prevId)!;
       const prevRight = result.get(prevId)! + prevInfo.width;
       const xExcl = computeXExcl(endId, startId, infos, result, ancestorSets);
@@ -816,7 +816,7 @@ function layoutIsland(islandInfos: Map<string, NodeInfo>): {
 
   const rowOf = assignRows(islandInfos, order, chainMap);
   const xFwd = forwardPass(islandInfos, primaryRoot.id, order);
-  const xAfterRule4 = applyRule4(
+  const xAfterRule4 = pullSplitsTowardMerges(
     islandInfos,
     primaryRoot.id,
     order,
@@ -825,13 +825,13 @@ function layoutIsland(islandInfos: Map<string, NodeInfo>): {
     chainMap,
     ancestorSets,
   );
-  const rule3Map = computeRule3Map(islandInfos, rowOf, chainMap);
+  const mergeApproachMap = buildMergeApproachMap(islandInfos, rowOf, chainMap);
   const xFinal = reconcilePass(
     islandInfos,
     order,
     primaryRoot.id,
     xAfterRule4,
-    rule3Map,
+    mergeApproachMap,
     ancestorSets,
   );
   const yFinal = yPass(islandInfos, xFinal, rowOf, primaryRoot.id);
