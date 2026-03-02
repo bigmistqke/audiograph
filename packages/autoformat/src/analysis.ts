@@ -428,28 +428,30 @@ export function buildMergeApproachMap(
 /**
  * Row Order
  *
- * Collect all rows via DFS (to discover them), then sort by the minimum
- * initialY of each row's nodes. This ensures rows are placed in visual
- * top-to-bottom order regardless of topology or discovery order.
+ * Sort rows by the initialY of the first node assigned to each row
+ * (in topological order). This ensures the node that *created* the row
+ * determines its vertical placement, rather than a downstream merge or
+ * simple node that may have a very different initialY.
  */
 export function buildRowOrder(
   infos: Map<string, NodeInfo>,
   rowOf: Map<string, number>,
+  order: string[],
 ): number[] {
-  // Build row → min initialY
-  const rowMinY = new Map<number, number>();
+  // The first node in topological order for each row is the node that
+  // created/defined it. Use its initialY for ordering.
+  const rowStarterY = new Map<number, number>();
 
-  for (const [id, row] of rowOf) {
-    const y = infos.get(id)!.initialY;
-    const current = rowMinY.get(row);
+  for (const id of order) {
+    const row = rowOf.get(id);
 
-    if (current === undefined || y < current) {
-      rowMinY.set(row, y);
+    if (row !== undefined && !rowStarterY.has(row)) {
+      rowStarterY.set(row, infos.get(id)!.initialY);
     }
   }
 
-  return [...rowMinY.keys()].sort(
-    (a, b) => rowMinY.get(a)! - rowMinY.get(b)!,
+  return [...rowStarterY.keys()].sort(
+    (a, b) => rowStarterY.get(a)! - rowStarterY.get(b)!,
   );
 }
 
@@ -467,7 +469,7 @@ export function analysis(infos: Map<string, NodeInfo>): AnalysisResult {
 
   const rowOf = assignRows(infos, order, chainMap);
   const mergeApproachMap = buildMergeApproachMap(infos, rowOf, chainMap);
-  const rowOrder = buildRowOrder(infos, rowOf);
+  const rowOrder = buildRowOrder(infos, rowOf, order);
 
   return {
     infos,

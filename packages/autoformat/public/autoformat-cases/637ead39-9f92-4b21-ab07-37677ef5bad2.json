@@ -1,0 +1,117 @@
+{
+  "id": "637ead39-9f92-4b21-ab07-37677ef5bad2",
+  "title": "The first node of a row decides its order",
+  "initial": {
+    "nodes": {
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": -130,
+        "y": -40,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": -130,
+        "y": 230,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "C": {
+        "id": "C",
+        "type": "node",
+        "x": 0,
+        "y": 120,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "D": {
+        "id": "D",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "E": {
+        "id": "E",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      }
+    },
+    "edges": {
+      "e28eade4-4240-47ce-a6b5-3d2c4efdcbd8": {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
+          "port": "in"
+        }
+      },
+      "f52ff50e-9f75-4c64-9e07-08ae3afaefbd": {
+        "output": {
+          "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
+          "port": "in"
+        }
+      },
+      "def93ce9-f0c7-4a13-8910-6506b3a1403b": {
+        "output": {
+          "node": "C",
+          "port": "out"
+        },
+        "input": {
+          "node": "E",
+          "port": "in"
+        }
+      },
+      "fd32bb37-a564-471a-bb9a-a90b4091abfa": {
+        "output": {
+          "node": "D",
+          "port": "out"
+        },
+        "input": {
+          "node": "E",
+          "port": "in"
+        }
+      }
+    }
+  },
+  "expected": {
+    "A": {
+      "x": -130,
+      "y": -40
+    },
+    "B": {
+      "x": -130,
+      "y": 70
+    },
+    "C": {
+      "x": 0,
+      "y": -40
+    },
+    "D": {
+      "x": 0,
+      "y": 70
+    },
+    "E": {
+      "x": 130,
+      "y": -40
+    }
+  }
+}

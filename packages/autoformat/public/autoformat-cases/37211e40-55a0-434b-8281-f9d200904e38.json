@@ -1,0 +1,163 @@
+{
+  "id": "37211e40-55a0-434b-8281-f9d200904e38",
+  "title": "Negative x-coordinates should not break row assignment",
+  "initial": {
+    "nodes": {
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": 140,
+        "y": 0,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "C": {
+        "id": "C",
+        "type": "node",
+        "x": -130,
+        "y": 110,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "D": {
+        "id": "D",
+        "type": "node",
+        "x": -130,
+        "y": 320,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "E": {
+        "id": "E",
+        "type": "node",
+        "x": 0,
+        "y": 110,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "F": {
+        "id": "F",
+        "type": "node",
+        "x": 130,
+        "y": 110,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "G": {
+        "id": "G",
+        "type": "node",
+        "x": -70,
+        "y": 220,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      }
+    },
+    "edges": {
+      "d3c43b92-6b13-48ea-aabb-3ef921bff3dc": {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      },
+      "bb8fc6b4-a08a-4992-984d-04f5eaf4efb9": {
+        "output": {
+          "node": "C",
+          "port": "out"
+        },
+        "input": {
+          "node": "E",
+          "port": "in"
+        }
+      },
+      "82847116-75a2-4204-aea7-cff5909f13f5": {
+        "output": {
+          "node": "D",
+          "port": "out"
+        },
+        "input": {
+          "node": "E",
+          "port": "in"
+        }
+      },
+      "380cf782-084b-422c-a137-a984bb36b183": {
+        "output": {
+          "node": "E",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      },
+      "438b4695-b892-44fe-8c67-45543da1c649": {
+        "output": {
+          "node": "E",
+          "port": "out"
+        },
+        "input": {
+          "node": "F",
+          "port": "in"
+        }
+      },
+      "9759777b-46a0-4b0d-8a39-b645a5d9d4f7": {
+        "output": {
+          "node": "G",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      }
+    }
+  },
+  "expected": {
+    "A": {
+      "x": 0,
+      "y": 0
+    },
+    "B": {
+      "x": 130,
+      "y": 0
+    },
+    "C": {
+      "x": -130,
+      "y": 110
+    },
+    "D": {
+      "x": -130,
+      "y": 220
+    },
+    "E": {
+      "x": 0,
+      "y": 110
+    },
+    "F": {
+      "x": 130,
+      "y": 110
+    },
+    "G": {
+      "x": 0,
+      "y": 220
+    }
+  }
+}

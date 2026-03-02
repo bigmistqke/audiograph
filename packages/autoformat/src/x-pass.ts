@@ -479,7 +479,45 @@ function reconcileXPositions(
 }
 
 /**
+ * Re-pull secondary roots using reconciled merge positions.
+ *
+ * Only allows leftward movement: reconcile can only move merges leftward
+ * (parents got pulled left → max(parent.rights) decreases), so pull targets
+ * can only decrease. A root that was correctly pulled in Phase 2 stays put;
+ * a root whose pull was inflated by stale merge positions moves left.
+ *
+ * This prevents oscillation when secondary roots have circular dependencies
+ * through shared merges (e.g. C's pull depends on G, G depends on E, E
+ * depends on C).
+ */
+function rePullSecondaryRoots(
+  ctx: AnalysisResult,
+  x: Map<string, number>,
+  options: AutoformatOptions,
+): Map<string, number> {
+  const { infos, primaryRoot } = ctx;
+  const result = new Map(x);
+
+  const secondaryRoots = [...infos.values()]
+    .filter((info) => info.role === "root" && info.id !== primaryRoot.id)
+    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX);
+
+  for (const rootInfo of secondaryRoots) {
+    const pull = findMergePullTarget(ctx, rootInfo.id, result, options);
+
+    if (pull !== -Infinity && pull < result.get(rootInfo.id)!) {
+      result.set(rootInfo.id, pull);
+    }
+  }
+
+  return result;
+}
+
+/**
  * Run the full x-positioning pipeline: initial placement → split pull → reconcile.
+ *
+ * After the first reconcile, re-pull secondary roots (leftward only) using
+ * the updated merge positions, then reconcile again to propagate.
  */
 export function xPass(
   ctx: AnalysisResult,
@@ -491,5 +529,7 @@ export function xPass(
     initialXPositions,
     options,
   );
-  return reconcileXPositions(ctx, xAfterSplitPull, options, pulledSplits);
+  const reconciled = reconcileXPositions(ctx, xAfterSplitPull, options, pulledSplits);
+  const rePulled = rePullSecondaryRoots(ctx, reconciled, options);
+  return reconcileXPositions(ctx, rePulled, options, pulledSplits);
 }
