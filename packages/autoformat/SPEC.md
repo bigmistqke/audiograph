@@ -13,7 +13,7 @@ This algorithm does the same thing for graphs:
 
 The result is a layout that is always tidy, but still feels like _yours_.
 
-The algorithm is **not** a single DFS traversal — it requires four sequential phases over a topological sort. The reason is a fundamental causal conflict: the Merge Alignment and Sequential rules are _forward causal_ ("given my parents' positions, place me"), while the Split Pull rule is _backward causal_ ("look downstream at a merge's final position, then pull myself upstream to fit"). A single forward pass cannot satisfy both directions simultaneously. See _Why Four Phases_ for details.
+The algorithm is **not** a single DFS traversal — it runs as a three-phase pipeline (analysis → x-pass → y-pass), where the x-pass itself requires three sub-phases over a topological sort. The reason is a fundamental causal conflict: the Merge Alignment and Sequential rules are _forward causal_ ("given my parents' positions, place me"), while the Split Pull rule is _backward causal_ ("look downstream at a merge's final position, then pull myself upstream to fit"). A single forward pass cannot satisfy both directions simultaneously. See _Why Three X-Pass Sub-Phases_ for details.
 
 ---
 
@@ -37,9 +37,9 @@ The algorithm is **not** a single DFS traversal — it requires four sequential 
      ├──>[C]             Merge (C): multiple inputs, one output
 [B]──┘
 
-[A]──┐     ┌──>[C]
+[A]──┐      ┌──>[C]
      ├──>[M]┤            Merge-split (M): multiple inputs AND outputs
-[B]──┘     └──>[D]
+[B]──┘      └──>[D]
 ```
 
 ### Chain
@@ -84,8 +84,8 @@ Row assignment is per-chain, not per-node. A boundary node that starts multiple 
 
 ```
      ┌──>[B]──>[C]──>[D]     ← Row 0 (B had lowest initial y)
-[A]──┤              ↑
-     └──>[E]────────┘         ← Row 1 (E had higher initial y)
+[A]──┤                ↑
+     └──>[E]──────────┘      ← Row 1 (E had higher initial y)
 
 A is a split. At A, outgoing branches are sorted by initial y:
   - B (lower y) → continues in current row (Row 0)
@@ -106,17 +106,55 @@ This is a current design decision: the algorithm treats nodes as having a single
 
 ## Algorithm
 
-### Step 1: Topology Analysis
+The layout pipeline runs per-island in three phases, then resolves inter-island collisions:
 
-Identify all boundary nodes (split / merge / merge-split / root / leaf) and trace all chains between them.
+```
+computeLayoutMap(graph)                                 (index.ts)
+  ├─ buildTopology(graph)          → NodeInfo map
+  ├─ findIslands(infos)            → connected components
+  │
+  ├─ for each island:
+  │   ├─ analysis(islandInfos)     → AnalysisResult     (analysis.ts)
+  │   ├─ xPass(ctx, options)       → Map<id, x>         (x-pass.ts)
+  │   └─ yPass(ctx, xFinal, opts)  → Map<id, y>         (y-pass.ts)
+  │
+  └─ resolveIslandCollisions(islands, options)          (y-pass.ts)
+```
 
-### Step 2: Row Assignment + X-Positions
+### Phase 1: Analysis (`analysis.ts`)
 
-X-computation happens in **four sequential phases**. All phases use topological order (Kahn's algorithm) to guarantee parents are processed before children. The root queue in Kahn's algorithm is seeded in **top-left order** (smallest y, then smallest x) to ensure deterministic processing — without this, structurally equivalent graphs with different root insertion order could produce different layouts.
+The analysis phase precomputes all structural information needed by the x-pass and y-pass. It returns an `AnalysisResult` containing:
 
-**Starting point:** The **primary root** — the root node with the smallest y, with x as tiebreaker (most top-left) — is anchored to its current position. Secondary roots are processed after the primary root's subtree is fully placed, in top-left order (smallest y, then smallest x).
+- `infos` — per-node topology (adjacency, roles, dimensions)
+- `order` — topological sort
+- `chainMap` — precomputed chains between boundary nodes
+- `ancestorSets` — full ancestor set per node
+- `primaryRoot` — the anchor node
+- `rowOf` — row assignment per boundary node
+- `mergeApproachMap` — nodes eligible for the Merge Approach rule
+- `rowOrder` — visual top-to-bottom row placement order
 
-#### Step 2a: Row Assignment
+#### Topology (`buildTopology`)
+
+Identify all boundary nodes (split / merge / merge-split / root / leaf), build adjacency lists (parents/children), and assign node roles based on in/out degree. Edges between the same pair of nodes are deduplicated (see Graph Preprocessing).
+
+#### Topological Sort (`topologicalSort`)
+
+Kahn's algorithm. The root queue is seeded in **top-left order** (smallest y, then smallest x) to ensure deterministic processing — without this, structurally equivalent graphs with different root insertion order could produce different layouts.
+
+#### Chain Precomputation (`buildChainMap`)
+
+Trace all chains once after topology. Stores chains as `Map<startBoundaryId, Map<firstChildId, chain[]>>`. All later passes use this lookup instead of retracing chains.
+
+#### Ancestor Sets (`buildAncestorSets`)
+
+Compute the full ancestor set for every node in one O(n) topological pass. All descendant checks use `Set.has()` lookups. Used by the x-pass to determine merge independence for Split Pull and Merge Approach.
+
+#### Primary Root
+
+The **primary root** — the root node with the smallest y, with x as tiebreaker (most top-left) — is identified during analysis and anchored to its current position. Secondary roots are processed after the primary root's subtree is fully placed, in top-left order.
+
+#### Row Assignment (`assignRows`)
 
 Process boundary nodes in topological order. At each node, sort its outgoing branches by the **current y-position of each branch's first node** (ascending):
 
@@ -128,8 +166,8 @@ Row-claiming is **first-come-first-served in y-order** across the whole traversa
 
 ```
      ┌──>[B]──>[C]──>[D]──>[F]     ← Row 0 (spine)
-[A]──┤              ↑
-     └──>[E]────────┘               ← Row 1
+[A]──┤                ↑
+     └──>[E]──────────┘            ← Row 1
 
 Row 0 chains: [A, B, C, D] and [D, F]  — B had lowest initial y (spine continuation)
 Row 1 chain:  [A, E, D]               — E had higher initial y (new row)
@@ -162,8 +200,8 @@ This handles merge-before-split topologies where a merge node feeds into a split
       ┌──>[B]──>[D]──>[F]──>[H]     ← Row 0 (spine)
 [A]───┤
       ├──>[C]──>[M]──>[G]           ← Row 1
-      │         ↑
-      └──>[E]───┘                    ← Row 2
+      │          ↑
+      └──>[E]────┘                   ← Row 2
 
 A's branches sorted by initial y: B (spine), C (Row 1), E (Row 2).
 M is a merge (parents C and E), first reached via non-spine chain [A, C, M].
@@ -179,66 +217,74 @@ Spine merges (reached via spine continuation) are never pushed down —
 they are anchored to their spine parent's row.
 ```
 
-#### Step 2b: Forward Pass
+#### Merge Approach Map (`buildMergeApproachMap`)
 
-Walk all nodes in topological order, assigning **provisional** x-positions using the Anchor, Merge Alignment, and Sequential rules. Split Pulls are not applied yet — splits and secondary roots receive their Sequential provisional position here.
+Identify nodes eligible for the Merge Approach rule: the last internal node in each chain whose end boundary is a merge in a strictly higher-priority row (smaller row index) than the chain's start. Stores `{endId, prevId, startId}` for each such node, used during the reconcile sub-phase of the x-pass.
 
-Merges get a provisional Merge Alignment position based on whichever parents have been processed so far in topological order. These positions are not final — merges are recomputed in Step 2d after all Split Pulls are known.
+#### Row Order (`buildRowOrder`)
 
-#### Step 2c: Split Pulls
+Determine the order in which rows are placed during the y-pass. Rows are sorted by the **minimum initial y-position** of their nodes — rows whose nodes started higher on screen are placed first. This ensures rows are placed in visual top-to-bottom order.
 
-Process splits in reverse topological order (post-order approximation), then secondary roots in y-order. For each, compute the best pull (see Split Pull rule), update x, and propagate the new position forward through any sequential (simple/leaf) nodes in the split's chains.
+### Phase 2: X-Pass (`x-pass.ts`)
 
-The Split Pull rule calls `computeMergeXWithoutSubtree` on target merges, which reads their parents' current x-positions — this is why the forward pass (2b) must run first, even though the merge positions it produces are provisional.
+X-positioning runs in **three sequential sub-phases**. All sub-phases use the topological order computed during analysis.
+
+#### Initial X-Positions (`computeInitialXPositions`)
+
+Walk all nodes in topological order, assigning **provisional** x-positions using the Anchor, Merge Alignment, and Sequential rules. Split Pulls are not applied yet — splits and secondary roots receive their Sequential provisional position here (secondary roots start at x = 0).
+
+Merges get a provisional Merge Alignment position based on whichever parents have been processed so far in topological order. These positions are not final — merges are recomputed in the reconcile sub-phase after all Split Pulls are known.
+
+#### Split Pulls (`pullSplitsTowardMerges`)
+
+Process secondary roots first (in y-order, smallest y first), then splits in reverse topological order (post-order approximation). For each, compute the best pull (see Split Pull rule), update x, and propagate the new position forward through any sequential (simple/leaf) nodes in the split's chains via `propagateSequential`.
+
+The Split Pull rule calls `computeMergeXWithoutSubtree` on target merges, which reads their parents' current x-positions — this is why the initial x-positions sub-phase must run first, even though the merge positions it produces are provisional.
 
 When no Split Pull target is reachable, splits stay at their Sequential position. Secondary roots with no reachable target default to x = 0.
 
-#### Step 2d: Reconcile Pass
+#### Reconcile (`reconcileXPositions`)
 
-After all Split Pulls, recompute all non-fixed nodes in topological order using their final rules. Fixed nodes (primary root, splits, secondary roots — all placed in earlier phases) are kept as-is. For all others:
+After all Split Pulls, recompute all non-fixed nodes in topological order using their final rules. Fixed nodes (primary root, splits, secondary roots — all placed in earlier sub-phases) are kept as-is. For all others:
 
-- **Merge Approach** nodes: computed for the first time here, using `xWithoutSubtree` to break circular dependencies (see Merge Approach rule)
+- **Merge Approach** nodes: computed for the first time here, using `computeMergeXWithoutSubtree` to break circular dependencies (see Merge Approach rule)
 - **Merge Alignment** nodes: recomputed from all parents' now-finalized positions
 - **Sequential** nodes: recomputed sequentially from their single parent
 
-This is the pass where merge positions become final. Each merge is computed exactly twice: a provisional position in 2b (so the Split Pull rule has something to evaluate), and a final position in 2d (after all splits have pulled).
+This is the sub-phase where merge positions become final. Each merge is computed exactly twice: a provisional position in the initial sub-phase (so the Split Pull rule has something to evaluate), and a final position here (after all splits have pulled).
 
-### Step 3: Build Spatial Data Structure
+### Phase 3: Y-Pass (`y-pass.ts`)
 
-After x-positions are finalized (Steps 2a–2d), build an **interval structure** indexed by x-range that tracks the maximum occupied bottom-Y for any x-span. Supports range queries: given `[x1, x2]`, return the maximum bottom-Y across that span.
+Rows are the unit of y-placement — all nodes in a row share the same y-coordinate. Rows are processed in the order determined by `buildRowOrder` — sorted by minimum initial y-position per row, so rows whose nodes started higher on screen are placed first.
 
-### Step 4: Y Pass
-
-Rows are the unit of y-placement — all nodes in a row share the same y-coordinate. Rows are processed in the order they are first encountered by the same DFS traversal as Step 2a (children visited in ascending initial-y order, each subtree fully exhausted before the next sibling). This is critical: it ensures that by the time a row is placed, all rows whose x-ranges might block it have already been inserted into the interval structure.
-
-**Do not process rows in row-index order.** A row with a low index may need to be placed _after_ a row with a higher index if the higher-index row's subtree occupies an x-range that overlaps with the low-index row. The DFS traversal handles this automatically — branches that come later in the y-sorted sibling order are always processed after the earlier siblings' full subtrees.
+The `IntervalStructure` (defined in `types.ts`) is built incrementally during this pass — there is no separate "build spatial data structure" step. It is seeded with `baseBottomY = primaryRoot.initialY - gap`, so row 0 lands at `primaryRoot.initialY`.
 
 ```
                 ┌──>[B]──>[C]──>[D]              Row 0 (spine)
-                │         │
-[A]─────────────┤         └──>[E]──>[F]          Row 2 (C's child)
+                │          │
+[A]─────────────┤          └──>[E]──>[F]         Row 2 (C's child)
                 │
                 └──>[G]──>[H]                    Row 1
 
-DFS order visits: Row 0 → Row 2 → Row 1
+If E/F have lower initial y than G/H, row order is: Row 0 → Row 2 → Row 1
   (NOT Row 0 → Row 1 → Row 2)
 
-Row 0 is placed first. Then C's subtree is fully exhausted (Row 2)
-before G's branch (Row 1) is visited. This ensures Row 2's occupied
-x-range is recorded before Row 1 is placed — so Row 1 can query
-whether its x-span overlaps with already-placed rows.
+Row 0 is placed first. Then Row 2 (lower min-initialY) is placed
+before Row 1. This ensures Row 2's occupied x-range is recorded
+before Row 1 is placed — so Row 1 can query whether its x-span
+overlaps with already-placed rows.
 ```
 
-For each row in DFS order:
+For each row (in row order):
 
-1. Collect all chains in the row. Determine the row's **full x-span** — the union of all nodes' x-ranges across every chain in the row.
+1. Collect all nodes in the row. Determine the row's **full x-span** — the union of all nodes' x-ranges.
 2. Query the interval structure for the **maximum occupied bottom-Y** across the full x-span.
 3. Place all nodes in the row at `y = max_bottom_y + gap`.
 4. Update the interval structure with one entry **per node**: `{ xStart: node.x, xEnd: node.x + node.width, bottomY: y + node.height }`.
 
 Using per-node intervals (rather than one interval spanning the full row) allows nodes in non-overlapping x-columns to avoid being blocked by the tallest node elsewhere in the row. The query in step 2 still uses the full row x-span to ensure correct placement, but the updates record each node's actual footprint individually.
 
-**Row height** = `max(node heights across all chains in the row)`. **Gap** = 30px uniformly — same between rows as between nodes within a chain.
+**Gap** = 30px uniformly — same between rows as between nodes within a chain.
 
 ---
 
@@ -255,8 +301,8 @@ Only the **first node** in each downstream chain gets x-aligned to its upstream 
 
 ```
 [A]──>[D]──>[E]──>[F]
- │                  ↑
- └──────────────────┘   (skip-edge: A→F, not used for x-alignment)
+ │                 ↑
+ └─────────────────┘   (skip-edge: A→F, not used for x-alignment)
 
 Only A→D (first node in chain) drives x-alignment.
 The A→F skip-edge may produce a longer diagonal — that's accepted.
@@ -285,7 +331,7 @@ The primary root is anchored to its current user position — it is never moved.
 
 `x = max(parent.right for ALL parents) + gap`
 
-All parents are considered regardless of row. Because merges are recomputed in the reconcile pass (Step 2d), they always reflect the final positions of every parent.
+All parents are considered regardless of row. Because merges are recomputed in `reconcileXPositions`, they always reflect the final positions of every parent.
 
 ```
          ┌──>[B]──>[C]──>[D]──>[E]──┐
@@ -311,12 +357,12 @@ The long edge F→G is a consequence — the merge never "meets in the middle".
 
 If the end boundary is not a merge, is in the same row, or is in a lower-priority row, the node falls through to the Sequential rule.
 
-This rule is applied only during the reconcile pass (Step 2d). It uses `end.xWithoutSubtree` — the end merge's position excluding `start`'s subtree — rather than `end.x` directly. This breaks a circular dependency: the end merge's Merge Alignment position includes `lastInternal` as a parent, so reading `end.x` would be self-referential. `end.xWithoutSubtree` is computed as the max right-edge of the merge's parents that are **not** downstream of `start`, plus gap.
+This rule is applied only during `reconcileXPositions`. It uses `end.xWithoutSubtree` — the end merge's position excluding `start`'s subtree — rather than `end.x` directly. This breaks a circular dependency: the end merge's Merge Alignment position includes `lastInternal` as a parent, so reading `end.x` would be self-referential. `end.xWithoutSubtree` is computed as the max right-edge of the merge's parents that are **not** downstream of `start`, plus gap.
 
 ```
 Row 0: [X]──>[Y]──>[Z]──>[W]──────>[D]
-                                     ↑
-Row 1: [A]──>[B]──>[C]──────────>[F]─┘
+                                    ↑
+Row 1: [A]──>[B]──>[C]─────────>[F]─┘
 
 Chain [A, B, C, F, D]: starts at A (Row 1), ends at D (merge, Row 0).
 D is in a higher-priority row → Merge Approach applies to F (last internal).
@@ -374,8 +420,8 @@ With Split Pull:
 Row 0: [A]──>[B]──>[C]──>[D]──>[E]──>[F]──>[G]
         0    130   260   390   520   650   780
                                             ↑
-Row 1:                          [R]──>[H]───┘
-                                520   650
+Row 1:                         [R]──>[H]────┘
+                               520   650
 
   G.xWithoutSubtree  = F.right + gap = 750 + 30 = 780  (F is not downstream of R)
   min_path_width = R.width + gap + H.width + gap = 100+30+100+30 = 260
@@ -405,23 +451,23 @@ Assuming width=100, gap=30:
 
 ---
 
-## Why Four Phases
+## Why Three X-Pass Sub-Phases
 
-The algorithm cannot be reduced to a single traversal because **Split Pull operates in the opposite causal direction from Merge Alignment and Sequential**:
+The x-pass cannot be reduced to a single traversal because **Split Pull operates in the opposite causal direction from Merge Alignment and Sequential**:
 
 - **Merge Alignment and Sequential** are _forward causal_: "given my parents' positions, compute mine."
 - **Split Pull** is _backward causal_: "look downstream at a merge's final position, then pull myself upstream to fit."
 
-A single forward pass can satisfy one direction but not both. The four phases each resolve a specific dependency:
+A single forward pass can satisfy one direction but not both. The three sub-phases each resolve a specific dependency:
 
-**Why the forward pass (2b) must come before Split Pulls (2c):**
-Split Pull calls `computeMergeXWithoutSubtree` on target merges, which reads their parents' current x-positions. Those positions must exist before Split Pull can evaluate them — a forward pass is required to populate the x-map even if the results are provisional.
+**Why `computeInitialXPositions` must come before `pullSplitsTowardMerges`:**
+Split Pull calls `computeMergeXWithoutSubtree` on target merges, which reads their parents' current x-positions. Those positions must exist before Split Pull can evaluate them — the initial sub-phase is required to populate the x-map even if the results are provisional.
 
 **Why Split Pull runs in reverse topological order:**
 Deeper splits must pull before shallower ones. If a shallow split pulls first, its downstream chains shift — invalidating the `xWithoutSubtree` values that deeper splits would read. Processing in post-order ensures each split's pull propagates correctly without corrupting the inputs of splits higher in the graph.
 
-**Why the reconcile pass (2d) is necessary:**
-After Split Pulls, the nodes that moved are splits and sequential chains. But merges (Merge Alignment) haven't been updated to reflect their parents' new positions, and Merge Approach nodes haven't been computed at all. The reconcile pass fixes both:
+**Why `reconcileXPositions` is necessary:**
+After Split Pulls, the nodes that moved are splits and sequential chains. But merges (Merge Alignment) haven't been updated to reflect their parents' new positions, and Merge Approach nodes haven't been computed at all. The reconcile sub-phase fixes both:
 
 - Merge Alignment nodes are recomputed with finalized parent positions.
 - Merge Approach nodes can now safely read `end.xWithoutSubtree` — the end merge's Merge Alignment position is final, and using `xWithoutSubtree` rather than `end.x` avoids the self-referential dependency (the last internal is itself one of the merge's parents).
@@ -434,7 +480,7 @@ After Split Pulls, the nodes that moved are splits and sequential chains. But me
 
 The **primary root** is the root node with the smallest y, with x as tiebreaker (most top-left). It is anchored to its current user position — x and y are not recomputed. All other nodes are placed relative to it.
 
-**Secondary roots** follow the Split Pull rule and can land at negative x if needed to fit their path before a shared downstream merge. They are processed after all splits have been pulled (Step 2c), in top-left order (smallest y, then smallest x).
+**Secondary roots** follow the Split Pull rule and can land at negative x if needed to fit their path before a shared downstream merge. They are processed first during `pullSplitsTowardMerges` (before splits), in top-left order (smallest y, then smallest x).
 
 ---
 
@@ -442,14 +488,16 @@ The **primary root** is the root node with the smallest y, with x as tiebreaker 
 
 An **island** is a connected subgraph with no edges to any other subgraph. Each island is laid out independently using the same algorithm.
 
-### Island Collision Resolution
+### Island Collision Resolution (`resolveIslandCollisions`)
 
-After all islands are laid out independently, overlapping islands are resolved with a top-to-bottom sweep:
+After all islands are laid out independently, overlapping islands are resolved with a top-to-bottom sweep using a shared `IntervalStructure`:
 
 1. **Sort islands** by the y-position of their primary root (ascending). Islands higher on screen are processed first.
-2. **Anchor each island's root** — the primary root of every island stays at its current user position; the island's internal layout is relative to it.
-3. **Push down on overlap** — for each island (in sorted order), check whether its bounding box overlaps any already-placed island above it. If it does, shift the entire island downward until the gap between it and the lowest overlapping island above is exactly the standard gap (30px). Apply this shift to every node in the island uniformly.
+2. **Query per-node overlaps** — for each node in the island, query the shared interval structure for the max bottom-Y across that node's x-range. Compute the uniform downward shift as `max(interval_query(node) + gap - node.y)` across all nodes.
+3. **Apply shift** — shift every node in the island downward uniformly, then insert all nodes into the shared interval structure.
 4. **Cascade** — because islands are processed top-to-bottom, each shift only affects the current island and those below it. Earlier islands are never moved.
+
+This is more precise than bounding-box collision: two islands whose bounding boxes overlap but whose actual node footprints don't will not be shifted.
 
 ```
 Before collision resolution:        After collision resolution:
@@ -465,27 +513,19 @@ Islands sorted by root y, then shifted down to maintain 30px gap.
 
 ---
 
-## Optimizations
+## Implementation Notes
 
-### 1. Descendant cache threading
+### Precomputed chains (`buildChainMap`)
 
-`descCache` was previously created fresh on every `computeMergeXWithoutSubtree()` call, recomputing the same ancestor relationships O(N·M) times. One cache is now created per `pullSplitsTowardMerges()` / `reconcileXPositions()` call and threaded through.
+All chains are traced once during analysis and stored as `Map<startId, Map<firstChildId, string[]>>`. Row assignment, merge pull target search, and merge approach detection all use this lookup instead of retracing chains.
 
-### 2. Precomputed chains
+### Precomputed ancestor sets (`buildAncestorSets`)
 
-`traceChain()` previously re-walked the same node paths in `assignRows()`, `findMergePullTarget()`, and `buildMergeApproachMap()`. `buildChainMap()` now traces all chains once immediately after topology and stores them in a `Map<startId, Map<firstChildId, string[]>>` lookup used by all passes.
+Full ancestor sets are computed for all nodes in one O(n) topological pass during analysis. All descendant checks (merge independence, subtree exclusion) use `Set.has()` lookups.
 
-### 3. Sorted interval structure with early-exit queries
+### Sorted interval structure with early-exit queries (`IntervalStructure`)
 
-`queryMaxBottomY()` previously did a full O(n) linear scan for every row placement. The interval array is now kept sorted by `xStart` (insertion sort on insert), and the query loop breaks early when `iv.xStart >= xEnd`.
-
-### 4. Precomputed ancestor sets
-
-`isDescendantOf()` previously recursed per-call, rewalking overlapping ancestor paths with a memoization cache. `buildAncestorSets()` now computes full ancestor sets for all nodes in one O(n) topological pass. All descendant checks use `Set.has()` lookups. `isDescendantOf` has been removed.
-
-### 5. Hoisted info/width lookups in hot loops
-
-`infos.get(pid)!.width` was called repeatedly inside `map()`/spread-max patterns in the forward pass and reconcile pass. Merge Alignment and Sequential paths now use explicit `for` loops with the `infos.get()` result cached once per iteration.
+The interval array is kept sorted by `xStart` (insertion sort on insert). The `queryMaxBottomY` loop breaks early when `iv.xStart >= xEnd`, avoiding full scans. Used by both the y-pass and island collision resolution.
 
 ---
 
