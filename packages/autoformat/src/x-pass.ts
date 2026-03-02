@@ -358,7 +358,17 @@ function pullSplitsTowardMerges(
       : pull;
 
     if (finalX === x.get(id)) {
-      pulledSplits.add(id);
+      // Only mark as pulled if the pull target (not the parent constraint) determined
+      // the position. If the parent was the binding factor, don't freeze this split:
+      // the parent may be a merge that gets recomputed in the reconcile phase.
+      const parentRight = prevId
+        ? x.get(prevId)! + infos.get(prevId)!.width + options.gap
+        : -Infinity;
+
+      if (pull >= parentRight) {
+        pulledSplits.add(id);
+      }
+
       continue;
     }
 
