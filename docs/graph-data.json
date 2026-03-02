@@ -3310,6 +3310,39 @@
       "created_at": "2026-03-02T01:50:36.738043+01:00",
       "updated_at": "2026-03-02T01:50:36.738043+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"78e4918\",\"confidence\":95}"
+    },
+    {
+      "id": 302,
+      "change_id": "a8408119-a71c-4eb3-bfa1-3f11f64f2a51",
+      "node_type": "outcome",
+      "title": "Committed: docs: add ASCII diagrams to SPEC, fix chain labels",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-02T02:15:13.585099+01:00",
+      "updated_at": "2026-03-02T02:15:13.585099+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"69410d5\",\"confidence\":95}"
+    },
+    {
+      "id": 303,
+      "change_id": "a395ac9a-b10e-4dbe-b123-ee670d50681b",
+      "node_type": "action",
+      "title": "Add debug logger utility to @audiograph/utils",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-02T02:36:38.886666+01:00",
+      "updated_at": "2026-03-02T02:36:38.886666+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"5d60008\",\"confidence\":95}"
+    },
+    {
+      "id": 304,
+      "change_id": "faeb4a6a-1c9c-4c9e-a9cd-fc00a329e4c0",
+      "node_type": "outcome",
+      "title": "Fixed row assignment and x-pull for merge-before-split topologies: deterministic root ordering, non-spine merge post-processing, deepest-target-wins for same-priority chains",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-02T02:36:50.157105+01:00",
+      "updated_at": "2026-03-02T02:36:50.157105+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"d7424b9\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -6315,6 +6348,17 @@
       "weight": 1.0,
       "rationale": "Committed",
       "created_at": "2026-03-02T01:50:36.755835+01:00"
+    },
+    {
+      "id": 274,
+      "from_node_id": 303,
+      "to_node_id": 304,
+      "from_change_id": "a395ac9a-b10e-4dbe-b123-ee670d50681b",
+      "to_change_id": "faeb4a6a-1c9c-4c9e-a9cd-fc00a329e4c0",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Debug util supports autoformat fix",
+      "created_at": "2026-03-02T02:36:55.157266+01:00"
     }
   ]
 }

@@ -1,19 +1,43 @@
 [
   {
+    "hash": "d7424b9aabb329b781768800e571356e2e97d9cf",
+    "short_hash": "d7424b9",
+    "author": "bigmistqke",
+    "date": "2026-03-02T02:36:46+01:00",
+    "message": "fix: correct row assignment and x-pull for merge-before-split topologies\n\nThree bugs fixed:\n- Sort root queue in topologicalSort by initialY for deterministic ordering\n- Post-process assignRows to push non-spine merges down to max(parent rows)\n- Skip intermediate same-priority targets in findMergePullTarget so the\n  deepest target on a chain is used (MAX still applies across branches)",
+    "files_changed": 1
+  },
+  {
+    "hash": "5d6000813df7dcce32ed5150cefda50bbc1a6ffc",
+    "short_hash": "5d60008",
+    "author": "bigmistqke",
+    "date": "2026-03-02T02:36:35+01:00",
+    "message": "feat: add debug logger utility",
+    "files_changed": 2
+  },
+  {
+    "hash": "5d6000813df7dcce32ed5150cefda50bbc1a6ffc",
+    "short_hash": "5d60008",
+    "author": "bigmistqke",
+    "date": "2026-03-02T02:36:35+01:00",
+    "message": "feat: add debug logger utility",
+    "files_changed": 2
+  },
+  {
+    "hash": "69410d551f5d8854572bbff12351065dec4c4a45",
+    "short_hash": "69410d5",
+    "author": "bigmistqke",
+    "date": "2026-03-02T02:14:07+01:00",
+    "message": "docs: add ASCII diagrams to SPEC, fix chain labels",
+    "files_changed": 1
+  },
+  {
     "hash": "78e49182bbb756701acaae7f5585665ea0bcda2c",
     "short_hash": "78e4918",
     "author": "bigmistqke",
     "date": "2026-03-02T01:50:21+01:00",
     "message": "refactor: add AutoformatOptions, reorganize sections, style cleanup",
     "files_changed": 1
-  },
-  {
-    "hash": "fd800d2a870610388cc694e87311f8fb3eeba13d",
-    "short_hash": "fd800d2",
-    "author": "bigmistqke",
-    "date": "2026-03-02T01:49:42+01:00",
-    "message": "chore: sync deciduous graph",
-    "files_changed": 2
   },
   {
     "hash": "f16e22f2d7f0835bb7e3807ea180c4aa61f2f524",
@@ -664,19 +688,19 @@
     "files_changed": 10
   },
   {
-    "hash": "95daa5143cc8cb5e24891f3fd5b37d91f4916593",
-    "short_hash": "95daa51",
-    "author": "bigmistqke",
-    "date": "2026-02-22T13:40:25+01:00",
-    "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Make GraphEditor generic and domain-agnostic: takes config, store,\n  context, and onClick as props with no audio/worklet knowledge\n- Extract GraphRoute (src/routes/graph-route.tsx) as the application\n  layer: sidebar, worklet setup, save callbacks, node placement\n- Move graph internals into src/graph/ (editor, nodes, edges, ports,\n  context, constants, create-graph)\n- Add graph/setGraph to ConstructProps so constructs can access the\n  store directly (e.g. audioworklet reads its own node type)\n- Move saveType/saveAsNewType from SolidJS GraphContext to\n  AudioGraphContext (construct context), keeping GraphContext pure UI\n- Extract GraphAPI type for typed references in component props\n- Rename props.ctx to props.context, audio to audioContext\n- Lowercase all filenames, simplify App.tsx to just routing",
-    "files_changed": 41
-  },
-  {
     "hash": "ce2cd469724a633d76f3c14d2448558e2aef6fdf",
     "short_hash": "ce2cd46",
     "author": "bigmistqke",
     "date": "2026-02-22T13:40:25+01:00",
     "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Move graph components into src/graph/ (editor, nodes, edges, ports, context, constants)\n- Split GraphRoute into src/routes/graph-route.tsx\n- Lowercase all filenames (Select→select, HorizontalSlider→horizontal-slider, etc.)\n- Move GraphNodeContent to src/ui/node-content.tsx\n- Delete unused lib/minni.ts and old GraphEditor.tsx",
+    "files_changed": 41
+  },
+  {
+    "hash": "95daa5143cc8cb5e24891f3fd5b37d91f4916593",
+    "short_hash": "95daa51",
+    "author": "bigmistqke",
+    "date": "2026-02-22T13:40:25+01:00",
+    "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Make GraphEditor generic and domain-agnostic: takes config, store,\n  context, and onClick as props with no audio/worklet knowledge\n- Extract GraphRoute (src/routes/graph-route.tsx) as the application\n  layer: sidebar, worklet setup, save callbacks, node placement\n- Move graph internals into src/graph/ (editor, nodes, edges, ports,\n  context, constants, create-graph)\n- Add graph/setGraph to ConstructProps so constructs can access the\n  store directly (e.g. audioworklet reads its own node type)\n- Move saveType/saveAsNewType from SolidJS GraphContext to\n  AudioGraphContext (construct context), keeping GraphContext pure UI\n- Extract GraphAPI type for typed references in component props\n- Rename props.ctx to props.context, audio to audioContext\n- Lowercase all filenames, simplify App.tsx to just routing",
     "files_changed": 41
   },
   {
