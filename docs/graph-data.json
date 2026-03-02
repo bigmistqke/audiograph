@@ -3277,6 +3277,28 @@
       "created_at": "2026-03-02T01:13:42.356600+01:00",
       "updated_at": "2026-03-02T01:13:42.356600+01:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"5eb02e4\",\"confidence\":95}"
+    },
+    {
+      "id": 299,
+      "change_id": "6c9959fb-e060-47d9-99ef-a66c3b38c794",
+      "node_type": "action",
+      "title": "Rename rules to descriptive names in SPEC.md and code comments",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-02T01:15:33.367036+01:00",
+      "updated_at": "2026-03-02T01:15:33.367036+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85,\"files\":[\"packages/autoformat/SPEC.md\",\"packages/autoformat/src/index.ts\"]}"
+    },
+    {
+      "id": 300,
+      "change_id": "bd85e6e4-75c1-48f1-b87b-7cfe4c3e0173",
+      "node_type": "outcome",
+      "title": "Replaced all Rule 1-5 references with named rules: Anchor, Merge Alignment, Merge Approach, Split Pull, Sequential",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-03-02T01:49:35.099207+01:00",
+      "updated_at": "2026-03-02T01:49:35.099207+01:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"f16e22f\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -6249,6 +6271,28 @@
       "weight": 1.0,
       "rationale": "Committed",
       "created_at": "2026-03-02T01:13:42.374472+01:00"
+    },
+    {
+      "id": 271,
+      "from_node_id": 296,
+      "to_node_id": 299,
+      "from_change_id": "b8f5508f-fca1-41bb-acd5-8a31258a6c46",
+      "to_change_id": "6c9959fb-e060-47d9-99ef-a66c3b38c794",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Continuation",
+      "created_at": "2026-03-02T01:15:33.380030+01:00"
+    },
+    {
+      "id": 272,
+      "from_node_id": 299,
+      "to_node_id": 300,
+      "from_change_id": "6c9959fb-e060-47d9-99ef-a66c3b38c794",
+      "to_change_id": "bd85e6e4-75c1-48f1-b87b-7cfe4c3e0173",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-03-02T01:49:35.115241+01:00"
     }
   ]
 }
