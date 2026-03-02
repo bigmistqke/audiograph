@@ -193,6 +193,19 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   overflow: hidden;
+
+  &[data-expanded="initial"] > [data-panel="expected"],
+  &[data-expanded="initial"] > [data-panel="result"],
+  &[data-expanded="expected"] > [data-panel="initial"],
+  &[data-expanded="expected"] > [data-panel="result"],
+  &[data-expanded="result"] > [data-panel="initial"],
+  &[data-expanded="result"] > [data-panel="expected"] {
+    display: none;
+  }
+
+  &[data-expanded] {
+    grid-template-columns: 1fr;
+  }
 }
 
 .panelWrap {
@@ -206,6 +219,9 @@
 }
 
 .panelLabel {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
   padding: 4px 10px;
   font-size: 11px;
   font-weight: 600;
@@ -214,6 +230,19 @@
   letter-spacing: 0.05em;
   border-bottom: 1px solid #eee;
   background: #fafafa;
+}
+
+.expandBtn {
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+  color: #aaa;
+
+  &:hover {
+    color: #555;
+  }
 }
 
 .graphPanel {

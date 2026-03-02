@@ -11,6 +11,7 @@ import {
   createEffect,
   createMemo,
   createResource,
+  createSignal,
   For,
   type ParentProps,
   Show,
@@ -306,6 +307,8 @@ export function App(props: ParentProps) {
           {(() => {
             const index = currentIndex;
             const c = () => cases[index()];
+            const [expanded, setExpanded] =
+              createSignal<"initial" | "expected" | "result" | null>(null);
 
             // Per-node sync: seed on add
             createEffect(() => {
@@ -345,9 +348,24 @@ export function App(props: ParentProps) {
                     />
                     <span class={styles.caseId}>{c().id}.json</span>
                   </div>
-                  <div class={styles.panels}>
-                    <div class={styles.panelWrap}>
-                      <span class={styles.panelLabel}>Initial</span>
+                  <div
+                    class={styles.panels}
+                    data-expanded={expanded() ?? undefined}
+                  >
+                    <div class={styles.panelWrap} data-panel="initial">
+                      <span class={styles.panelLabel}>
+                        Initial
+                        <button
+                          class={styles.expandBtn}
+                          onClick={() =>
+                            setExpanded((v) =>
+                              v === "initial" ? null : "initial",
+                            )
+                          }
+                        >
+                          {expanded() === "initial" ? "▾" : "▸"}
+                        </button>
+                      </span>
                       <GraphEditor
                         context={null}
                         config={{ node: makeNodeDef(true) }}
@@ -426,8 +444,20 @@ export function App(props: ParentProps) {
                         }}
                       />
                     </div>
-                    <div class={styles.panelWrap}>
-                      <span class={styles.panelLabel}>Expected</span>
+                    <div class={styles.panelWrap} data-panel="expected">
+                      <span class={styles.panelLabel}>
+                        Expected
+                        <button
+                          class={styles.expandBtn}
+                          onClick={() =>
+                            setExpanded((v) =>
+                              v === "expected" ? null : "expected",
+                            )
+                          }
+                        >
+                          {expanded() === "expected" ? "▾" : "▸"}
+                        </button>
+                      </span>
                       <Show when={expectedCase()}>
                         {(expected) => (
                           <GraphEditor
@@ -449,8 +479,20 @@ export function App(props: ParentProps) {
                         )}
                       </Show>
                     </div>
-                    <div class={styles.panelWrap}>
-                      <span class={styles.panelLabel}>Result</span>
+                    <div class={styles.panelWrap} data-panel="result">
+                      <span class={styles.panelLabel}>
+                        Result
+                        <button
+                          class={styles.expandBtn}
+                          onClick={() =>
+                            setExpanded((v) =>
+                              v === "result" ? null : "result",
+                            )
+                          }
+                        >
+                          {expanded() === "result" ? "▾" : "▸"}
+                        </button>
+                      </span>
                       <Show when={resultCase()}>
                         {(result) => (
                           <GraphEditor
