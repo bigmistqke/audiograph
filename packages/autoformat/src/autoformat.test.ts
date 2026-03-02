@@ -2919,6 +2919,117 @@ describe("autoformat — x-positions", () => {
           "C": 130
     });
   });
+
+  it("Split → Merge can form a row", () => {
+    const initial: Graph = {
+        "edges": {
+            "11614ce1-2423-4fe2-b88b-cf500e9c224e": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "3a7a7d82-6428-4851-89a5-8633d2e8ad75": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "0662150c-0c6a-4a48-b704-b7dbe5f8b929": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            },
+            "54b01ece-ae4b-43f9-9ed2-90790859757c": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "2d8d8b17-4ec4-4edb-ac44-69776301c655": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 120,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 20,
+                "y": 190,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 260,
+                "y": 200,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 260,
+                "y": 10,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 130,
+          "C": 0,
+          "D": 260,
+          "E": 260
+    });
+  });
 });
 
 describe("autoformat — y-positions", () => {
@@ -5812,6 +5923,117 @@ describe("autoformat — y-positions", () => {
           "A": 110,
           "B": 0,
           "C": 0
+    });
+  });
+
+  it("Split → Merge can form a row", () => {
+    const initial: Graph = {
+        "edges": {
+            "11614ce1-2423-4fe2-b88b-cf500e9c224e": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "3a7a7d82-6428-4851-89a5-8633d2e8ad75": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "0662150c-0c6a-4a48-b704-b7dbe5f8b929": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            },
+            "54b01ece-ae4b-43f9-9ed2-90790859757c": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "2d8d8b17-4ec4-4edb-ac44-69776301c655": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 120,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 20,
+                "y": 190,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 260,
+                "y": 200,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 260,
+                "y": 10,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 0,
+          "C": 150,
+          "D": 150,
+          "E": 0
     });
   });
 });

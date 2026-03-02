@@ -7,12 +7,12 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "pnpm --filter @audiograph/app dev",
-    "build": "pnpm --filter @audiograph/app build",
-    "test": "pnpm --filter @audiograph/autoformat test",
-    "workshop": "pnpm --filter @audiograph/autoformat dev",
+    "app:dev": "pnpm --filter @audiograph/app dev",
+    "app:build": "pnpm --filter @audiograph/app build",
     "typecheck": "pnpm -r typecheck",
-    "autoformat:generate:tests": "pnpm --filter @audiograph/autoformat generate:tests"
+    "autoformat:dev": "pnpm --filter @audiograph/autoformat dev",
+    "autoformat:test": "pnpm --filter @audiograph/autoformat test",
+    "autoformat:generate-tests": "pnpm --filter @audiograph/autoformat generate:tests"
   },
   "license": "MIT"
 }

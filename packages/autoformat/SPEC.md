@@ -122,6 +122,7 @@ Process boundary nodes in topological order. At each node, sort its outgoing bra
 
 - The branch with the **lowest initial y** continues in the **current row** (spine continuation).
 - Each subsequent branch **opens a new row** below. If the end boundary is already row-assigned, the interior nodes of the chain still open their own row — only the end boundary keeps its existing row assignment.
+- **No-op spine fallthrough:** If the spine branch leads to an already-claimed merge that does not pull to the current row, and the chain has no interior nodes to place, the spine slot is **not consumed**. The next unclaimed branch inherits the current row instead of opening a new one. This lets split→merge pairs share a row when the spine is a no-op cross-row edge.
 
 Row-claiming is **first-come-first-served in y-order** across the whole traversal, with one exception: **merge and merge-split end boundaries prefer the highest-priority (lowest-index) row**. If a later chain reaches a merge that was previously assigned to a lower-priority row, the merge is updated to the higher-priority row.
 
@@ -135,6 +136,22 @@ Row 1 chain:  [A, E, D]               — E had higher initial y (new row)
 
 D is a merge: first reached via Row 0, so D is assigned Row 0.
 The Row 1 chain ends at D but D keeps its Row 0 assignment.
+```
+
+**No-op spine fallthrough example:**
+
+```
+[A]──>[B]──>[E]          ← Row 0 (A's spine → B → E)
+       ↑  ↘
+[C]────┘   [D]           ← Row 1 (C and D share the row)
+  ↘        ↗
+   ────────
+
+C's branches sorted by initial y: B (lowest y), D.
+Chain [C, B]: B is already claimed at Row 0 — does not pull (Row 1 > Row 0),
+no interior nodes. Spine slot is NOT consumed.
+Chain [C, D]: D is unclaimed — inherits Row 1 (C's row) as the effective spine.
+Result: C and D share Row 1.
 ```
 
 **Post-processing: non-spine merge correction.** After the main row assignment loop, a second pass pushes non-spine merges down to `max(parent rows)`. "Spine merges" — merges reached via a spine continuation path — are anchored to their spine parent's row and never move. All other merges may have been assigned too early to a row above their lowest parent; the post-processing corrects this.

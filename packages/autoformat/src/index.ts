@@ -309,11 +309,10 @@ function assignRows(
         // Interior nodes still open their own row.
         // If this chain's row is higher priority (lower index) than the end
         // boundary's current row, prefer it — the higher-priority row wins.
-        const chainRow = !spineAssigned ? currentRow : nextRow++;
+        const isFirstChain = !spineAssigned;
+        const chainRow = isFirstChain ? currentRow : nextRow++;
 
-        if (!spineAssigned) {
-          spineAssigned = true;
-        }
+        let usedCurrentRow = false;
 
         if (
           isMergeLike(infos.get(endId)!.role) &&
@@ -321,12 +320,21 @@ function assignRows(
         ) {
           rowOf.set(endId, chainRow);
           spineMerges.add(endId);
+          usedCurrentRow = true;
         }
 
         for (let i = 1; i < chain.length - 1; i++) {
           if (!rowOf.has(chain[i])) {
             rowOf.set(chain[i], chainRow);
+            usedCurrentRow = true;
           }
+        }
+
+        // Only consume the spine if the current row was actually used
+        // (by pulling the merge or assigning interior nodes). Otherwise,
+        // the current row stays available for the next unclaimed chain.
+        if (isFirstChain && usedCurrentRow) {
+          spineAssigned = true;
         }
 
         continue;
