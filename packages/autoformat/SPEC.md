@@ -112,7 +112,7 @@ Identify all boundary nodes (split / merge / merge-split / root / leaf) and trac
 
 ### Step 2: Row Assignment + X-Positions
 
-X-computation happens in **four sequential phases**. All phases use topological order (Kahn's algorithm) to guarantee parents are processed before children.
+X-computation happens in **four sequential phases**. All phases use topological order (Kahn's algorithm) to guarantee parents are processed before children. The root queue in Kahn's algorithm is seeded in **top-left order** (smallest y, then smallest x) to ensure deterministic processing — without this, structurally equivalent graphs with different root insertion order could produce different layouts.
 
 **Starting point:** The **primary root** — the root node with the smallest y, with x as tiebreaker (most top-left) — is anchored to its current position. Secondary roots are processed after the primary root's subtree is fully placed, in top-left order (smallest y, then smallest x).
 
@@ -137,6 +137,31 @@ D is a merge: first reached via Row 0, so D is assigned Row 0.
 The Row 1 chain ends at D but D keeps its Row 0 assignment.
 ```
 
+**Post-processing: non-spine merge correction.** After the main row assignment loop, a second pass pushes non-spine merges down to `max(parent rows)`. "Spine merges" — merges reached via a spine continuation path — are anchored to their spine parent's row and never move. All other merges may have been assigned too early to a row above their lowest parent; the post-processing corrects this.
+
+This handles merge-before-split topologies where a merge node feeds into a split. Without post-processing, the merge could be assigned to a row above one of its parents (because it was first reached via a higher-priority chain), causing the downstream split to fan out from the wrong vertical position.
+
+```
+      ┌──>[B]──>[D]──>[F]──>[H]     ← Row 0 (spine)
+[A]───┤
+      ├──>[C]──>[M]──>[G]           ← Row 1
+      │         ↑
+      └──>[E]───┘                    ← Row 2
+
+A's branches sorted by initial y: B (spine), C (Row 1), E (Row 2).
+M is a merge (parents C and E), first reached via non-spine chain [A, C, M].
+M is assigned Row 1 — it is NOT a spine merge.
+
+Without post-processing: M stays at Row 1, but parent E is in Row 2.
+M is above one of its parents — the fan-out from M starts too high.
+
+With post-processing: M is non-spine, max(parent rows) = max(1, 2) = 2.
+M is pushed from Row 1 to Row 2, now at or below all its parents.
+
+Spine merges (reached via spine continuation) are never pushed down —
+they are anchored to their spine parent's row.
+```
+
 #### Step 2b: Forward Pass
 
 Walk all nodes in topological order, assigning **provisional** x-positions using the Anchor, Merge Alignment, and Sequential rules. Split Pulls are not applied yet — splits and secondary roots receive their Sequential provisional position here.
@@ -147,7 +172,7 @@ Merges get a provisional Merge Alignment position based on whichever parents hav
 
 Process splits in reverse topological order (post-order approximation), then secondary roots in y-order. For each, compute the best pull (see Split Pull rule), update x, and propagate the new position forward through any sequential (simple/leaf) nodes in the split's chains.
 
-The Split Pull rule reads from the current x-map to evaluate `x_excl` on target merges — this is why the forward pass (2b) must run first, even though the merge positions it produces are provisional.
+The Split Pull rule calls `computeMergeXWithoutSubtree` on target merges, which reads their parents' current x-positions — this is why the forward pass (2b) must run first, even though the merge positions it produces are provisional.
 
 When no Split Pull target is reachable, splits stay at their Sequential position. Secondary roots with no reachable target default to x = 0.
 
@@ -155,7 +180,7 @@ When no Split Pull target is reachable, splits stay at their Sequential position
 
 After all Split Pulls, recompute all non-fixed nodes in topological order using their final rules. Fixed nodes (primary root, splits, secondary roots — all placed in earlier phases) are kept as-is. For all others:
 
-- **Merge Approach** nodes: computed for the first time here, using `x_excl` to break circular dependencies (see Merge Approach rule)
+- **Merge Approach** nodes: computed for the first time here, using `xWithoutSubtree` to break circular dependencies (see Merge Approach rule)
 - **Merge Alignment** nodes: recomputed from all parents' now-finalized positions
 - **Sequential** nodes: recomputed sequentially from their single parent
 
@@ -265,11 +290,11 @@ The long edge F→G is a consequence — the merge never "meets in the middle".
 
 **Applies to:** the last internal node of a chain whose end boundary is a merge in a **strictly higher-priority row** (smaller row index) than the chain's start.
 
-`x = max(prev.right + gap, end.x_excl - width - gap)`
+`x = max(prev.right + gap, end.xWithoutSubtree - width - gap)`
 
 If the end boundary is not a merge, is in the same row, or is in a lower-priority row, the node falls through to the Sequential rule.
 
-This rule is applied only during the reconcile pass (Step 2d). It uses `end.x_excl` — the end merge's position excluding `start`'s subtree — rather than `end.x` directly. This breaks a circular dependency: the end merge's Merge Alignment position includes `lastInternal` as a parent, so reading `end.x` would be self-referential. `end.x_excl` is computed as the max right-edge of the merge's parents that are **not** downstream of `start`, plus gap.
+This rule is applied only during the reconcile pass (Step 2d). It uses `end.xWithoutSubtree` — the end merge's position excluding `start`'s subtree — rather than `end.x` directly. This breaks a circular dependency: the end merge's Merge Alignment position includes `lastInternal` as a parent, so reading `end.x` would be self-referential. `end.xWithoutSubtree` is computed as the max right-edge of the merge's parents that are **not** downstream of `start`, plus gap.
 
 ```
 Row 0: [X]──>[Y]──>[Z]──>[W]──────>[D]
@@ -283,8 +308,8 @@ Without Merge Approach (Sequential):
   F.x = C.right + gap = 360 + 30 = 390
 
 With Merge Approach:
-  D.x_excl = W.right + gap = 490 + 30 = 520  (excluding A's subtree)
-  F.x = max(C.right + gap,  D.x_excl - F.width - gap)
+  D.xWithoutSubtree = W.right + gap = 490 + 30 = 520  (excluding A's subtree)
+  F.x = max(C.right + gap,  D.xWithoutSubtree - F.width - gap)
       = max(390, 520 - 100 - 30)
       = max(390, 390) = 390
 
@@ -295,7 +320,7 @@ Row 0: [X]──>[Y]──>[Z]──>[W]──>[V]──>[U]──>[D]
                                             ↑
 Row 1: [A]──>[B]──>[C]─────────────────>[F]─┘
 
-  D.x_excl = U.right + gap = 750 + 30 = 780
+  D.xWithoutSubtree = U.right + gap = 750 + 30 = 780
   F.x = max(390, 780 - 100 - 30) = max(390, 650) = 650
 
   F jumps from 390 to 650, approaching D closely.
@@ -305,11 +330,11 @@ Row 1: [A]──>[B]──>[C]────────────────�
 
 **Applies to:** split nodes and secondary roots with a reachable **independent** merge in the same or higher-priority row.
 
-`x = merge.x_excl - min_path_width` — or `x = max(prev.right + gap, merge.x_excl - min_path_width)` if a prev exists.
+`x = merge.xWithoutSubtree - min_path_width` — or `x = max(prev.right + gap, merge.xWithoutSubtree - min_path_width)` if a prev exists.
 
-- **Target merge:** Follow paths forward from S through any intermediate boundaries. Track `visitedBoundaries` to avoid revisiting the same boundary twice (handles DAG diamonds and same-row merges). Skip same-row intermediate merges (continue through them). Stop at the **first merge M with a strictly smaller row index** (higher-priority row) along the path. If multiple paths reach different first higher-priority merges, pick the one that gives the **largest x for S** (most constraining). If no higher-priority merge is reachable, a same-row merge is a valid fallback target.
+- **Target merge:** Follow paths forward from S through any intermediate boundaries. Track `visitedBoundaries` to avoid revisiting the same boundary twice (handles DAG diamonds and same-row merges). Stop at the **first merge M with a strictly smaller row index** (higher-priority row) along the path. If multiple paths reach different first higher-priority merges, pick the one that gives the **largest x for S** (most constraining). If no higher-priority merge is reachable, a same-row merge is a valid fallback target. **Deepest-target-wins:** when traversing through a same-priority (same-row) merge, continue past it to search for deeper targets first. Only if no deeper target (primary or fallback) is found during that deeper traversal is the same-priority merge recorded as a fallback. This ensures the most constraining (deepest) target on a chain is used, rather than a shallow intermediate that would under-pull the split.
 - `min_path_width` = `sum of widths of all nodes on the path from S to M (excluding M) + (number of those nodes) × gap`. Includes any intermediate boundary nodes traversed — not just simple internals.
-- **Independence:** compute `merge.x_excl` — M's x-position excluding S's subtree entirely. For each of M's parents: if the parent is downstream of S, skip it; otherwise include its right-edge. `merge.x_excl = max(non-S-subtree parent right-edges) + gap`. M is independent of S if `merge.x_excl` is finite (M has at least one parent not downstream of S). Use `merge.x_excl` as the pull target — not M's full x.
+- **Independence:** compute `merge.xWithoutSubtree` — M's x-position excluding S's subtree entirely. For each of M's parents: if the parent is downstream of S, skip it; otherwise include its right-edge. `merge.xWithoutSubtree = max(non-S-subtree parent right-edges) + gap`. M is independent of S if `merge.xWithoutSubtree` is finite (M has at least one parent not downstream of S). Use `merge.xWithoutSubtree` as the pull target — not M's full x.
 - **Independence guarantees convergence.** If M is independent of S, its dominant position comes from outside S's subtree — finalized before S is evaluated in the post-order phase.
 - **Secondary roots** (no prev): the pull alone determines x and can be negative — no `max(prev.right + gap, …)` guard. If no Split Pull target is reachable, secondary roots default to x = 0.
 
@@ -335,9 +360,9 @@ Row 0: [A]──>[B]──>[C]──>[D]──>[E]──>[F]──>[G]
 Row 1:                          [R]──>[H]───┘
                                 520   650
 
-  G.x_excl  = F.right + gap = 750 + 30 = 780  (F is not downstream of R)
+  G.xWithoutSubtree  = F.right + gap = 750 + 30 = 780  (F is not downstream of R)
   min_path_width = R.width + gap + H.width + gap = 100+30+100+30 = 260
-  R.x = G.x_excl - min_path_width = 780 - 260 = 520
+  R.x = G.xWithoutSubtree - min_path_width = 780 - 260 = 520
   H.x = R.right + gap = 520 + 100 + 30 = 650
 
   R is pulled from x=0 to x=520. The cross-row edge (H→G) is now
@@ -373,16 +398,16 @@ The algorithm cannot be reduced to a single traversal because **Split Pull opera
 A single forward pass can satisfy one direction but not both. The four phases each resolve a specific dependency:
 
 **Why the forward pass (2b) must come before Split Pulls (2c):**
-Split Pull calls `x_excl` on target merges, which reads their parents' current x-positions. Those positions must exist before Split Pull can evaluate them — a forward pass is required to populate the x-map even if the results are provisional.
+Split Pull calls `computeMergeXWithoutSubtree` on target merges, which reads their parents' current x-positions. Those positions must exist before Split Pull can evaluate them — a forward pass is required to populate the x-map even if the results are provisional.
 
 **Why Split Pull runs in reverse topological order:**
-Deeper splits must pull before shallower ones. If a shallow split pulls first, its downstream chains shift — invalidating the `x_excl` values that deeper splits would read. Processing in post-order ensures each split's pull propagates correctly without corrupting the inputs of splits higher in the graph.
+Deeper splits must pull before shallower ones. If a shallow split pulls first, its downstream chains shift — invalidating the `xWithoutSubtree` values that deeper splits would read. Processing in post-order ensures each split's pull propagates correctly without corrupting the inputs of splits higher in the graph.
 
 **Why the reconcile pass (2d) is necessary:**
 After Split Pulls, the nodes that moved are splits and sequential chains. But merges (Merge Alignment) haven't been updated to reflect their parents' new positions, and Merge Approach nodes haven't been computed at all. The reconcile pass fixes both:
 
 - Merge Alignment nodes are recomputed with finalized parent positions.
-- Merge Approach nodes can now safely read `end.x_excl` — the end merge's Merge Alignment position is final, and using `x_excl` rather than `end.x` avoids the self-referential dependency (the last internal is itself one of the merge's parents).
+- Merge Approach nodes can now safely read `end.xWithoutSubtree` — the end merge's Merge Alignment position is final, and using `xWithoutSubtree` rather than `end.x` avoids the self-referential dependency (the last internal is itself one of the merge's parents).
 
 **Summary:** Forward pass → backward pulls → forward reconcile. Each direction resolves what the other direction leaves unresolved.
 
@@ -427,7 +452,7 @@ Islands sorted by root y, then shifted down to maintain 30px gap.
 
 ### 1. Descendant cache threading
 
-`descCache` was previously created fresh on every `computeMergeXExcludingSubtree()` call, recomputing the same ancestor relationships O(N·M) times. One cache is now created per `pullSplitsTowardMerges()` / `reconcileXPositions()` call and threaded through.
+`descCache` was previously created fresh on every `computeMergeXWithoutSubtree()` call, recomputing the same ancestor relationships O(N·M) times. One cache is now created per `pullSplitsTowardMerges()` / `reconcileXPositions()` call and threaded through.
 
 ### 2. Precomputed chains
 
