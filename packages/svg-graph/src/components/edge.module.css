@@ -7,7 +7,7 @@
   cursor: pointer;
 }
 
-.spliceable:hover .hitTarget {
+g:hover > .hitTarget {
   stroke: var(--color-edge);
   opacity: 0.5;
 }

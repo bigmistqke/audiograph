@@ -57,14 +57,9 @@ export function GraphEdge(props: { edgeId: string; edge: Edge }) {
   const x2 = () => toNode()!.x + PORT_INSET;
   const y2 = () => toNode()!.y + portY(toPortIndex());
 
-  const spliceValid = () => graph.onEdgeSpliceValidate?.(props) ?? false;
-
   return (
     <Show when={fromNode() && toNode()}>
-      <g
-        class={spliceValid() ? styles.spliceable : undefined}
-        style={{ "--color-edge": edgeColor() }}
-      >
+      <g style={{ "--color-edge": edgeColor() }}>
         {/* Visible edge line */}
         <line
           pointer-events="none"
@@ -75,37 +70,36 @@ export function GraphEdge(props: { edgeId: string; edge: Edge }) {
           stroke={edgeColor()}
           class={styles.edge}
         />
-        {/* Invisible wide hit-test line (only when splice is valid) */}
-        <Show when={spliceValid()}>
-          <line
-            x1={x1()}
-            y1={y1()}
-            x2={x2()}
-            y2={y2()}
-            stroke="transparent"
-            stroke-width={10}
-            class={styles.hitTarget}
-            onPointerEnter={() => {
-              graph.onEdgeHover?.({ edgeId: props.edgeId });
-            }}
-            onPointerLeave={() => {
-              graph.onEdgeHover?.({ edgeId: undefined });
-            }}
-            onPointerDown={(event) => {
-              event.stopPropagation();
-              const svg = event.currentTarget.closest("svg")!;
-              const rect = svg.getBoundingClientRect();
-              const viewBox = svg.viewBox.baseVal;
-              const x = event.clientX - rect.left + viewBox.x;
-              const y = event.clientY - rect.top + viewBox.y;
-              graph.onEdgeClick?.({
-                ...props,
-                x,
-                y,
-              });
-            }}
-          />
-        </Show>
+        {/* Invisible wide hit-test line */}
+        <line
+          x1={x1()}
+          y1={y1()}
+          x2={x2()}
+          y2={y2()}
+          stroke="transparent"
+          stroke-width={10}
+          stroke-linecap="round"
+          class={styles.hitTarget}
+          onPointerEnter={() => {
+            graph.onEdgeHover?.({ edgeId: props.edgeId });
+          }}
+          onPointerLeave={() => {
+            graph.onEdgeHover?.({ edgeId: undefined });
+          }}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            const svg = event.currentTarget.closest("svg")!;
+            const rect = svg.getBoundingClientRect();
+            const viewBox = svg.viewBox.baseVal;
+            const x = event.clientX - rect.left + viewBox.x;
+            const y = event.clientY - rect.top + viewBox.y;
+            graph.onEdgeClick?.({
+              ...props,
+              x,
+              y,
+            });
+          }}
+        />
       </g>
     </Show>
   );
