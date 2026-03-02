@@ -3191,6 +3191,127 @@ describe("autoformat — x-positions", () => {
           "J": 390
     });
   });
+
+  it("Merge-split should also remain gap with negative coordinates", () => {
+    const initial: Graph = {
+        "edges": {
+            "53b5a4dc-58a9-48f9-ad42-32634800ba53": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            "f6daac90-ea2e-4316-852e-f86f730c0b46": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            "49543b63-5bea-4f74-8606-1e4f7c341642": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "0ee8e051-bd47-41b6-b7cb-47da19b00585": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "F",
+                    "port": "in"
+                }
+            },
+            "b78e35c4-4f73-46f5-8bc5-167256e8f728": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": -10,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": -10,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 120,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 360,
+                "y": 0,
+                "width": 100,
+                "height": 140,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 490,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": 490,
+                "y": 110,
+                "width": 140,
+                "height": 130,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 0,
+          "C": 130,
+          "D": 260,
+          "E": 390,
+          "F": 390
+    });
+  });
 });
 
 describe("autoformat — y-positions", () => {
@@ -6356,6 +6477,127 @@ describe("autoformat — y-positions", () => {
           "H": 110,
           "I": 220,
           "J": 220
+    });
+  });
+
+  it("Merge-split should also remain gap with negative coordinates", () => {
+    const initial: Graph = {
+        "edges": {
+            "53b5a4dc-58a9-48f9-ad42-32634800ba53": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            "f6daac90-ea2e-4316-852e-f86f730c0b46": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            "49543b63-5bea-4f74-8606-1e4f7c341642": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "0ee8e051-bd47-41b6-b7cb-47da19b00585": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "F",
+                    "port": "in"
+                }
+            },
+            "b78e35c4-4f73-46f5-8bc5-167256e8f728": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": -10,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": -10,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 120,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 360,
+                "y": 0,
+                "width": 100,
+                "height": 140,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 490,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": 490,
+                "y": 110,
+                "width": 140,
+                "height": 130,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 110,
+          "C": 0,
+          "D": 0,
+          "E": 0,
+          "F": 110
     });
   });
 });

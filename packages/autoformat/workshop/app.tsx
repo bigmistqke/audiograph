@@ -258,23 +258,20 @@ export function App(props: ParentProps) {
       <header class={styles.header}>
         <h1 class={styles.title}>Autoformat Workshop</h1>
         <div class={styles.headerActions}>
-          <Show when={currentIndex() !== -1}>
-            <button
-              class={styles.deleteBtn}
-              onClick={() => deleteCase(currentIndex())}
-            >
-              ✕ Delete Case
-            </button>
-            <button
-              class={styles.duplicateBtn}
-              onClick={() => duplicateCase(currentIndex())}
-            >
-              ⧉ Duplicate Case
-            </button>
-          </Show>
-
           <button class={styles.addBtn} onClick={addCase}>
             + Add Case
+          </button>
+          <button
+            class={styles.duplicateBtn}
+            onClick={() => duplicateCase(currentIndex())}
+          >
+            ⧉ Duplicate Case
+          </button>
+          <button
+            class={styles.deleteBtn}
+            onClick={() => deleteCase(currentIndex())}
+          >
+            ✕ Delete Case
           </button>
           <button
             class={styles.saveBtn}
