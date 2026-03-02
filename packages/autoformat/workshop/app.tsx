@@ -248,6 +248,24 @@ export function App(props: ParentProps) {
       <header class={styles.header}>
         <h1 class={styles.title}>Autoformat Workshop</h1>
         <div class={styles.headerActions}>
+          <Show when={currentIndex() !== -1}>
+            <button
+              class={styles.deleteBtn}
+              onClick={() => deleteCase(currentIndex())}
+            >
+              ✕ Delete Case
+            </button>
+            <button
+              class={styles.duplicateBtn}
+              onClick={() => duplicateCase(currentIndex())}
+            >
+              ⧉ Duplicate Case
+            </button>
+          </Show>
+
+          <button class={styles.addBtn} onClick={addCase}>
+            + Add Case
+          </button>
           <button
             class={styles.saveBtn}
             onClick={save}
@@ -257,10 +275,7 @@ export function App(props: ParentProps) {
               ? "Saving…"
               : save.phase() === "saved"
                 ? "Saved!"
-                : "Save"}
-          </button>
-          <button class={styles.addBtn} onClick={addCase}>
-            + Add case
+                : "Save All"}
           </button>
         </div>
       </header>
@@ -329,20 +344,6 @@ export function App(props: ParentProps) {
                       }
                     />
                     <span class={styles.caseId}>{c().id}.json</span>
-                    <div class={styles.rowActions}>
-                      <button
-                        class={styles.duplicateBtn}
-                        onClick={() => duplicateCase(index())}
-                      >
-                        ⧉
-                      </button>
-                      <button
-                        class={styles.deleteBtn}
-                        onClick={() => deleteCase(index())}
-                      >
-                        ✕
-                      </button>
-                    </div>
                   </div>
                   <div class={styles.panels}>
                     <div class={styles.panelWrap}>

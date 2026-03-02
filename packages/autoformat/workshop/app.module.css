@@ -34,7 +34,8 @@
 
 .headerActions {
   display: grid;
-  grid-template-columns: auto auto;
+  grid-auto-flow: column;
+  grid-auto-columns: auto;
   align-items: center;
   gap: 8px;
 }
@@ -120,7 +121,7 @@
 
 .rowHeader {
   display: grid;
-  grid-template-columns: auto auto auto 1fr auto auto;
+  grid-template-columns: auto auto auto 1fr auto;
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
@@ -257,17 +258,3 @@
   }
 }
 
-.rowActions {
-  display: grid;
-  grid-template-columns: auto auto auto;
-  gap: 4px;
-  justify-self: end;
-}
-
-.duplicateBtn,
-.deleteBtn,
-.collapseBtn {
-  padding: 4px 8px;
-  color: #999;
-  font-size: 11px;
-}
