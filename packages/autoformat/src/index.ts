@@ -264,13 +264,12 @@ function assignRows(
 }
 
 /**
- * Step 2b: Forward Pass
+ * Compute provisional x-positions for all nodes in topological order.
  *
- * Walk nodes in topological order, placing each at its provisional x.
- *
- * Rule 1: primary root → anchored to current user position.
- * Rule 2: merge/merge-split → max(parent.right for ALL parents) + gap.
- * Rule 5: all others → prev.right + gap (secondary roots start at 0).
+ * Placement rules:
+ *   - Primary root: anchored to current user position (Rule 1).
+ *   - Merge/merge-split: max(parent.right for ALL parents) + gap (Rule 2).
+ *   - All others: prev.right + gap; secondary roots start at 0 (Rule 5).
  */
 function computeInitialXPositions(
   infos: Map<string, NodeInfo>,
@@ -330,11 +329,10 @@ function buildAncestorSets(
 }
 
 /**
- * xWithoutSubtree Computation
+ * Compute a merge's x-position considering only parents outside a split's subtree.
  *
- * For merge M and split S: compute M's x-position excluding S's subtree entirely.
- * xWithoutSubtree = max(right-edges of M's parents NOT downstream of S) + GAP.
- * Returns -Infinity if M has no external parents (M is not independent of S).
+ * For merge M and split S: max(right-edges of M's parents NOT downstream of S) + GAP.
+ * Returns -Infinity if M has no external parents (i.e. M is not independent of S).
  */
 function computeMergeXExcludingSubtree(
   mergeId: string,
@@ -378,10 +376,8 @@ function propagateSequential(
 }
 
 /**
- * Step 2c: Find Best Rule 4 Pull
- *
- * Multi-hop path traversal from splitId to find the most constraining
- * independent merge target.
+ * Traverse paths from a split to find the most constraining independent merge
+ * target, and return the x-position the split should be pulled to (Rule 4).
  *
  * Priority:
  *   - PRIMARY: first merge with strictly smaller row index (higher priority)
@@ -390,7 +386,7 @@ function propagateSequential(
  *     through them to look for deeper primary targets.
  *   - Same-priority merges: skip as target, continue traversal through them.
  *
- * pathWidthSoFar tracks: sum(widths of [splitId..currentBoundary]) + count×GAP.
+ * pathWidthSoFar tracks: sum(widths of [splitId..currentBoundary]) + count*GAP.
  * This equals the minimum horizontal span from S's left edge to place the next
  * node right after currentBoundary.
  */
@@ -480,12 +476,13 @@ function findMergePullTarget(
 }
 
 /**
- * Step 2c: Apply All Rule 4 Pulls
+ * Pull splits and secondary roots leftward toward their downstream merge
+ * targets (Rule 4).
  *
- * 1. Process splits in reverse topological order (post-order approximation).
- * 2. Process secondary roots in y-order (smallest y first), using current
- *    positions — this ensures later secondary roots see updated xWithoutSubtree values
+ * 1. Process secondary roots in y-order (smallest y first), using current
+ *    positions — this ensures later secondary roots see updated positions
  *    from already-placed earlier ones.
+ * 2. Process splits in reverse topological order (post-order approximation).
  */
 function pullSplitsTowardMerges(
   infos: Map<string, NodeInfo>,
@@ -551,13 +548,11 @@ function pullSplitsTowardMerges(
 }
 
 /**
- * Rule 3: Node Identification
+ * Build a map of "merge approach" nodes — the last interior node in a chain
+ * whose end boundary is a merge in a strictly higher-priority row (Rule 3).
  *
- * Rule 3 applies to the LAST INTERNAL node in a chain where the end boundary is
- * a merge/merge-split in a strictly HIGHER-PRIORITY row than the chain's start.
- *
- * For such a node: x = max(prev.right + gap, end.x - width - gap)
- * where "prev" is the node immediately before it in the chain.
+ * These nodes get special positioning: x = max(prev.right + gap, end.x - width - gap),
+ * pulling them toward the merge they feed into.
  */
 function buildMergeApproachMap(
   infos: Map<string, NodeInfo>,
@@ -596,15 +591,14 @@ function buildMergeApproachMap(
 }
 
 /**
- * Step 3: Reconcile Pass
+ * Reconcile x-positions after split pulls.
  *
- * After all Rule 4 pulls, recompute all non-fixed nodes in topological order:
- *   - Rule 3: last internal before higher-priority merge
- *   - Rule 2 (row-filtered): merge/merge-split
- *   - Rule 5: simple and leaf nodes
+ * Recomputes all non-fixed nodes in topological order:
+ *   - Merge approach nodes: pull toward their downstream merge (Rule 3).
+ *   - Merge/merge-split: max of all parents' right edges + gap (Rule 2).
+ *   - Simple and leaf: sequential from single parent (Rule 5).
  *
- * Fixed nodes (keep as-is): primary root, splits, secondary roots.
- * Topological order guarantees parents are computed before children.
+ * Fixed nodes (kept as-is): primary root, splits, secondary roots.
  */
 function reconcileXPositions(
   infos: Map<string, NodeInfo>,
@@ -665,22 +659,16 @@ function reconcileXPositions(
   return result;
 }
 
-// ─── Step 3 + 4: DFS Row Order + Y Pass ──────────────────────────────────────
-//
-// Step 3: build an interval structure (list of {xStart, xEnd, bottomY} tuples)
-//   - insert(xStart, xEnd, bottomY): record a placed row's x-span and bottom edge
-//   - queryMaxBottomY(xStart, xEnd): max bottom-Y across all overlapping intervals
-//
-// Step 4: process rows in DFS order (NOT row-index order). The DFS starts at
-// the primary root, visits children sorted by initialY ascending, fully
-// exhausting each subtree before the next sibling. Secondary roots follow in
-// top-left order. The first time a row is encountered in this traversal is
-// when it is placed.
-//
-// Row y = max_bottom_y_across_x_span + GAP.
-// Row height = max(node heights in row). Gap = 30px.
-// Primary root anchoring: interval structure is seeded so that row 0 lands at
-// primaryRoot.initialY (i.e. baseBottomY = primaryRoot.initialY - GAP).
+/**
+ * Determine DFS row visitation order, then assign y-positions.
+ *
+ * Rows are visited in DFS order (not row-index order): starting at the primary
+ * root, children are sorted by initialY ascending, each subtree fully exhausted
+ * before the next sibling. Secondary roots follow in top-left order.
+ *
+ * Each row's y = max_bottom_y across its x-span (via IntervalStructure) + GAP.
+ * The interval structure is seeded so row 0 lands at primaryRoot.initialY.
+ */
 
 function buildDFSRowOrder(
   infos: Map<string, NodeInfo>,
