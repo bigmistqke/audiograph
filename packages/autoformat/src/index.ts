@@ -7,6 +7,36 @@ interface Graph {
 
 const GAP = 30;
 
+/**
+ * Sorted interval structure for efficient max-bottom-Y queries over x-ranges.
+ * Used by both the y-pass (row placement) and island collision resolution.
+ */
+class IntervalStructure {
+  private intervals: Array<{ xStart: number; xEnd: number; bottomY: number }> =
+    [];
+  private baseBottomY: number;
+
+  constructor(baseBottomY = -Infinity) {
+    this.baseBottomY = baseBottomY;
+  }
+
+  insert(xStart: number, xEnd: number, bottomY: number) {
+    const iv = { xStart, xEnd, bottomY };
+    let i = this.intervals.length;
+    while (i > 0 && this.intervals[i - 1].xStart > xStart) i--;
+    this.intervals.splice(i, 0, iv);
+  }
+
+  queryMaxBottomY(xStart: number, xEnd: number): number {
+    let max = this.baseBottomY;
+    for (const iv of this.intervals) {
+      if (iv.xStart >= xEnd) break;
+      if (iv.xEnd > xStart && iv.bottomY > max) max = iv.bottomY;
+    }
+    return max;
+  }
+}
+
 /**********************************************************************************/
 /*                                                                                */
 /*                                      Types                                     */
@@ -709,29 +739,9 @@ function yPass(
   }
 
   // Seed baseBottomY so that row 0 lands at primaryRoot.initialY
-  const baseBottomY = infos.get(primaryRootId)!.initialY - GAP;
-
-  // Interval structure: sorted by xStart for early-exit queries.
-  const intervals: Array<{ xStart: number; xEnd: number; bottomY: number }> =
-    [];
-
-  function insertInterval(xStart: number, xEnd: number, bottomY: number) {
-    const iv = { xStart, xEnd, bottomY };
-    let i = intervals.length;
-    while (i > 0 && intervals[i - 1].xStart > xStart) i--;
-    intervals.splice(i, 0, iv);
-  }
-
-  function queryMaxBottomY(xStart: number, xEnd: number): number {
-    let max = baseBottomY;
-    for (const iv of intervals) {
-      if (iv.xStart >= xEnd) break; // sorted — no further overlaps possible
-      if (iv.xEnd > xStart) {
-        if (iv.bottomY > max) max = iv.bottomY;
-      }
-    }
-    return max;
-  }
+  const intervals = new IntervalStructure(
+    infos.get(primaryRootId)!.initialY - GAP,
+  );
 
   const rowOrder = buildDFSRowOrder(infos, rowOf, primaryRootId);
 
@@ -751,7 +761,7 @@ function yPass(
       rowHeight = Math.max(rowHeight, info.height);
     }
 
-    const y = queryMaxBottomY(xMin, xMax) + GAP;
+    const y = intervals.queryMaxBottomY(xMin, xMax) + GAP;
 
     for (const id of nodeIds) {
       yOut.set(id, y);
@@ -763,7 +773,7 @@ function yPass(
     for (const id of nodeIds) {
       const nodeX = xFinal.get(id)!;
       const info = infos.get(id)!;
-      insertInterval(nodeX, nodeX + info.width, y + info.height);
+      intervals.insert(nodeX, nodeX + info.width, y + info.height);
     }
   }
 
@@ -862,25 +872,7 @@ interface IslandLayout {
 function resolveIslandCollisions(islands: IslandLayout[]): void {
   islands.sort((a, b) => a.primaryRootY - b.primaryRootY);
 
-  // Shared interval structure across all placed islands, sorted by xStart.
-  const intervals: Array<{ xStart: number; xEnd: number; bottomY: number }> =
-    [];
-
-  function insertInterval(xStart: number, xEnd: number, bottomY: number) {
-    const iv = { xStart, xEnd, bottomY };
-    let i = intervals.length;
-    while (i > 0 && intervals[i - 1].xStart > xStart) i--;
-    intervals.splice(i, 0, iv);
-  }
-
-  function queryMaxBottomY(xStart: number, xEnd: number): number {
-    let max = -Infinity;
-    for (const iv of intervals) {
-      if (iv.xStart >= xEnd) break; // sorted — no further overlaps possible
-      if (iv.xEnd > xStart && iv.bottomY > max) max = iv.bottomY;
-    }
-    return max;
-  }
+  const intervals = new IntervalStructure();
 
   for (const island of islands) {
     // Compute the uniform downward shift needed across all nodes in this island.
@@ -890,7 +882,7 @@ function resolveIslandCollisions(islands: IslandLayout[]): void {
       const nx = island.xFinal.get(id)!;
       const ny = island.yFinal.get(id)!;
       const info = island.infos.get(id)!;
-      const maxBottom = queryMaxBottomY(nx, nx + info.width);
+      const maxBottom = intervals.queryMaxBottomY(nx, nx + info.width);
       if (maxBottom === -Infinity) continue;
       const needed = maxBottom + GAP - ny;
       if (needed > maxShift) maxShift = needed;
@@ -907,7 +899,7 @@ function resolveIslandCollisions(islands: IslandLayout[]): void {
       const nx = island.xFinal.get(id)!;
       const ny = island.yFinal.get(id)!;
       const info = island.infos.get(id)!;
-      insertInterval(nx, nx + info.width, ny + info.height);
+      intervals.insert(nx, nx + info.width, ny + info.height);
     }
   }
 }
