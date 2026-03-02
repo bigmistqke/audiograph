@@ -242,7 +242,7 @@ function assignRows(
  * Rule 2: merge/merge-split → max(parent.right for ALL parents) + gap.
  * Rule 5: all others → prev.right + gap (secondary roots start at 0).
  */
-function forwardPass(
+function computeInitialXPositions(
   infos: Map<string, NodeInfo>,
   primaryRootId: string,
   order: string[],
@@ -300,13 +300,13 @@ function buildAncestorSets(
 }
 
 /**
- * x_excl Computation
+ * xWithoutSubtree Computation
  *
  * For merge M and split S: compute M's x-position excluding S's subtree entirely.
- * x_excl = max(right-edges of M's parents NOT downstream of S) + GAP.
+ * xWithoutSubtree = max(right-edges of M's parents NOT downstream of S) + GAP.
  * Returns -Infinity if M has no external parents (M is not independent of S).
  */
-function computeXExcl(
+function computeMergeXExcludingSubtree(
   mergeId: string,
   splitId: string,
   infos: Map<string, NodeInfo>,
@@ -410,27 +410,27 @@ function findMergePullTarget(
       }
 
       const endRow = rowOf.get(endId) ?? 0;
-      const xExcl = computeXExcl(endId, splitId, infos, x, ancestorSets);
+      const xWithoutSubtree = computeMergeXExcludingSubtree(endId, splitId, infos, x, ancestorSets);
 
       if (endRow < splitRow) {
         // PRIMARY target: strictly higher-priority row.
-        if (xExcl !== -Infinity) {
-          const pull = xExcl - pathWidthToEnd;
+        if (xWithoutSubtree !== -Infinity) {
+          const pull = xWithoutSubtree - pathWidthToEnd;
           if (pull > bestPrimaryPull) bestPrimaryPull = pull;
         }
         // Stop this path here (don't traverse past a primary target).
       } else if (endRow === splitRow) {
         // Same priority: valid fallback target if no primary is found; also continue traversal.
-        if (xExcl !== -Infinity) {
-          const pull = xExcl - pathWidthToEnd;
+        if (xWithoutSubtree !== -Infinity) {
+          const pull = xWithoutSubtree - pathWidthToEnd;
           if (pull > bestFallbackPull) bestFallbackPull = pull;
         }
         visitedBoundaries.add(endId);
         traverse(endId, pathWidthToEnd + endInfo.width + GAP);
       } else {
         // FALLBACK target: lower-priority row.
-        if (xExcl !== -Infinity) {
-          const pull = xExcl - pathWidthToEnd;
+        if (xWithoutSubtree !== -Infinity) {
+          const pull = xWithoutSubtree - pathWidthToEnd;
           if (pull > bestFallbackPull) bestFallbackPull = pull;
         }
         // Continue through fallback to look for primary targets deeper.
@@ -454,7 +454,7 @@ function findMergePullTarget(
  *
  * 1. Process splits in reverse topological order (post-order approximation).
  * 2. Process secondary roots in y-order (smallest y first), using current
- *    positions — this ensures later secondary roots see updated x_excl values
+ *    positions — this ensures later secondary roots see updated xWithoutSubtree values
  *    from already-placed earlier ones.
  */
 function pullSplitsTowardMerges(
@@ -462,11 +462,11 @@ function pullSplitsTowardMerges(
   primaryRootId: string,
   order: string[],
   rowOf: Map<string, number>,
-  xFwd: Map<string, number>,
+  initialXPositions: Map<string, number>,
   chainMap: Map<string, Map<string, string[]>>,
   ancestorSets: Map<string, Set<string>>,
 ): Map<string, number> {
-  const x = new Map(xFwd);
+  const x = new Map(initialXPositions);
 
   // Secondary roots: process first (y-order) so their splits see the updated x
   // when processed below. Each uses the current x map so it sees positions set
@@ -576,7 +576,7 @@ function buildMergeApproachMap(
  * Fixed nodes (keep as-is): primary root, splits, secondary roots.
  * Topological order guarantees parents are computed before children.
  */
-function reconcilePass(
+function reconcileXPositions(
   infos: Map<string, NodeInfo>,
   order: string[],
   primaryRootId: string,
@@ -595,15 +595,15 @@ function reconcilePass(
     if (info.role === "split") continue;
 
     // Rule 3: last internal before a higher-priority merge.
-    // Use x_excl to avoid circular dependency: endId's Rule 2 position may
+    // Use xWithoutSubtree to avoid circular dependency: endId's Rule 2 position may
     // include this node as a parent, so we exclude the chain's startId subtree.
     if (mergeApproachMap.has(id)) {
       const { endId, prevId, startId } = mergeApproachMap.get(id)!;
       const prevInfo = infos.get(prevId)!;
       const prevRight = result.get(prevId)! + prevInfo.width;
-      const xExcl = computeXExcl(endId, startId, infos, result, ancestorSets);
+      const xWithoutSubtree = computeMergeXExcludingSubtree(endId, startId, infos, result, ancestorSets);
       const pullTarget =
-        xExcl !== -Infinity ? xExcl - info.width - GAP : -Infinity;
+        xWithoutSubtree !== -Infinity ? xWithoutSubtree - info.width - GAP : -Infinity;
       result.set(
         id,
         pullTarget !== -Infinity
@@ -815,18 +815,18 @@ function layoutIsland(islandInfos: Map<string, NodeInfo>): {
     .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
 
   const rowOf = assignRows(islandInfos, order, chainMap);
-  const xFwd = forwardPass(islandInfos, primaryRoot.id, order);
+  const initialXPositions = computeInitialXPositions(islandInfos, primaryRoot.id, order);
   const xAfterRule4 = pullSplitsTowardMerges(
     islandInfos,
     primaryRoot.id,
     order,
     rowOf,
-    xFwd,
+    initialXPositions,
     chainMap,
     ancestorSets,
   );
   const mergeApproachMap = buildMergeApproachMap(islandInfos, rowOf, chainMap);
-  const xFinal = reconcilePass(
+  const xFinal = reconcileXPositions(
     islandInfos,
     order,
     primaryRoot.id,
