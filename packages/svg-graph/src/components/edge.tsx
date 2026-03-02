@@ -86,6 +86,9 @@ export function GraphEdge(props: { edgeId: string; edge: Edge }) {
           onPointerLeave={() => {
             graph.onEdgeHover?.({ edgeId: undefined });
           }}
+          onDblClick={() => {
+            graph.deleteEdge(props.edgeId);
+          }}
           onPointerDown={(event) => {
             event.stopPropagation();
             const svg = event.currentTarget.closest("svg")!;
