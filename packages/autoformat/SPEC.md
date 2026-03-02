@@ -12,7 +12,7 @@ This algorithm does the same thing for graphs:
 
 The result is a layout that is always tidy, but still feels like *yours*.
 
-The algorithm is **not** a single DFS traversal — it requires four sequential phases over a topological sort. The reason is a fundamental causal conflict: Rules 2 and 5 are *forward causal* ("given my parents' positions, place me"), while Rule 4 is *backward causal* ("look downstream at a merge's final position, then pull myself upstream to fit"). A single forward pass cannot satisfy both directions simultaneously. See *Why Four Phases* for details.
+The algorithm is **not** a single DFS traversal — it requires four sequential phases over a topological sort. The reason is a fundamental causal conflict: the Merge Alignment and Sequential rules are *forward causal* ("given my parents' positions, place me"), while the Split Pull rule is *backward causal* ("look downstream at a merge's final position, then pull myself upstream to fit"). A single forward pass cannot satisfy both directions simultaneously. See *Why Four Phases* for details.
 
 ---
 
@@ -83,27 +83,27 @@ Row-claiming is **first-come-first-served in y-order** across the whole traversa
 
 #### Step 2b: Forward Pass
 
-Walk all nodes in topological order, assigning **provisional** x-positions using Rules 1, 2, and 5. Rule 4 pulls are not applied yet — splits and secondary roots receive their Rule 5 provisional position here.
+Walk all nodes in topological order, assigning **provisional** x-positions using the Anchor, Merge Alignment, and Sequential rules. Split Pulls are not applied yet — splits and secondary roots receive their Sequential provisional position here.
 
-Merges get a provisional Rule 2 position based on whichever parents have been processed so far in topological order. These positions are not final — merges are recomputed in Step 2d after all Rule 4 pulls are known.
+Merges get a provisional Merge Alignment position based on whichever parents have been processed so far in topological order. These positions are not final — merges are recomputed in Step 2d after all Split Pulls are known.
 
-#### Step 2c: Rule 4 Pulls
+#### Step 2c: Split Pulls
 
-Process splits in reverse topological order (post-order approximation), then secondary roots in y-order. For each, compute the best pull (see Rule 4), update x, and propagate the new position forward through any sequential (simple/leaf) nodes in the split's chains.
+Process splits in reverse topological order (post-order approximation), then secondary roots in y-order. For each, compute the best pull (see Split Pull rule), update x, and propagate the new position forward through any sequential (simple/leaf) nodes in the split's chains.
 
-Rule 4 reads from the current x-map to evaluate `x_excl` on target merges — this is why the forward pass (2b) must run first, even though the merge positions it produces are provisional.
+The Split Pull rule reads from the current x-map to evaluate `x_excl` on target merges — this is why the forward pass (2b) must run first, even though the merge positions it produces are provisional.
 
-When no Rule 4 target is reachable, splits stay at their Rule 5 position. Secondary roots with no reachable target default to x = 0.
+When no Split Pull target is reachable, splits stay at their Sequential position. Secondary roots with no reachable target default to x = 0.
 
 #### Step 2d: Reconcile Pass
 
-After all Rule 4 pulls, recompute all non-fixed nodes in topological order using their final rules. Fixed nodes (primary root, splits, secondary roots — all placed in earlier phases) are kept as-is. For all others:
+After all Split Pulls, recompute all non-fixed nodes in topological order using their final rules. Fixed nodes (primary root, splits, secondary roots — all placed in earlier phases) are kept as-is. For all others:
 
-- **Rule 3** nodes: computed for the first time here, using `x_excl` to break circular dependencies (see Rule 3)
-- **Rule 2** nodes: recomputed from all parents' now-finalized positions
-- **Rule 5** nodes: recomputed sequentially from their single parent
+- **Merge Approach** nodes: computed for the first time here, using `x_excl` to break circular dependencies (see Merge Approach rule)
+- **Merge Alignment** nodes: recomputed from all parents' now-finalized positions
+- **Sequential** nodes: recomputed sequentially from their single parent
 
-This is the pass where merge positions become final. Each merge is computed exactly twice: a provisional position in 2b (so Rule 4 has something to evaluate), and a final position in 2d (after all splits have pulled).
+This is the pass where merge positions become final. Each merge is computed exactly twice: a provisional position in 2b (so the Split Pull rule has something to evaluate), and a final position in 2d (after all splits have pulled).
 
 ### Step 3: Build Spatial Data Structure
 
@@ -139,55 +139,75 @@ Only the **first node** in each downstream chain gets x-aligned to its upstream 
 
 ### Placement Rules
 
-Every node's x-position is determined by exactly one rule. The rules form a priority hierarchy — the first matching rule wins:
+Every node's x-position is determined by exactly one rule. The rules form a priority hierarchy — the first matching rule wins.
 
-| Priority | Role | Rule |
-|----------|------|------|
-| 1 | **Primary root** | Anchored to current user position — not moved |
-| 2 | Merge / merge-split | `x = max(parent.right for ALL parents) + gap` |
-| 3 | Last internal of a chain whose end boundary is a merge in a **strictly higher-priority row** (smaller row index) than the chain's start | `x = max(prev.right + gap, end.x_excl - width - gap)` |
-| 4 | Split or secondary root with a reachable **independent** merge in the same or higher-priority row | `x = merge.x_excl - min_path_width` — or `x = max(prev.right + gap, merge.x_excl - min_path_width)` if a prev exists |
-| 5 | All other nodes | `x = prev.right + gap` (sequential) |
+#### Anchor Rule
 
-**Rule 2:** All parents are considered regardless of row. Because merges are recomputed in the reconcile pass (Step 2d), they always reflect the final positions of every parent.
+**Applies to:** primary root.
 
-**Rule 3:** Applies to the last internal node of a chain `[start, ..., lastInternal, endMerge]` where `endMerge` is in a strictly higher-priority row (smaller row index) than `start`. If the end boundary is not a merge, is in the same row, or is in a lower-priority row, the node falls through to Rule 5.
+The primary root is anchored to its current user position — it is never moved. All other nodes are placed relative to it.
 
-Rule 3 is applied only during the reconcile pass (Step 2d). It uses `end.x_excl` — the end merge's position excluding `start`'s subtree — rather than `end.x` directly. This breaks a circular dependency: the end merge's Rule 2 position includes `lastInternal` as a parent, so reading `end.x` would be self-referential. `end.x_excl` is computed as the max right-edge of the merge's parents that are **not** downstream of `start`, plus gap.
+#### Merge Alignment Rule
 
-**Rule 4:**
+**Applies to:** merge and merge-split nodes.
+
+`x = max(parent.right for ALL parents) + gap`
+
+All parents are considered regardless of row. Because merges are recomputed in the reconcile pass (Step 2d), they always reflect the final positions of every parent.
+
+#### Merge Approach Rule
+
+**Applies to:** the last internal node of a chain whose end boundary is a merge in a **strictly higher-priority row** (smaller row index) than the chain's start.
+
+`x = max(prev.right + gap, end.x_excl - width - gap)`
+
+If the end boundary is not a merge, is in the same row, or is in a lower-priority row, the node falls through to the Sequential rule.
+
+This rule is applied only during the reconcile pass (Step 2d). It uses `end.x_excl` — the end merge's position excluding `start`'s subtree — rather than `end.x` directly. This breaks a circular dependency: the end merge's Merge Alignment position includes `lastInternal` as a parent, so reading `end.x` would be self-referential. `end.x_excl` is computed as the max right-edge of the merge's parents that are **not** downstream of `start`, plus gap.
+
+#### Split Pull Rule
+
+**Applies to:** split nodes and secondary roots with a reachable **independent** merge in the same or higher-priority row.
+
+`x = merge.x_excl - min_path_width` — or `x = max(prev.right + gap, merge.x_excl - min_path_width)` if a prev exists.
 
 - **Target merge:** Follow paths forward from S through any intermediate boundaries. Track `visitedBoundaries` to avoid revisiting the same boundary twice (handles DAG diamonds and same-row merges). Skip same-row intermediate merges (continue through them). Stop at the **first merge M with a strictly smaller row index** (higher-priority row) along the path. If multiple paths reach different first higher-priority merges, pick the one that gives the **largest x for S** (most constraining). If no higher-priority merge is reachable, a same-row merge is a valid fallback target.
 - `min_path_width` = `sum of widths of all nodes on the path from S to M (excluding M) + (number of those nodes) × gap`. Includes any intermediate boundary nodes traversed — not just simple internals.
 - **Independence:** compute `merge.x_excl` — M's x-position excluding S's subtree entirely. For each of M's parents: if the parent is downstream of S, skip it; otherwise include its right-edge. `merge.x_excl = max(non-S-subtree parent right-edges) + gap`. M is independent of S if `merge.x_excl` is finite (M has at least one parent not downstream of S). Use `merge.x_excl` as the pull target — not M's full x.
 - **Independence guarantees convergence.** If M is independent of S, its dominant position comes from outside S's subtree — finalized before S is evaluated in the post-order phase.
-- **Secondary roots** (no prev): the pull alone determines x and can be negative — no `max(prev.right + gap, …)` guard. If no Rule 4 target is reachable, secondary roots default to x = 0.
+- **Secondary roots** (no prev): the pull alone determines x and can be negative — no `max(prev.right + gap, …)` guard. If no Split Pull target is reachable, secondary roots default to x = 0.
 
-Rule 4 unifies split-pull and secondary-root placement: both place a chain start so its full path fits exactly between itself and a downstream merge.
+This rule unifies split-pull and secondary-root placement: both place a chain start so its full path fits exactly between itself and a downstream merge.
 
 Adding an edge can **promote** a node from simple → merge, making it a new chain boundary and splitting the chain it previously belonged to.
+
+#### Sequential Rule
+
+**Applies to:** all other nodes (simple nodes, leaves, secondary roots without a pull target).
+
+`x = prev.right + gap`
 
 ---
 
 ## Why Four Phases
 
-The algorithm cannot be reduced to a single traversal because **Rule 4 operates in the opposite causal direction from Rules 2 and 5**:
+The algorithm cannot be reduced to a single traversal because **Split Pull operates in the opposite causal direction from Merge Alignment and Sequential**:
 
-- **Rules 2 and 5** are *forward causal*: "given my parents' positions, compute mine."
-- **Rule 4** is *backward causal*: "look downstream at a merge's final position, then pull myself upstream to fit."
+- **Merge Alignment and Sequential** are *forward causal*: "given my parents' positions, compute mine."
+- **Split Pull** is *backward causal*: "look downstream at a merge's final position, then pull myself upstream to fit."
 
 A single forward pass can satisfy one direction but not both. The four phases each resolve a specific dependency:
 
-**Why the forward pass (2b) must come before Rule 4 pulls (2c):**
-Rule 4 calls `x_excl` on target merges, which reads their parents' current x-positions. Those positions must exist before Rule 4 can evaluate them — a forward pass is required to populate the x-map even if the results are provisional.
+**Why the forward pass (2b) must come before Split Pulls (2c):**
+Split Pull calls `x_excl` on target merges, which reads their parents' current x-positions. Those positions must exist before Split Pull can evaluate them — a forward pass is required to populate the x-map even if the results are provisional.
 
-**Why Rule 4 runs in reverse topological order:**
+**Why Split Pull runs in reverse topological order:**
 Deeper splits must pull before shallower ones. If a shallow split pulls first, its downstream chains shift — invalidating the `x_excl` values that deeper splits would read. Processing in post-order ensures each split's pull propagates correctly without corrupting the inputs of splits higher in the graph.
 
 **Why the reconcile pass (2d) is necessary:**
-After Rule 4 pulls, the nodes that moved are splits and sequential chains. But merges (Rule 2) haven't been updated to reflect their parents' new positions, and Rule 3 nodes haven't been computed at all. The reconcile pass fixes both:
-- Rule 2 merges are recomputed with finalized parent positions.
-- Rule 3 nodes can now safely read `end.x_excl` — the end merge's Rule 2 position is final, and using `x_excl` rather than `end.x` avoids the self-referential dependency (the last internal is itself one of the merge's parents).
+After Split Pulls, the nodes that moved are splits and sequential chains. But merges (Merge Alignment) haven't been updated to reflect their parents' new positions, and Merge Approach nodes haven't been computed at all. The reconcile pass fixes both:
+- Merge Alignment nodes are recomputed with finalized parent positions.
+- Merge Approach nodes can now safely read `end.x_excl` — the end merge's Merge Alignment position is final, and using `x_excl` rather than `end.x` avoids the self-referential dependency (the last internal is itself one of the merge's parents).
 
 **Summary:** Forward pass → backward pulls → forward reconcile. Each direction resolves what the other direction leaves unresolved.
 
@@ -197,7 +217,7 @@ After Rule 4 pulls, the nodes that moved are splits and sequential chains. But m
 
 The **primary root** is the root node with the smallest y, with x as tiebreaker (most top-left). It is anchored to its current user position — x and y are not recomputed. All other nodes are placed relative to it.
 
-**Secondary roots** follow Rule 4 and can land at negative x if needed to fit their path before a shared downstream merge. They are processed after all splits have been pulled (Step 2c), in top-left order (smallest y, then smallest x).
+**Secondary roots** follow the Split Pull rule and can land at negative x if needed to fit their path before a shared downstream merge. They are processed after all splits have been pulled (Step 2c), in top-left order (smallest y, then smallest x).
 
 ---
 
@@ -220,11 +240,11 @@ After all islands are laid out independently, overlapping islands are resolved w
 
 ### 1. Descendant cache threading
 
-`descCache` was previously created fresh on every `computeXExcl()` call, recomputing the same ancestor relationships O(N·M) times. One cache is now created per `applyRule4()` / `reconcilePass()` call and threaded through.
+`descCache` was previously created fresh on every `computeMergeXExcludingSubtree()` call, recomputing the same ancestor relationships O(N·M) times. One cache is now created per `pullSplitsTowardMerges()` / `reconcileXPositions()` call and threaded through.
 
 ### 2. Precomputed chains
 
-`traceChain()` previously re-walked the same node paths in `assignRows()`, `findBestRule4Pull()`, and `computeRule3Map()`. `buildChainMap()` now traces all chains once immediately after topology and stores them in a `Map<startId, Map<firstChildId, string[]>>` lookup used by all passes.
+`traceChain()` previously re-walked the same node paths in `assignRows()`, `findMergePullTarget()`, and `buildMergeApproachMap()`. `buildChainMap()` now traces all chains once immediately after topology and stores them in a `Map<startId, Map<firstChildId, string[]>>` lookup used by all passes.
 
 ### 3. Sorted interval structure with early-exit queries
 
@@ -236,7 +256,7 @@ After all islands are laid out independently, overlapping islands are resolved w
 
 ### 5. Hoisted info/width lookups in hot loops
 
-`infos.get(pid)!.width` was called repeatedly inside `map()`/spread-max patterns in the forward pass and reconcile pass. Rule 2 and Rule 5 paths now use explicit `for` loops with the `infos.get()` result cached once per iteration.
+`infos.get(pid)!.width` was called repeatedly inside `map()`/spread-max patterns in the forward pass and reconcile pass. Merge Alignment and Sequential paths now use explicit `for` loops with the `infos.get()` result cached once per iteration.
 
 ---
 

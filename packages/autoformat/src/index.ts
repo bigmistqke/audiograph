@@ -267,9 +267,9 @@ function assignRows(
  * Compute provisional x-positions for all nodes in topological order.
  *
  * Placement rules:
- *   - Primary root: anchored to current user position (Rule 1).
- *   - Merge/merge-split: max(parent.right for ALL parents) + gap (Rule 2).
- *   - All others: prev.right + gap; secondary roots start at 0 (Rule 5).
+ *   - Primary root: anchored to current user position (Anchor rule).
+ *   - Merge/merge-split: max(parent.right for ALL parents) + gap (Merge Alignment rule).
+ *   - All others: prev.right + gap; secondary roots start at 0 (Sequential rule).
  */
 function computeInitialXPositions(
   infos: Map<string, NodeInfo>,
@@ -282,9 +282,9 @@ function computeInitialXPositions(
     const info = infos.get(id)!;
 
     if (id === primaryRootId) {
-      x.set(id, info.initialX); // Rule 1: anchored
+      x.set(id, info.initialX); // Anchor rule
     } else if (isMergeLike(info.role)) {
-      // Rule 2: max of all parents' right edges + gap
+      // Merge Alignment: max of all parents' right edges + gap
       let maxRight = -Infinity;
       for (const pid of info.parents) {
         const right = x.get(pid)! + infos.get(pid)!.width;
@@ -292,10 +292,10 @@ function computeInitialXPositions(
       }
       x.set(id, maxRight + GAP);
     } else if (info.parents.length === 0) {
-      // secondary root: provisional, adjusted by Rule 4
+      // secondary root: provisional, adjusted by Split Pull
       x.set(id, 0);
     } else {
-      // Rule 5: sequential from single parent
+      // Sequential: from single parent
       const prevId = info.parents[0];
       const prevInfo = infos.get(prevId)!;
       x.set(id, x.get(prevId)! + prevInfo.width + GAP);
@@ -356,7 +356,7 @@ function computeMergeXExcludingSubtree(
  *
  * After a split is pulled, propagate the new x through simple and leaf nodes
  * downstream. Stop at merge/split/merge-split boundaries (they have their own
- * placement rules). Leaves ARE updated (they use Rule 5 like simple nodes).
+ * placement rules). Leaves ARE updated (Sequential rule, like simple nodes).
  */
 function propagateSequential(
   id: string,
@@ -377,7 +377,7 @@ function propagateSequential(
 
 /**
  * Traverse paths from a split to find the most constraining independent merge
- * target, and return the x-position the split should be pulled to (Rule 4).
+ * target, and return the x-position the split should be pulled to (Split Pull rule).
  *
  * Priority:
  *   - PRIMARY: first merge with strictly smaller row index (higher priority)
@@ -477,7 +477,7 @@ function findMergePullTarget(
 
 /**
  * Pull splits and secondary roots leftward toward their downstream merge
- * targets (Rule 4).
+ * targets (Split Pull rule).
  *
  * 1. Process secondary roots in y-order (smallest y first), using current
  *    positions — this ensures later secondary roots see updated positions
@@ -549,7 +549,7 @@ function pullSplitsTowardMerges(
 
 /**
  * Build a map of "merge approach" nodes — the last interior node in a chain
- * whose end boundary is a merge in a strictly higher-priority row (Rule 3).
+ * whose end boundary is a merge in a strictly higher-priority row (Merge Approach rule).
  *
  * These nodes get special positioning: x = max(prev.right + gap, end.x - width - gap),
  * pulling them toward the merge they feed into.
@@ -594,9 +594,9 @@ function buildMergeApproachMap(
  * Reconcile x-positions after split pulls.
  *
  * Recomputes all non-fixed nodes in topological order:
- *   - Merge approach nodes: pull toward their downstream merge (Rule 3).
- *   - Merge/merge-split: max of all parents' right edges + gap (Rule 2).
- *   - Simple and leaf: sequential from single parent (Rule 5).
+ *   - Merge Approach nodes: pull toward their downstream merge.
+ *   - Merge/merge-split: max of all parents' right edges + gap (Merge Alignment).
+ *   - Simple and leaf: sequential from single parent (Sequential).
  *
  * Fixed nodes (kept as-is): primary root, splits, secondary roots.
  */
@@ -613,13 +613,13 @@ function reconcileXPositions(
   for (const id of order) {
     const info = infos.get(id)!;
 
-    // Fixed: primary root, splits, and secondary roots (all placed by Rules 1/4)
+    // Fixed: primary root, splits, and secondary roots (placed by Anchor/Split Pull)
     if (id === primaryRootId) continue;
     if (info.role === "root") continue; // secondary roots
     if (info.role === "split") continue;
 
-    // Rule 3: last internal before a higher-priority merge.
-    // Use xWithoutSubtree to avoid circular dependency: endId's Rule 2 position may
+    // Merge Approach: last internal before a higher-priority merge.
+    // Use xWithoutSubtree to avoid circular dependency: endId's Merge Alignment position may
     // include this node as a parent, so we exclude the chain's startId subtree.
     if (mergeApproachMap.has(id)) {
       const { endId, prevId, startId } = mergeApproachMap.get(id)!;
@@ -637,7 +637,7 @@ function reconcileXPositions(
       continue;
     }
 
-    // Rule 2: merge/merge-split — max of all parents' right edges + gap
+    // Merge Alignment: max of all parents' right edges + gap
     if (isMergeLike(info.role)) {
       let maxRight = -Infinity;
       for (const pid of info.parents) {
@@ -648,7 +648,7 @@ function reconcileXPositions(
       continue;
     }
 
-    // Rule 5: simple and leaf — sequential from single parent
+    // Sequential: simple and leaf — from single parent
     if (info.parents.length === 1) {
       const prevId = info.parents[0];
       const prevInfo = infos.get(prevId)!;
