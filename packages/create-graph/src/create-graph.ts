@@ -1,12 +1,5 @@
 import { assertedNotNullish, pickProps } from "@audiograph/utils";
-import {
-  batch,
-  createComputed,
-  createEffect,
-  mapArray,
-  mergeProps,
-  onCleanup,
-} from "solid-js";
+import { batch, createEffect, mapArray, mergeProps, onCleanup } from "solid-js";
 import { createStore } from "solid-js/store";
 import type {
   ConstructResult,
@@ -34,12 +27,14 @@ export function createGraph<TConfig extends GraphConfig>(
     );
   }
 
-  createComputed(
+  createEffect(
     mapArray(
       () => Object.keys(graphOptions.nodes),
       (id) => {
-        createComputed(() => {
+        createEffect(() => {
           const node = graphOptions.nodes[id];
+
+          if (!node?.type) return;
           const typeDef = graphOptions.config[node.type];
 
           if (!typeDef?.construct) {
@@ -73,7 +68,7 @@ export function createGraph<TConfig extends GraphConfig>(
               ),
           });
 
-          createComputed(() => {
+          createEffect(() => {
             const result = typeDef.construct(constructOptions);
             setConstructResults(id, result);
           });

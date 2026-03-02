@@ -17,11 +17,12 @@ export function GraphNode(props: { nodeId: string; node: Node }) {
   };
 
   return (
+    <Show when={typeDef()}>
     <NodeContext.Provider
       value={{
         node: props.node,
         get typeDef() {
-          return typeDef();
+          return typeDef()!;
         },
       }}
     >
@@ -157,5 +158,6 @@ export function GraphNode(props: { nodeId: string; node: Node }) {
         </Show>
       </NodeShell>
     </NodeContext.Provider>
+    </Show>
   );
 }
