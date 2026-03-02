@@ -463,8 +463,26 @@ function buildAncestorSets(
  *
  * For merge M and split S: max(right-edges of M's parents NOT downstream of S) + GAP.
  * Returns -Infinity if M has no external parents (i.e. M is not independent of S).
+ *
+ * ```
+ * Independent — M has a parent outside S's subtree:
+ *
+ * [X]──>[Y]──>[Z]──>[M]       M's parents: Z and C
+ *                    ↑         Z is NOT downstream of S → keep
+ * [S]──>[B]──>[C]────┘         C IS downstream of S → skip
+ *
+ * Result: Z.right + GAP  (where M would be without S's branch)
+ *
+ * Not independent — all of M's parents are downstream of S:
+ *
+ *      ┌──>[B]──┐
+ * [S]──┤        ├──>[M]        M's parents: B and C
+ *      └──>[C]──┘              Both downstream of S → skip all
+ *
+ * Result: -Infinity  (M depends entirely on S, no pull target)
+ * ```
  */
-function computeMergeXExcludingSubtree(
+function computeMergeXWithoutSubtree(
   mergeId: string,
   splitId: string,
   infos: Map<string, NodeInfo>,
@@ -597,7 +615,7 @@ function findMergePullTarget(
       }
 
       const endRow = rowOf.get(endId) ?? 0;
-      const xWithoutSubtree = computeMergeXExcludingSubtree(
+      const xWithoutSubtree = computeMergeXWithoutSubtree(
         endId,
         splitId,
         infos,
@@ -877,7 +895,7 @@ function reconcileXPositions(
       const { endId, prevId, startId } = mergeApproachMap.get(id)!;
       const prevInfo = infos.get(prevId)!;
       const prevRight = result.get(prevId)! + prevInfo.width;
-      const xWithoutSubtree = computeMergeXExcludingSubtree(
+      const xWithoutSubtree = computeMergeXWithoutSubtree(
         endId,
         startId,
         infos,
