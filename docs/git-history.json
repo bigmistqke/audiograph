@@ -1,19 +1,27 @@
 [
   {
+    "hash": "5eb02e4309a006956318fec41f01d3c6f7d19c55",
+    "short_hash": "5eb02e4",
+    "author": "bigmistqke",
+    "date": "2026-03-02T01:13:32+01:00",
+    "message": "docs: update autoformat JSDoc to match renamed functions",
+    "files_changed": 1
+  },
+  {
+    "hash": "9f284efcbefba38edd7cafdaa10c91d59001bd53",
+    "short_hash": "9f284ef",
+    "author": "bigmistqke",
+    "date": "2026-03-02T01:10:53+01:00",
+    "message": "chore: sync deciduous graph",
+    "files_changed": 2
+  },
+  {
     "hash": "add79c144ce878de73b4d0205a0a79e9f10512e9",
     "short_hash": "add79c1",
     "author": "bigmistqke",
     "date": "2026-03-02T01:10:19+01:00",
     "message": "refactor: extract IntervalStructure class from duplicated insert/query logic",
     "files_changed": 1
-  },
-  {
-    "hash": "3f1a323150f579bc9e737f104543d035ff6790df",
-    "short_hash": "3f1a323",
-    "author": "bigmistqke",
-    "date": "2026-03-02T01:07:44+01:00",
-    "message": "chore: sync deciduous graph",
-    "files_changed": 2
   },
   {
     "hash": "5d3891ee6060f1fec79d39e280248fd1a0486e65",
