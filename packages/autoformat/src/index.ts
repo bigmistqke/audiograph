@@ -1,5 +1,7 @@
 import type { Edges, Nodes } from "@audiograph/create-graph";
-import { assertedNotNullish } from "@audiograph/utils";
+import { assertedNotNullish, debug } from "@audiograph/utils";
+
+const log = debug("autoformat", false);
 
 const GAP = 30;
 
@@ -240,6 +242,7 @@ function topologicalSort(infos: Map<string, NodeInfo>): string[] {
 
   const queue = [...infos.values()]
     .filter((n) => n.parents.length === 0)
+    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)
     .map((n) => n.id);
   const order: string[] = [];
 
@@ -275,6 +278,7 @@ function assignRows(
   chainMap: Map<string, Map<string, string[]>>,
 ): Map<string, number> {
   const rowOf = new Map<string, number>();
+  const spineMerges = new Set<string>();
   let nextRow = 0;
 
   for (const id of order) {
@@ -316,6 +320,7 @@ function assignRows(
           chainRow < rowOf.get(endId)!
         ) {
           rowOf.set(endId, chainRow);
+          spineMerges.add(endId);
         }
 
         for (let i = 1; i < chain.length - 1; i++) {
@@ -327,7 +332,8 @@ function assignRows(
         continue;
       }
 
-      const chainRow = !spineAssigned ? currentRow : nextRow++;
+      const isSpine = !spineAssigned;
+      const chainRow = isSpine ? currentRow : nextRow++;
 
       if (!spineAssigned) {
         spineAssigned = true;
@@ -336,8 +342,32 @@ function assignRows(
       for (let i = 1; i < chain.length; i++) {
         if (!rowOf.has(chain[i])) {
           rowOf.set(chain[i], chainRow);
+          if (isSpine && isMergeLike(infos.get(chain[i])!.role)) {
+            spineMerges.add(chain[i]);
+          }
         }
       }
+    }
+  }
+
+  // Post-process: push non-spine merges down to max(parent rows).
+  // Spine merges are anchored to their spine parent's row and must not move.
+  for (const id of order) {
+    const info = infos.get(id)!;
+    if (!isMergeLike(info.role) || spineMerges.has(id)) {
+      continue;
+    }
+
+    let maxParentRow = 0;
+    for (const pid of info.parents) {
+      const pRow = rowOf.get(pid);
+      if (pRow !== undefined && pRow > maxParentRow) {
+        maxParentRow = pRow;
+      }
+    }
+
+    if (rowOf.get(id)! < maxParentRow) {
+      rowOf.set(id, maxParentRow);
     }
   }
 
@@ -386,6 +416,7 @@ function computeInitialXPositions(
     // secondary root: provisional, will be adjusted by Split Pull
     if (info.parents.length === 0) {
       x.set(id, 0);
+
       continue;
     }
 
@@ -561,6 +592,7 @@ function findMergePullTarget(
           visitedBoundaries.add(endId);
           traverse(endId, pathWidthToEnd + endInfo.width + options.gap);
         }
+
         continue;
       }
 
@@ -586,14 +618,23 @@ function findMergePullTarget(
       }
 
       if (endRow === splitRow) {
-        // Same priority: valid fallback target if no primary is found; also continue traversal.
-        if (xWithoutSubtree !== -Infinity) {
-          const pull = xWithoutSubtree - pathWidthToEnd;
-          if (pull > bestFallbackPull) bestFallbackPull = pull;
-        }
+        // Same priority: continue traversal to find deeper targets.
+        // Only record this target's pull if no deeper target is found
+        // (the deepest target on a chain is the most constraining).
+        const savedPrimary = bestPrimaryPull;
+        const savedFallback = bestFallbackPull;
 
         visitedBoundaries.add(endId);
         traverse(endId, pathWidthToEnd + endInfo.width + options.gap);
+
+        const deeperFound =
+          bestPrimaryPull !== savedPrimary ||
+          bestFallbackPull !== savedFallback;
+
+        if (!deeperFound && xWithoutSubtree !== -Infinity) {
+          const pull = xWithoutSubtree - pathWidthToEnd;
+          if (pull > bestFallbackPull) bestFallbackPull = pull;
+        }
 
         continue;
       }
@@ -603,6 +644,7 @@ function findMergePullTarget(
         const pull = xWithoutSubtree - pathWidthToEnd;
         if (pull > bestFallbackPull) bestFallbackPull = pull;
       }
+
       // Continue through fallback to look for primary targets deeper.
       visitedBoundaries.add(endId);
       traverse(endId, pathWidthToEnd + endInfo.width + options.gap);
@@ -912,7 +954,6 @@ function buildDFSRowOrder(
     }
 
     visited.add(nodeId);
-
     const row = rowOf.get(nodeId);
 
     if (row !== undefined && !rowsEncountered.has(row)) {
@@ -924,7 +965,6 @@ function buildDFSRowOrder(
       infos.get(nodeId),
       `Expected infos to contain ${nodeId}`,
     );
-
     const sortedChildren = [...info.children].sort(
       (a, b) => infos.get(a)!.initialY - infos.get(b)!.initialY,
     );
@@ -961,7 +1001,10 @@ function yPass(
   const rowNodes = new Map<number, string[]>();
 
   for (const [id, row] of rowOf) {
-    if (!rowNodes.has(row)) rowNodes.set(row, []);
+    if (!rowNodes.has(row)) {
+      rowNodes.set(row, []);
+    }
+
     rowNodes.get(row)!.push(id);
   }
 
