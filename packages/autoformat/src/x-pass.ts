@@ -300,9 +300,10 @@ function pullSplitsTowardMerges(
   ctx: AnalysisResult,
   initialXPositions: Map<string, number>,
   options: AutoformatOptions,
-): Map<string, number> {
+): { x: Map<string, number>; pulledSplits: Set<string> } {
   const { infos, primaryRoot, order } = ctx;
   const x = new Map(initialXPositions);
+  const pulledSplits = new Set<string>();
 
   // Secondary roots: process first (y-order) so their splits see the updated x
   // when processed below. Each uses the current x map so it sees positions set
@@ -357,10 +358,12 @@ function pullSplitsTowardMerges(
       : pull;
 
     if (finalX === x.get(id)) {
+      pulledSplits.add(id);
       continue;
     }
 
     x.set(id, finalX);
+    pulledSplits.add(id);
 
     // Propagate updated x through sequential nodes in this split's chains.
     const splitRight = finalX + info.width;
@@ -370,7 +373,7 @@ function pullSplitsTowardMerges(
     }
   }
 
-  return x;
+  return { x, pulledSplits };
 }
 
 /**
@@ -387,6 +390,7 @@ function reconcileXPositions(
   ctx: AnalysisResult,
   x: Map<string, number>,
   options: AutoformatOptions,
+  pulledSplits: Set<string>,
 ): Map<string, number> {
   const { infos, order, primaryRoot, mergeApproachMap } = ctx;
   const result = new Map(x);
@@ -403,7 +407,7 @@ function reconcileXPositions(
       continue; // secondary roots
     }
 
-    if (info.role === "split") {
+    if (info.role === "split" && pulledSplits.has(id)) {
       continue;
     }
 
@@ -472,10 +476,10 @@ export function xPass(
   options: AutoformatOptions,
 ): Map<string, number> {
   const initialXPositions = computeInitialXPositions(ctx, options);
-  const xAfterSplitPull = pullSplitsTowardMerges(
+  const { x: xAfterSplitPull, pulledSplits } = pullSplitsTowardMerges(
     ctx,
     initialXPositions,
     options,
   );
-  return reconcileXPositions(ctx, xAfterSplitPull, options);
+  return reconcileXPositions(ctx, xAfterSplitPull, options, pulledSplits);
 }

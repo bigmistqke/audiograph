@@ -3304,12 +3304,12 @@ describe("autoformat — x-positions", () => {
         }
     };
     expect(labelX(autoformat(initial))).toMatchObject({
-          "A": 0,
-          "B": 0,
-          "C": 130,
-          "D": 260,
-          "E": 390,
-          "F": 390
+          "A": -10,
+          "B": -10,
+          "C": 120,
+          "D": 250,
+          "E": 380,
+          "F": 380
     });
   });
 });
