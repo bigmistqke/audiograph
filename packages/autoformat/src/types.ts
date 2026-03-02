@@ -73,16 +73,20 @@ export function isBoundary(role: NodeRole): boolean {
  * Used by both the y-pass (row placement) and island collision resolution.
  */
 export class IntervalStructure {
-  private intervals: Array<{ xStart: number; xEnd: number; bottomY: number }> =
-    [];
+  private intervals: Array<{
+    xStart: number;
+    xEnd: number;
+    topY: number;
+    bottomY: number;
+  }> = [];
   private baseBottomY: number;
 
   constructor(baseBottomY = -Infinity) {
     this.baseBottomY = baseBottomY;
   }
 
-  insert(xStart: number, xEnd: number, bottomY: number) {
-    const iv = { xStart, xEnd, bottomY };
+  insert(xStart: number, xEnd: number, topY: number, bottomY: number) {
+    const iv = { xStart, xEnd, topY, bottomY };
     let i = this.intervals.length;
     while (i > 0 && this.intervals[i - 1].xStart > xStart) i--;
     this.intervals.splice(i, 0, iv);
@@ -93,6 +97,28 @@ export class IntervalStructure {
     for (const iv of this.intervals) {
       if (iv.xStart >= xEnd) break;
       if (iv.xEnd > xStart && iv.bottomY > max) max = iv.bottomY;
+    }
+    return max;
+  }
+
+  /** Like queryMaxBottomY but only considers intervals that collide in y. */
+  queryMaxBottomYColliding(
+    xStart: number,
+    xEnd: number,
+    nodeTopY: number,
+    nodeBottomY: number,
+    gap: number,
+  ): number {
+    let max = this.baseBottomY;
+    for (const iv of this.intervals) {
+      if (iv.xStart >= xEnd) break;
+      if (iv.xEnd > xStart) {
+        const safelyAbove = nodeBottomY + gap <= iv.topY;
+        const safelyBelow = nodeTopY >= iv.bottomY + gap;
+        if (!safelyAbove && !safelyBelow && iv.bottomY > max) {
+          max = iv.bottomY;
+        }
+      }
     }
     return max;
   }

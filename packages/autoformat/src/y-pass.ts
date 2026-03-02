@@ -66,7 +66,7 @@ export function yPass(
     for (const id of nodeIds) {
       const nodeX = xFinal.get(id)!;
       const info = infos.get(id)!;
-      intervals.insert(nodeX, nodeX + info.width, y + info.height);
+      intervals.insert(nodeX, nodeX + info.width, y, y + info.height);
     }
   }
 
@@ -94,29 +94,48 @@ export function resolveIslandCollisions(
   const intervals = new IntervalStructure();
 
   for (const island of islands) {
-    // Compute the uniform downward shift needed across all nodes in this island.
-    let maxShift = 0;
+    // Iteratively shift the island downward until no node collides.
+    // Each round resolves at least one collision, so this terminates
+    // in at most O(x-overlapping intervals) rounds.
+    let totalShift = 0;
+    let shifted: boolean;
 
-    for (const id of island.nodeIds) {
-      const nx = island.xFinal.get(id)!;
-      const ny = island.yFinal.get(id)!;
-      const info = island.infos.get(id)!;
-      const maxBottom = intervals.queryMaxBottomY(nx, nx + info.width);
+    do {
+      shifted = false;
+      let maxShift = 0;
 
-      if (maxBottom === -Infinity) {
-        continue;
-      }
-
-      const needed = maxBottom + options.gap - ny;
-
-      if (needed > maxShift) {
-        maxShift = needed;
-      }
-    }
-
-    if (maxShift > 0) {
       for (const id of island.nodeIds) {
-        island.yFinal.set(id, island.yFinal.get(id)! + maxShift);
+        const nx = island.xFinal.get(id)!;
+        const ny = island.yFinal.get(id)! + totalShift;
+        const info = island.infos.get(id)!;
+        const maxBottom = intervals.queryMaxBottomYColliding(
+          nx,
+          nx + info.width,
+          ny,
+          ny + info.height,
+          options.gap,
+        );
+
+        if (maxBottom === -Infinity) {
+          continue;
+        }
+
+        const needed = maxBottom + options.gap - ny;
+
+        if (needed > maxShift) {
+          maxShift = needed;
+        }
+      }
+
+      if (maxShift > 0) {
+        totalShift += maxShift;
+        shifted = true;
+      }
+    } while (shifted);
+
+    if (totalShift > 0) {
+      for (const id of island.nodeIds) {
+        island.yFinal.set(id, island.yFinal.get(id)! + totalShift);
       }
     }
 
@@ -125,7 +144,7 @@ export function resolveIslandCollisions(
       const nx = island.xFinal.get(id)!;
       const ny = island.yFinal.get(id)!;
       const info = island.infos.get(id)!;
-      intervals.insert(nx, nx + info.width, ny + info.height);
+      intervals.insert(nx, nx + info.width, ny, ny + info.height);
     }
   }
 }
