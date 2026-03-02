@@ -1,11 +1,68 @@
 import type { Edges, Nodes } from "@audiograph/create-graph";
+import { assertedNotNullish } from "@audiograph/utils";
+
+const GAP = 30;
+
+/**********************************************************************************/
+/*                                                                                */
+/*                                      Types                                     */
+/*                                                                                */
+/**********************************************************************************/
+
+type NodeRole = "root" | "leaf" | "simple" | "split" | "merge" | "merge-split";
+
+interface NodeInfo {
+  id: string;
+  role: NodeRole;
+  parents: string[];
+  children: string[];
+  initialX: number;
+  initialY: number;
+  width: number;
+  height: number;
+}
+
+export interface LayoutNode {
+  id: string;
+  x: number;
+  y: number;
+  row: number;
+  width: number;
+  height: number;
+}
 
 interface Graph {
   nodes: Nodes;
   edges: Edges;
 }
 
-const GAP = 30;
+export interface AutoformatOptions {
+  gap: number;
+}
+
+/**********************************************************************************/
+/*                                                                                */
+/*                                      Utils                                     */
+/*                                                                                */
+/**********************************************************************************/
+
+function isMergeLike(role: NodeRole): boolean {
+  return role === "merge" || role === "merge-split";
+}
+
+/**
+ * A "boundary" node is any non-simple node (root, leaf, split, merge, merge-split).
+ * Chains run between boundary nodes; simple nodes are interior to chains.
+ */
+function isBoundary(role: NodeRole): boolean {
+  return role !== "simple";
+}
+
+/**********************************************************************************/
+/*                                                                                */
+/*                                   Autoformat                                   */
+/*                                                                                */
+/**********************************************************************************/
 
 /**
  * Sorted interval structure for efficient max-bottom-Y queries over x-ranges.
@@ -37,46 +94,6 @@ class IntervalStructure {
   }
 }
 
-/**********************************************************************************/
-/*                                                                                */
-/*                                      Types                                     */
-/*                                                                                */
-/**********************************************************************************/
-
-type NodeRole = "root" | "leaf" | "simple" | "split" | "merge" | "merge-split";
-
-interface NodeInfo {
-  id: string;
-  role: NodeRole;
-  parents: string[];
-  children: string[];
-  initialX: number;
-  initialY: number;
-  width: number;
-  height: number;
-}
-
-export interface LayoutNode {
-  id: string;
-  x: number;
-  y: number;
-  row: number;
-  width: number;
-  height: number;
-}
-
-function isMergeLike(role: NodeRole): boolean {
-  return role === "merge" || role === "merge-split";
-}
-
-/**
- * A "boundary" node is any non-simple node (root, leaf, split, merge, merge-split).
- * Chains run between boundary nodes; simple nodes are interior to chains.
- */
-function isBoundary(role: NodeRole): boolean {
-  return role !== "simple";
-}
-
 /**
  * Step 1: Topology Analysis
  */
@@ -103,9 +120,17 @@ function buildTopology(graph: Graph): Map<string, NodeInfo> {
   for (const edge of Object.values(graph.edges)) {
     const outId = edge.output.node;
     const inId = edge.input.node;
-    if (!childSets.has(outId)) childSets.set(outId, new Set());
+
+    if (!childSets.has(outId)) {
+      childSets.set(outId, new Set());
+    }
+
     childSets.get(outId)!.add(inId);
-    if (!parentSets.has(inId)) parentSets.set(inId, new Set());
+
+    if (!parentSets.has(inId)) {
+      parentSets.set(inId, new Set());
+    }
+
     parentSets.get(inId)!.add(outId);
   }
 
@@ -116,12 +141,30 @@ function buildTopology(graph: Graph): Map<string, NodeInfo> {
     const nIn = info.parents.length;
     const nOut = info.children.length;
 
-    if (nIn === 0) info.role = "root";
-    else if (nIn > 1 && nOut > 1) info.role = "merge-split";
-    else if (nIn > 1) info.role = "merge";
-    else if (nOut > 1) info.role = "split";
-    else if (nOut === 0) info.role = "leaf";
-    else info.role = "simple";
+    if (nIn === 0) {
+      info.role = "root";
+      continue;
+    }
+    if (nIn > 1 && nOut > 1) {
+      info.role = "merge-split";
+      continue;
+    }
+    if (nIn > 1) {
+      info.role = "merge";
+      continue;
+    }
+    if (nOut > 1) {
+      info.role = "split";
+      continue;
+    }
+    if (nOut === 0) {
+      info.role = "leaf";
+      continue;
+    }
+    {
+      info.role = "simple";
+      continue;
+    }
   }
 
   return infos;
@@ -141,8 +184,14 @@ function traceChain(
   while (true) {
     chain.push(currentId);
     const current = infos.get(currentId)!;
-    if (isBoundary(current.role)) break;
-    if (current.children.length === 0) break; // safety guard
+
+    if (isBoundary(current.role)) {
+      break;
+    }
+    if (current.children.length === 0) {
+      break; // safety guard
+    }
+
     currentId = current.children[0];
   }
 
@@ -162,12 +211,18 @@ function buildChainMap(
   infos: Map<string, NodeInfo>,
 ): Map<string, Map<string, string[]>> {
   const chainMap = new Map<string, Map<string, string[]>>();
+
   for (const info of infos.values()) {
-    if (!isBoundary(info.role)) continue;
+    if (!isBoundary(info.role)) {
+      continue;
+    }
+
     const byFirstChild = new Map<string, string[]>();
+
     for (const firstChildId of info.children) {
       byFirstChild.set(firstChildId, traceChain(info.id, firstChildId, infos));
     }
+
     chainMap.set(info.id, byFirstChild);
   }
   return chainMap;
@@ -178,7 +233,10 @@ function buildChainMap(
  */
 function topologicalSort(infos: Map<string, NodeInfo>): string[] {
   const inDegree = new Map<string, number>();
-  for (const info of infos.values()) inDegree.set(info.id, info.parents.length);
+
+  for (const info of infos.values()) {
+    inDegree.set(info.id, info.parents.length);
+  }
 
   const queue = [...infos.values()]
     .filter((n) => n.parents.length === 0)
@@ -188,10 +246,14 @@ function topologicalSort(infos: Map<string, NodeInfo>): string[] {
   while (queue.length > 0) {
     const id = queue.shift()!;
     order.push(id);
+
     for (const childId of infos.get(id)!.children) {
       const deg = inDegree.get(childId)! - 1;
       inDegree.set(childId, deg);
-      if (deg === 0) queue.push(childId);
+
+      if (deg === 0) {
+        queue.push(childId);
+      }
     }
   }
 
@@ -217,9 +279,15 @@ function assignRows(
 
   for (const id of order) {
     const info = infos.get(id)!;
-    if (info.role === "simple" || info.role === "leaf") continue;
 
-    if (!rowOf.has(id)) rowOf.set(id, nextRow++);
+    if (info.role === "simple" || info.role === "leaf") {
+      continue;
+    }
+
+    if (!rowOf.has(id)) {
+      rowOf.set(id, nextRow++);
+    }
+
     const currentRow = rowOf.get(id)!;
 
     const sortedChildren = [...info.children].sort(
@@ -238,24 +306,37 @@ function assignRows(
         // If this chain's row is higher priority (lower index) than the end
         // boundary's current row, prefer it — the higher-priority row wins.
         const chainRow = !spineAssigned ? currentRow : nextRow++;
-        if (!spineAssigned) spineAssigned = true;
+
+        if (!spineAssigned) {
+          spineAssigned = true;
+        }
+
         if (
           isMergeLike(infos.get(endId)!.role) &&
           chainRow < rowOf.get(endId)!
         ) {
           rowOf.set(endId, chainRow);
         }
+
         for (let i = 1; i < chain.length - 1; i++) {
-          if (!rowOf.has(chain[i])) rowOf.set(chain[i], chainRow);
+          if (!rowOf.has(chain[i])) {
+            rowOf.set(chain[i], chainRow);
+          }
         }
+
         continue;
       }
 
       const chainRow = !spineAssigned ? currentRow : nextRow++;
-      if (!spineAssigned) spineAssigned = true;
+
+      if (!spineAssigned) {
+        spineAssigned = true;
+      }
 
       for (let i = 1; i < chain.length; i++) {
-        if (!rowOf.has(chain[i])) rowOf.set(chain[i], chainRow);
+        if (!rowOf.has(chain[i])) {
+          rowOf.set(chain[i], chainRow);
+        }
       }
     }
   }
@@ -275,31 +356,43 @@ function computeInitialXPositions(
   infos: Map<string, NodeInfo>,
   primaryRootId: string,
   order: string[],
+  options: AutoformatOptions,
 ): Map<string, number> {
   const x = new Map<string, number>();
 
   for (const id of order) {
     const info = infos.get(id)!;
 
+    // Anchor rule
     if (id === primaryRootId) {
-      x.set(id, info.initialX); // Anchor rule
-    } else if (isMergeLike(info.role)) {
-      // Merge Alignment: max of all parents' right edges + gap
+      x.set(id, info.initialX);
+      continue;
+    }
+
+    // Merge Alignment: max of all parents' right edges + gap
+    if (isMergeLike(info.role)) {
       let maxRight = -Infinity;
+
       for (const pid of info.parents) {
         const right = x.get(pid)! + infos.get(pid)!.width;
         if (right > maxRight) maxRight = right;
       }
-      x.set(id, maxRight + GAP);
-    } else if (info.parents.length === 0) {
-      // secondary root: provisional, adjusted by Split Pull
-      x.set(id, 0);
-    } else {
-      // Sequential: from single parent
-      const prevId = info.parents[0];
-      const prevInfo = infos.get(prevId)!;
-      x.set(id, x.get(prevId)! + prevInfo.width + GAP);
+
+      x.set(id, maxRight + options.gap);
+
+      continue;
     }
+
+    // secondary root: provisional, will be adjusted by Split Pull
+    if (info.parents.length === 0) {
+      x.set(id, 0);
+      continue;
+    }
+
+    // Sequential: from single parent
+    const prevId = info.parents[0];
+    const prevInfo = infos.get(prevId)!;
+    x.set(id, x.get(prevId)! + prevInfo.width + options.gap);
   }
 
   return x;
@@ -317,12 +410,18 @@ function buildAncestorSets(
   order: string[],
 ): Map<string, Set<string>> {
   const ancestors = new Map<string, Set<string>>();
+
   for (const id of order) {
     const anc = new Set<string>();
+
     for (const pid of infos.get(id)!.parents) {
       anc.add(pid);
-      for (const a of ancestors.get(pid)!) anc.add(a);
+
+      for (const a of ancestors.get(pid)!) {
+        anc.add(a);
+      }
     }
+
     ancestors.set(id, anc);
   }
   return ancestors;
@@ -340,15 +439,27 @@ function computeMergeXExcludingSubtree(
   infos: Map<string, NodeInfo>,
   x: Map<string, number>,
   ancestorSets: Map<string, Set<string>>,
+  options: AutoformatOptions,
 ): number {
   let maxExternal = -Infinity;
+
   for (const pid of infos.get(mergeId)!.parents) {
-    if (pid === splitId || ancestorSets.get(pid)!.has(splitId)) continue;
+    if (pid === splitId || ancestorSets.get(pid)!.has(splitId)) {
+      continue;
+    }
+
     const right = x.get(pid)! + infos.get(pid)!.width;
-    if (right > maxExternal) maxExternal = right;
+
+    if (right > maxExternal) {
+      maxExternal = right;
+    }
   }
-  if (maxExternal === -Infinity) return -Infinity; // not independent
-  return maxExternal + GAP;
+
+  if (maxExternal === -Infinity) {
+    return -Infinity; // not independent
+  }
+
+  return maxExternal + options.gap;
 }
 
 /**
@@ -359,19 +470,32 @@ function computeMergeXExcludingSubtree(
  * placement rules). Leaves ARE updated (Sequential rule, like simple nodes).
  */
 function propagateSequential(
-  id: string,
+  nodeId: string,
   prevRight: number,
   x: Map<string, number>,
   infos: Map<string, NodeInfo>,
+  options: AutoformatOptions,
 ) {
-  const info = infos.get(id)!;
-  // Stop at true boundary types that have their own rules
-  if (isMergeLike(info.role) || info.role === "split" || info.role === "root")
-    return;
+  const info = assertedNotNullish(
+    infos.get(nodeId),
+    `Expected infos to contain ${nodeId}`,
+  );
 
-  x.set(id, prevRight + GAP);
+  // Stop at true boundary types that have their own rules
+  if (isMergeLike(info.role) || info.role === "split" || info.role === "root") {
+    return;
+  }
+
+  x.set(nodeId, prevRight + options.gap);
+
   for (const childId of info.children) {
-    propagateSequential(childId, prevRight + GAP + info.width, x, infos);
+    propagateSequential(
+      childId,
+      prevRight + options.gap + info.width,
+      x,
+      infos,
+      options,
+    );
   }
 }
 
@@ -386,7 +510,7 @@ function propagateSequential(
  *     through them to look for deeper primary targets.
  *   - Same-priority merges: skip as target, continue traversal through them.
  *
- * pathWidthSoFar tracks: sum(widths of [splitId..currentBoundary]) + count*GAP.
+ * pathWidthSoFar tracks: sum(widths of [splitId..currentBoundary]) + count*gap.
  * This equals the minimum horizontal span from S's left edge to place the next
  * node right after currentBoundary.
  */
@@ -397,6 +521,7 @@ function findMergePullTarget(
   x: Map<string, number>,
   ancestorSets: Map<string, Set<string>>,
   chainMap: Map<string, Map<string, string[]>>,
+  options: AutoformatOptions,
 ): number {
   const splitRow = rowOf.get(splitId) ?? 0;
   const splitWidth = infos.get(splitId)!.width;
@@ -414,7 +539,9 @@ function findMergePullTarget(
       const chain = chainMap.get(currentBoundaryId)!.get(firstChildId)!;
       const endId = chain[chain.length - 1];
 
-      if (visitedBoundaries.has(endId)) continue;
+      if (visitedBoundaries.has(endId)) {
+        continue;
+      }
 
       // Accumulate path width: internals contribute width + gap each.
       // pathWidthSoFar already includes currentBoundary width + 1 gap.
@@ -422,21 +549,30 @@ function findMergePullTarget(
       for (let i = 1; i < chain.length - 1; i++) {
         internalsWidth += infos.get(chain[i])!.width;
       }
+
       const nInternals = chain.length - 2;
-      const pathWidthToEnd = pathWidthSoFar + internalsWidth + nInternals * GAP;
+      const pathWidthToEnd =
+        pathWidthSoFar + internalsWidth + nInternals * options.gap;
 
       const endInfo = infos.get(endId)!;
       if (!isMergeLike(endInfo.role)) {
         // Split: no pull target here, but continue traversal to find deeper merges.
         if (endInfo.role === "split") {
           visitedBoundaries.add(endId);
-          traverse(endId, pathWidthToEnd + endInfo.width + GAP);
+          traverse(endId, pathWidthToEnd + endInfo.width + options.gap);
         }
         continue;
       }
 
       const endRow = rowOf.get(endId) ?? 0;
-      const xWithoutSubtree = computeMergeXExcludingSubtree(endId, splitId, infos, x, ancestorSets);
+      const xWithoutSubtree = computeMergeXExcludingSubtree(
+        endId,
+        splitId,
+        infos,
+        x,
+        ancestorSets,
+        options,
+      );
 
       if (endRow < splitRow) {
         // PRIMARY target: strictly higher-priority row.
@@ -444,34 +580,47 @@ function findMergePullTarget(
           const pull = xWithoutSubtree - pathWidthToEnd;
           if (pull > bestPrimaryPull) bestPrimaryPull = pull;
         }
+
         // Stop this path here (don't traverse past a primary target).
-      } else if (endRow === splitRow) {
+        continue;
+      }
+
+      if (endRow === splitRow) {
         // Same priority: valid fallback target if no primary is found; also continue traversal.
         if (xWithoutSubtree !== -Infinity) {
           const pull = xWithoutSubtree - pathWidthToEnd;
           if (pull > bestFallbackPull) bestFallbackPull = pull;
         }
+
         visitedBoundaries.add(endId);
-        traverse(endId, pathWidthToEnd + endInfo.width + GAP);
-      } else {
-        // FALLBACK target: lower-priority row.
-        if (xWithoutSubtree !== -Infinity) {
-          const pull = xWithoutSubtree - pathWidthToEnd;
-          if (pull > bestFallbackPull) bestFallbackPull = pull;
-        }
-        // Continue through fallback to look for primary targets deeper.
-        visitedBoundaries.add(endId);
-        traverse(endId, pathWidthToEnd + endInfo.width + GAP);
+        traverse(endId, pathWidthToEnd + endInfo.width + options.gap);
+
+        continue;
       }
+
+      // FALLBACK target: lower-priority row.
+      if (xWithoutSubtree !== -Infinity) {
+        const pull = xWithoutSubtree - pathWidthToEnd;
+        if (pull > bestFallbackPull) bestFallbackPull = pull;
+      }
+      // Continue through fallback to look for primary targets deeper.
+      visitedBoundaries.add(endId);
+      traverse(endId, pathWidthToEnd + endInfo.width + options.gap);
     }
   }
 
   // Initial path width: splitId's width + 1 gap (ready for the next node).
-  traverse(splitId, splitWidth + GAP);
+  traverse(splitId, splitWidth + options.gap);
 
   // Primary targets take precedence over fallback targets.
-  if (bestPrimaryPull !== -Infinity) return bestPrimaryPull;
-  if (bestFallbackPull !== -Infinity) return bestFallbackPull;
+  if (bestPrimaryPull !== -Infinity) {
+    return bestPrimaryPull;
+  }
+
+  if (bestFallbackPull !== -Infinity) {
+    return bestFallbackPull;
+  }
+
   return -Infinity;
 }
 
@@ -492,6 +641,7 @@ function pullSplitsTowardMerges(
   initialXPositions: Map<string, number>,
   chainMap: Map<string, Map<string, string[]>>,
   ancestorSets: Map<string, Set<string>>,
+  options: AutoformatOptions,
 ): Map<string, number> {
   const x = new Map(initialXPositions);
 
@@ -505,17 +655,32 @@ function pullSplitsTowardMerges(
   for (const rootInfo of secondaryRoots) {
     const id = rootInfo.id;
 
-    const pull = findMergePullTarget(id, infos, rowOf, x, ancestorSets, chainMap);
-    if (pull === -Infinity) continue;
+    const pull = findMergePullTarget(
+      id,
+      infos,
+      rowOf,
+      x,
+      ancestorSets,
+      chainMap,
+      options,
+    );
+
+    if (pull === -Infinity) {
+      continue;
+    }
 
     // Secondary roots have no prev — pull alone determines x (can be negative).
     const finalX = pull;
-    if (finalX === x.get(id)) continue;
-    x.set(id, finalX);
 
+    if (finalX === x.get(id)) {
+      continue;
+    }
+
+    x.set(id, finalX);
     const rootRight = finalX + rootInfo.width;
+
     for (const childId of rootInfo.children) {
-      propagateSequential(childId, rootRight, x, infos);
+      propagateSequential(childId, rootRight, x, infos, options);
     }
   }
 
@@ -524,23 +689,41 @@ function pullSplitsTowardMerges(
   // updated x (set above) as the lower bound.
   for (const id of [...order].reverse()) {
     const info = infos.get(id)!;
-    if (info.role !== "split") continue;
 
-    const pull = findMergePullTarget(id, infos, rowOf, x, ancestorSets, chainMap);
-    if (pull === -Infinity) continue;
+    if (info.role !== "split") {
+      continue;
+    }
+
+    const pull = findMergePullTarget(
+      id,
+      infos,
+      rowOf,
+      x,
+      ancestorSets,
+      chainMap,
+      options,
+    );
+
+    if (pull === -Infinity) {
+      continue;
+    }
 
     const prevId = info.parents[0];
     const finalX = prevId
-      ? Math.max(x.get(prevId)! + infos.get(prevId)!.width + GAP, pull)
+      ? Math.max(x.get(prevId)! + infos.get(prevId)!.width + options.gap, pull)
       : pull;
 
-    if (finalX === x.get(id)) continue;
+    if (finalX === x.get(id)) {
+      continue;
+    }
+
     x.set(id, finalX);
 
     // Propagate updated x through sequential nodes in this split's chains.
     const splitRight = finalX + info.width;
+
     for (const childId of info.children) {
-      propagateSequential(childId, splitRight, x, infos);
+      propagateSequential(childId, splitRight, x, infos, options);
     }
   }
 
@@ -565,24 +748,39 @@ function buildMergeApproachMap(
   >();
 
   for (const info of infos.values()) {
-    if (!isBoundary(info.role)) continue;
+    if (!isBoundary(info.role)) {
+      continue;
+    }
+
     const startRow = rowOf.get(info.id) ?? 0;
 
     for (const firstChildId of info.children) {
       const chain = chainMap.get(info.id)!.get(firstChildId)!;
-      if (chain.length < 3) continue; // need at least 1 internal node
+      if (chain.length < 3) {
+        continue; // need at least 1 internal node
+      }
 
       const endId = chain[chain.length - 1];
-      if (!isMergeLike(infos.get(endId)!.role)) continue;
+
+      if (!isMergeLike(infos.get(endId)!.role)) {
+        continue;
+      }
 
       const endRow = rowOf.get(endId) ?? 0;
-      if (endRow >= startRow) continue; // end must be strictly higher priority
+
+      if (endRow >= startRow) {
+        continue; // end must be strictly higher priority
+      }
 
       const lastInternalId = chain[chain.length - 2];
       if (!mergeApproachMap.has(lastInternalId)) {
         // prev = node just before lastInternal in the chain
         const prevId = chain.length >= 4 ? chain[chain.length - 3] : info.id;
-        mergeApproachMap.set(lastInternalId, { endId, prevId, startId: info.id });
+        mergeApproachMap.set(lastInternalId, {
+          endId,
+          prevId,
+          startId: info.id,
+        });
       }
     }
   }
@@ -605,8 +803,12 @@ function reconcileXPositions(
   order: string[],
   primaryRootId: string,
   x: Map<string, number>,
-  mergeApproachMap: Map<string, { endId: string; prevId: string; startId: string }>,
+  mergeApproachMap: Map<
+    string,
+    { endId: string; prevId: string; startId: string }
+  >,
   ancestorSets: Map<string, Set<string>>,
+  options: AutoformatOptions,
 ): Map<string, number> {
   const result = new Map(x);
 
@@ -614,9 +816,17 @@ function reconcileXPositions(
     const info = infos.get(id)!;
 
     // Fixed: primary root, splits, and secondary roots (placed by Anchor/Split Pull)
-    if (id === primaryRootId) continue;
-    if (info.role === "root") continue; // secondary roots
-    if (info.role === "split") continue;
+    if (id === primaryRootId) {
+      continue;
+    }
+
+    if (info.role === "root") {
+      continue; // secondary roots
+    }
+
+    if (info.role === "split") {
+      continue;
+    }
 
     // Merge Approach: last internal before a higher-priority merge.
     // Use xWithoutSubtree to avoid circular dependency: endId's Merge Alignment position may
@@ -625,26 +835,43 @@ function reconcileXPositions(
       const { endId, prevId, startId } = mergeApproachMap.get(id)!;
       const prevInfo = infos.get(prevId)!;
       const prevRight = result.get(prevId)! + prevInfo.width;
-      const xWithoutSubtree = computeMergeXExcludingSubtree(endId, startId, infos, result, ancestorSets);
+      const xWithoutSubtree = computeMergeXExcludingSubtree(
+        endId,
+        startId,
+        infos,
+        result,
+        ancestorSets,
+        options,
+      );
       const pullTarget =
-        xWithoutSubtree !== -Infinity ? xWithoutSubtree - info.width - GAP : -Infinity;
+        xWithoutSubtree !== -Infinity
+          ? xWithoutSubtree - info.width - options.gap
+          : -Infinity;
+
       result.set(
         id,
         pullTarget !== -Infinity
-          ? Math.max(prevRight + GAP, pullTarget)
-          : prevRight + GAP,
+          ? Math.max(prevRight + options.gap, pullTarget)
+          : prevRight + options.gap,
       );
+
       continue;
     }
 
     // Merge Alignment: max of all parents' right edges + gap
     if (isMergeLike(info.role)) {
       let maxRight = -Infinity;
+
       for (const pid of info.parents) {
         const right = result.get(pid)! + infos.get(pid)!.width;
-        if (right > maxRight) maxRight = right;
+
+        if (right > maxRight) {
+          maxRight = right;
+        }
       }
-      result.set(id, maxRight + GAP);
+
+      result.set(id, maxRight + options.gap);
+
       continue;
     }
 
@@ -652,7 +879,7 @@ function reconcileXPositions(
     if (info.parents.length === 1) {
       const prevId = info.parents[0];
       const prevInfo = infos.get(prevId)!;
-      result.set(id, result.get(prevId)! + prevInfo.width + GAP);
+      result.set(id, result.get(prevId)! + prevInfo.width + options.gap);
     }
   }
 
@@ -666,7 +893,7 @@ function reconcileXPositions(
  * root, children are sorted by initialY ascending, each subtree fully exhausted
  * before the next sibling. Secondary roots follow in top-left order.
  *
- * Each row's y = max_bottom_y across its x-span (via IntervalStructure) + GAP.
+ * Each row's y = max_bottom_y across its x-span (via IntervalStructure) + gap.
  * The interval structure is seeded so row 0 lands at primaryRoot.initialY.
  */
 
@@ -680,19 +907,28 @@ function buildDFSRowOrder(
   const visited = new Set<string>();
 
   function dfs(nodeId: string) {
-    if (visited.has(nodeId)) return;
+    if (visited.has(nodeId)) {
+      return;
+    }
+
     visited.add(nodeId);
 
     const row = rowOf.get(nodeId);
+
     if (row !== undefined && !rowsEncountered.has(row)) {
       rowsEncountered.add(row);
       rowOrder.push(row);
     }
 
-    const info = infos.get(nodeId)!;
+    const info = assertedNotNullish(
+      infos.get(nodeId),
+      `Expected infos to contain ${nodeId}`,
+    );
+
     const sortedChildren = [...info.children].sort(
       (a, b) => infos.get(a)!.initialY - infos.get(b)!.initialY,
     );
+
     for (const childId of sortedChildren) {
       dfs(childId);
     }
@@ -704,6 +940,7 @@ function buildDFSRowOrder(
   const secondaryRoots = [...infos.values()]
     .filter((n) => n.role === "root" && n.id !== primaryRootId)
     .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX);
+
   for (const root of secondaryRoots) {
     dfs(root.id);
   }
@@ -716,11 +953,13 @@ function yPass(
   xFinal: Map<string, number>,
   rowOf: Map<string, number>,
   primaryRootId: string,
+  options: AutoformatOptions,
 ): Map<string, number> {
   const yOut = new Map<string, number>();
 
   // Build row → nodes mapping
   const rowNodes = new Map<number, string[]>();
+
   for (const [id, row] of rowOf) {
     if (!rowNodes.has(row)) rowNodes.set(row, []);
     rowNodes.get(row)!.push(id);
@@ -728,14 +967,17 @@ function yPass(
 
   // Seed baseBottomY so that row 0 lands at primaryRoot.initialY
   const intervals = new IntervalStructure(
-    infos.get(primaryRootId)!.initialY - GAP,
+    infos.get(primaryRootId)!.initialY - options.gap,
   );
 
   const rowOrder = buildDFSRowOrder(infos, rowOf, primaryRootId);
 
   for (const row of rowOrder) {
     const nodeIds = rowNodes.get(row) ?? [];
-    if (nodeIds.length === 0) continue;
+
+    if (nodeIds.length === 0) {
+      continue;
+    }
 
     let xMin = Infinity;
     let xMax = -Infinity;
@@ -749,7 +991,7 @@ function yPass(
       rowHeight = Math.max(rowHeight, info.height);
     }
 
-    const y = intervals.queryMaxBottomY(xMin, xMax) + GAP;
+    const y = intervals.queryMaxBottomY(xMin, xMax) + options.gap;
 
     for (const id of nodeIds) {
       yOut.set(id, y);
@@ -779,17 +1021,34 @@ function findIslands(infos: Map<string, NodeInfo>): string[][] {
   const islands: string[][] = [];
 
   for (const id of infos.keys()) {
-    if (visited.has(id)) continue;
+    if (visited.has(id)) {
+      continue;
+    }
+
     const component: string[] = [];
     const queue = [id];
     while (queue.length > 0) {
       const curr = queue.shift()!;
-      if (visited.has(curr)) continue;
+
+      if (visited.has(curr)) {
+        continue;
+      }
+
       visited.add(curr);
       component.push(curr);
       const info = infos.get(curr)!;
-      for (const pid of info.parents) if (!visited.has(pid)) queue.push(pid);
-      for (const cid of info.children) if (!visited.has(cid)) queue.push(cid);
+
+      for (const pid of info.parents) {
+        if (!visited.has(pid)) {
+          queue.push(pid);
+        }
+      }
+
+      for (const cid of info.children) {
+        if (!visited.has(cid)) {
+          queue.push(cid);
+        }
+      }
     }
     islands.push(component);
   }
@@ -799,7 +1058,10 @@ function findIslands(infos: Map<string, NodeInfo>): string[][] {
 
 // ─── Per-Island Layout ────────────────────────────────────────────────────────
 
-function layoutIsland(islandInfos: Map<string, NodeInfo>): {
+function layoutIsland(
+  islandInfos: Map<string, NodeInfo>,
+  options: AutoformatOptions,
+): {
   xFinal: Map<string, number>;
   yFinal: Map<string, number>;
   rowOf: Map<string, number>;
@@ -813,7 +1075,12 @@ function layoutIsland(islandInfos: Map<string, NodeInfo>): {
     .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
 
   const rowOf = assignRows(islandInfos, order, chainMap);
-  const initialXPositions = computeInitialXPositions(islandInfos, primaryRoot.id, order);
+  const initialXPositions = computeInitialXPositions(
+    islandInfos,
+    primaryRoot.id,
+    order,
+    options,
+  );
   const xAfterRule4 = pullSplitsTowardMerges(
     islandInfos,
     primaryRoot.id,
@@ -822,6 +1089,7 @@ function layoutIsland(islandInfos: Map<string, NodeInfo>): {
     initialXPositions,
     chainMap,
     ancestorSets,
+    options,
   );
   const mergeApproachMap = buildMergeApproachMap(islandInfos, rowOf, chainMap);
   const xFinal = reconcileXPositions(
@@ -831,8 +1099,9 @@ function layoutIsland(islandInfos: Map<string, NodeInfo>): {
     xAfterRule4,
     mergeApproachMap,
     ancestorSets,
+    options,
   );
-  const yFinal = yPass(islandInfos, xFinal, rowOf, primaryRoot.id);
+  const yFinal = yPass(islandInfos, xFinal, rowOf, primaryRoot.id, options);
 
   return { xFinal, yFinal, rowOf };
 }
@@ -851,13 +1120,16 @@ interface IslandLayout {
  * Sort islands by their primary root y (ascending). For each island, query a
  * shared sorted interval structure (built from all already-placed islands' nodes)
  * to find the precise max bottom-Y across each node's x-range. The uniform shift
- * for the island = max(interval_query(node) + GAP - node.y) across all nodes.
+ * for the island = max(interval_query(node) + gap - node.y) across all nodes.
  * Apply that shift, then insert this island's nodes into the shared structure.
  *
  * This is more precise than bbox-vs-bbox: two islands whose bounding boxes
  * overlap but whose actual node footprints don't will not be shifted.
  */
-function resolveIslandCollisions(islands: IslandLayout[]): void {
+function resolveIslandCollisions(
+  islands: IslandLayout[],
+  options: AutoformatOptions,
+): void {
   islands.sort((a, b) => a.primaryRootY - b.primaryRootY);
 
   const intervals = new IntervalStructure();
@@ -871,9 +1143,16 @@ function resolveIslandCollisions(islands: IslandLayout[]): void {
       const ny = island.yFinal.get(id)!;
       const info = island.infos.get(id)!;
       const maxBottom = intervals.queryMaxBottomY(nx, nx + info.width);
-      if (maxBottom === -Infinity) continue;
-      const needed = maxBottom + GAP - ny;
-      if (needed > maxShift) maxShift = needed;
+
+      if (maxBottom === -Infinity) {
+        continue;
+      }
+
+      const needed = maxBottom + options.gap - ny;
+
+      if (needed > maxShift) {
+        maxShift = needed;
+      }
     }
 
     if (maxShift > 0) {
@@ -894,15 +1173,21 @@ function resolveIslandCollisions(islands: IslandLayout[]): void {
 
 // ─── Main exports ─────────────────────────────────────────────────────────────
 
-export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
-  if (Object.keys(graph.nodes).length === 0) return new Map();
+export function analyzeLayout(
+  graph: Graph,
+  { gap = GAP }: Partial<AutoformatOptions> = { gap: GAP },
+): Map<string, LayoutNode> {
+  if (Object.keys(graph.nodes).length === 0) {
+    return new Map();
+  }
 
   const infos = buildTopology(graph);
   const islandGroups = findIslands(infos);
 
   const islandLayouts: IslandLayout[] = islandGroups.map((nodeIds) => {
     const islandInfos = new Map(nodeIds.map((id) => [id, infos.get(id)!]));
-    const { xFinal, yFinal } = layoutIsland(islandInfos);
+    const { xFinal, yFinal } = layoutIsland(islandInfos, { gap });
+
     const primaryRoot = [...islandInfos.values()]
       .filter((n) => n.role === "root")
       .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
@@ -916,9 +1201,10 @@ export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
     };
   });
 
-  resolveIslandCollisions(islandLayouts);
+  resolveIslandCollisions(islandLayouts, { gap });
 
   const result = new Map<string, LayoutNode>();
+
   for (const { nodeIds, infos: islandInfos, xFinal, yFinal } of islandLayouts) {
     for (const id of nodeIds) {
       const info = islandInfos.get(id)!;
@@ -936,12 +1222,19 @@ export function analyzeLayout(graph: Graph): Map<string, LayoutNode> {
   return result;
 }
 
-export function autoformat<T extends Graph>(graph: T): T {
-  const layout = analyzeLayout(graph);
+export function autoformat<T extends Graph>(
+  graph: T,
+  options?: Partial<AutoformatOptions>,
+): T {
+  const layout = analyzeLayout(graph, options);
   const nodes = { ...graph.nodes };
+
   for (const id of Object.keys(nodes)) {
-    const l = layout.get(id);
-    if (l) nodes[id] = { ...nodes[id], x: l.x, y: l.y };
+    const result = layout.get(id);
+
+    if (result) {
+      nodes[id] = { ...nodes[id], x: result.x, y: result.y };
+    }
   }
   return { ...graph, nodes };
 }
