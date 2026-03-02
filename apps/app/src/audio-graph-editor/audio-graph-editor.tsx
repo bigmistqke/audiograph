@@ -513,20 +513,24 @@ export function AudioGraphEditor(props: {
           );
         }}
         onNodeUpdate={({ nodeId, callback }) => {
-          const drag = autoformatDrag();
-          if (!drag) {
+          if (!autoformatEnabled()) {
             setGraphStore("nodes", nodeId, produce(callback));
             return;
           }
 
-          drag.draggedIds.add(nodeId);
+          const drag = autoformatDrag();
+          if (drag) {
+            drag.draggedIds.add(nodeId);
+          }
+
+          const pinnedIds = drag?.draggedIds ?? new Set([nodeId]);
 
           batch(() => {
             setGraphStore("nodes", nodeId, produce(callback));
 
             const layout = computeLayoutMap(graphStore);
             for (const [id, result] of layout) {
-              if (!drag.draggedIds.has(id)) {
+              if (!pinnedIds.has(id)) {
                 setGraphStore("nodes", id, "x", result.x);
                 setGraphStore("nodes", id, "y", result.y);
               }
