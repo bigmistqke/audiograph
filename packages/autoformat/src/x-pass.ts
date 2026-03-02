@@ -300,10 +300,9 @@ function pullSplitsTowardMerges(
   ctx: AnalysisResult,
   initialXPositions: Map<string, number>,
   options: AutoformatOptions,
-): { x: Map<string, number>; pulledSplits: Set<string> } {
+): Map<string, number> {
   const { infos, primaryRoot, order } = ctx;
   const x = new Map(initialXPositions);
-  const pulledSplits = new Set<string>();
 
   // Secondary roots: process first (y-order) so their splits see the updated x
   // when processed below. Each uses the current x map so it sees positions set
@@ -358,22 +357,10 @@ function pullSplitsTowardMerges(
       : pull;
 
     if (finalX === x.get(id)) {
-      // Only mark as pulled if the pull target (not the parent constraint) determined
-      // the position. If the parent was the binding factor, don't freeze this split:
-      // the parent may be a merge that gets recomputed in the reconcile phase.
-      const parentRight = prevId
-        ? x.get(prevId)! + infos.get(prevId)!.width + options.gap
-        : -Infinity;
-
-      if (pull >= parentRight) {
-        pulledSplits.add(id);
-      }
-
       continue;
     }
 
     x.set(id, finalX);
-    pulledSplits.add(id);
 
     // Propagate updated x through sequential nodes in this split's chains.
     const splitRight = finalX + info.width;
@@ -383,24 +370,29 @@ function pullSplitsTowardMerges(
     }
   }
 
-  return { x, pulledSplits };
+  return x;
 }
 
 /**
  * Reconcile x-positions after split pulls.
  *
  * Recomputes all non-fixed nodes in topological order:
+ *   - Secondary roots: re-pull leftward only using reconciled merge positions.
+ *   - Splits: recompute from reconciled parent + re-pull (leftward only).
  *   - Merge Approach nodes: pull toward their downstream merge.
  *   - Merge/merge-split: max of all parents' right edges + gap (Merge Alignment).
  *   - Simple and leaf: sequential from single parent (Sequential).
  *
- * Fixed nodes (kept as-is): primary root, splits, secondary roots.
+ * Fixed nodes (kept as-is): primary root only.
+ *
+ * Running this twice resolves cascading dependencies: the first pass corrects
+ * merge positions; the second pass lets splits and secondary roots re-pull
+ * using those corrected positions.
  */
 function reconcileXPositions(
   ctx: AnalysisResult,
   x: Map<string, number>,
   options: AutoformatOptions,
-  pulledSplits: Set<string>,
 ): Map<string, number> {
   const { infos, order, primaryRoot, mergeApproachMap } = ctx;
   const result = new Map(x);
@@ -408,16 +400,30 @@ function reconcileXPositions(
   for (const id of order) {
     const info = infos.get(id)!;
 
-    // Fixed: primary root, splits, and secondary roots (placed by Anchor/Split Pull)
     if (id === primaryRoot.id) {
       continue;
     }
 
+    // Secondary roots: re-pull leftward only.
     if (info.role === "root") {
-      continue; // secondary roots
+      const pull = findMergePullTarget(ctx, id, result, options);
+      if (pull !== -Infinity && pull < result.get(id)!) {
+        result.set(id, pull);
+      }
+      continue;
     }
 
-    if (info.role === "split" && pulledSplits.has(id)) {
+    // Splits: recompute from reconciled parent + re-pull (leftward only).
+    // parentRight is a hard minimum; beyond that, the pull target may decrease
+    // (since reconcile only moves merges leftward) but never increase.
+    if (info.role === "split") {
+      const prevId = info.parents[0];
+      const parentRight =
+        result.get(prevId)! + infos.get(prevId)!.width + options.gap;
+      const pull = findMergePullTarget(ctx, id, result, options);
+      const newX =
+        pull !== -Infinity ? Math.max(parentRight, pull) : parentRight;
+      result.set(id, Math.min(newX, result.get(id)!));
       continue;
     }
 
@@ -479,57 +485,22 @@ function reconcileXPositions(
 }
 
 /**
- * Re-pull secondary roots using reconciled merge positions.
- *
- * Only allows leftward movement: reconcile can only move merges leftward
- * (parents got pulled left → max(parent.rights) decreases), so pull targets
- * can only decrease. A root that was correctly pulled in Phase 2 stays put;
- * a root whose pull was inflated by stale merge positions moves left.
- *
- * This prevents oscillation when secondary roots have circular dependencies
- * through shared merges (e.g. C's pull depends on G, G depends on E, E
- * depends on C).
- */
-function rePullSecondaryRoots(
-  ctx: AnalysisResult,
-  x: Map<string, number>,
-  options: AutoformatOptions,
-): Map<string, number> {
-  const { infos, primaryRoot } = ctx;
-  const result = new Map(x);
-
-  const secondaryRoots = [...infos.values()]
-    .filter((info) => info.role === "root" && info.id !== primaryRoot.id)
-    .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX);
-
-  for (const rootInfo of secondaryRoots) {
-    const pull = findMergePullTarget(ctx, rootInfo.id, result, options);
-
-    if (pull !== -Infinity && pull < result.get(rootInfo.id)!) {
-      result.set(rootInfo.id, pull);
-    }
-  }
-
-  return result;
-}
-
-/**
  * Run the full x-positioning pipeline: initial placement → split pull → reconcile.
  *
- * After the first reconcile, re-pull secondary roots (leftward only) using
- * the updated merge positions, then reconcile again to propagate.
+ * Running reconcile twice resolves cascading dependencies: the first pass
+ * corrects merge positions; the second pass lets splits and secondary roots
+ * re-pull using those corrected positions (leftward only, preventing oscillation).
  */
 export function xPass(
   ctx: AnalysisResult,
   options: AutoformatOptions,
 ): Map<string, number> {
   const initialXPositions = computeInitialXPositions(ctx, options);
-  const { x: xAfterSplitPull, pulledSplits } = pullSplitsTowardMerges(
+  const xAfterSplitPull = pullSplitsTowardMerges(
     ctx,
     initialXPositions,
     options,
   );
-  const reconciled = reconcileXPositions(ctx, xAfterSplitPull, options, pulledSplits);
-  const rePulled = rePullSecondaryRoots(ctx, reconciled, options);
-  return reconcileXPositions(ctx, rePulled, options, pulledSplits);
+  const reconciled = reconcileXPositions(ctx, xAfterSplitPull, options);
+  return reconcileXPositions(ctx, reconciled, options);
 }
