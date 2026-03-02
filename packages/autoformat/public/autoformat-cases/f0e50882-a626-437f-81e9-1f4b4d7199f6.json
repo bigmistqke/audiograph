@@ -1,0 +1,130 @@
+{
+  "id": "f0e50882-a626-437f-81e9-1f4b4d7199f6",
+  "title": "An island that does not cause overlap after layout should not be moved vertically",
+  "initial": {
+    "nodes": {
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "C": {
+        "id": "C",
+        "type": "node",
+        "x": 260,
+        "y": 0,
+        "width": 100,
+        "height": 270,
+        "state": {}
+      },
+      "D": {
+        "id": "D",
+        "type": "node",
+        "x": 130,
+        "y": 300,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "E": {
+        "id": "E",
+        "type": "node",
+        "x": 260,
+        "y": 300,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "F": {
+        "id": "F",
+        "type": "node",
+        "x": 130,
+        "y": 120,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      }
+    },
+    "edges": {
+      "fefb3861-712f-40ae-b487-f57a3c90feec": {
+        "output": {
+          "node": "D",
+          "port": "out"
+        },
+        "input": {
+          "node": "E",
+          "port": "in"
+        }
+      },
+      "d6535f48-41a9-4c80-bfd7-aa1cb45d2a93": {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
+          "port": "in"
+        }
+      },
+      "d5f728bf-3501-4a54-a396-534c2518cdfa": {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      },
+      "df96951c-78c5-43af-8b96-13c4f59fb586": {
+        "output": {
+          "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
+          "port": "in"
+        }
+      }
+    }
+  },
+  "expected": {
+    "A": {
+      "x": 0,
+      "y": 0
+    },
+    "B": {
+      "x": 130,
+      "y": 0
+    },
+    "C": {
+      "x": 260,
+      "y": 0
+    },
+    "D": {
+      "x": 130,
+      "y": 310
+    },
+    "E": {
+      "x": 260,
+      "y": 310
+    },
+    "F": {
+      "x": 130,
+      "y": 120
+    }
+  }
+}

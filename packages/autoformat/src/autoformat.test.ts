@@ -3312,6 +3312,117 @@ describe("autoformat — x-positions", () => {
           "F": 380
     });
   });
+
+  it("An island that does not cause overlap after layout should not be moved vertically", () => {
+    const initial: Graph = {
+        "edges": {
+            "fefb3861-712f-40ae-b487-f57a3c90feec": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            },
+            "d6535f48-41a9-4c80-bfd7-aa1cb45d2a93": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "d5f728bf-3501-4a54-a396-534c2518cdfa": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "df96951c-78c5-43af-8b96-13c4f59fb586": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 260,
+                "y": 0,
+                "width": 100,
+                "height": 270,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 130,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 260,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": 130,
+                "y": 120,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 130,
+          "C": 260,
+          "D": 130,
+          "E": 260,
+          "F": 130
+    });
+  });
 });
 
 describe("autoformat — y-positions", () => {
@@ -6598,6 +6709,117 @@ describe("autoformat — y-positions", () => {
           "D": 0,
           "E": 0,
           "F": 110
+    });
+  });
+
+  it("An island that does not cause overlap after layout should not be moved vertically", () => {
+    const initial: Graph = {
+        "edges": {
+            "fefb3861-712f-40ae-b487-f57a3c90feec": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            },
+            "d6535f48-41a9-4c80-bfd7-aa1cb45d2a93": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "d5f728bf-3501-4a54-a396-534c2518cdfa": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "df96951c-78c5-43af-8b96-13c4f59fb586": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 260,
+                "y": 0,
+                "width": 100,
+                "height": 270,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 130,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 260,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": 130,
+                "y": 120,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 0,
+          "C": 0,
+          "D": 310,
+          "E": 310,
+          "F": 120
     });
   });
 });
