@@ -1,0 +1,1226 @@
+[
+  {
+    "hash": "d7424b9aabb329b781768800e571356e2e97d9cf",
+    "short_hash": "d7424b9",
+    "author": "bigmistqke",
+    "date": "2026-03-02T02:36:46+01:00",
+    "message": "fix: correct row assignment and x-pull for merge-before-split topologies\n\nThree bugs fixed:\n- Sort root queue in topologicalSort by initialY for deterministic ordering\n- Post-process assignRows to push non-spine merges down to max(parent rows)\n- Skip intermediate same-priority targets in findMergePullTarget so the\n  deepest target on a chain is used (MAX still applies across branches)",
+    "files_changed": 1
+  },
+  {
+    "hash": "5d6000813df7dcce32ed5150cefda50bbc1a6ffc",
+    "short_hash": "5d60008",
+    "author": "bigmistqke",
+    "date": "2026-03-02T02:36:35+01:00",
+    "message": "feat: add debug logger utility",
+    "files_changed": 2
+  },
+  {
+    "hash": "5d6000813df7dcce32ed5150cefda50bbc1a6ffc",
+    "short_hash": "5d60008",
+    "author": "bigmistqke",
+    "date": "2026-03-02T02:36:35+01:00",
+    "message": "feat: add debug logger utility",
+    "files_changed": 2
+  },
+  {
+    "hash": "69410d551f5d8854572bbff12351065dec4c4a45",
+    "short_hash": "69410d5",
+    "author": "bigmistqke",
+    "date": "2026-03-02T02:14:07+01:00",
+    "message": "docs: add ASCII diagrams to SPEC, fix chain labels",
+    "files_changed": 1
+  },
+  {
+    "hash": "78e49182bbb756701acaae7f5585665ea0bcda2c",
+    "short_hash": "78e4918",
+    "author": "bigmistqke",
+    "date": "2026-03-02T01:50:21+01:00",
+    "message": "refactor: add AutoformatOptions, reorganize sections, style cleanup",
+    "files_changed": 1
+  },
+  {
+    "hash": "f16e22f2d7f0835bb7e3807ea180c4aa61f2f524",
+    "short_hash": "f16e22f",
+    "author": "bigmistqke",
+    "date": "2026-03-02T01:28:12+01:00",
+    "message": "refactor: replace Rule N references with descriptive names (Anchor, Merge Alignment, Merge Approach, Split Pull, Sequential)",
+    "files_changed": 2
+  },
+  {
+    "hash": "5eb02e4309a006956318fec41f01d3c6f7d19c55",
+    "short_hash": "5eb02e4",
+    "author": "bigmistqke",
+    "date": "2026-03-02T01:13:32+01:00",
+    "message": "docs: update autoformat JSDoc to match renamed functions",
+    "files_changed": 1
+  },
+  {
+    "hash": "add79c144ce878de73b4d0205a0a79e9f10512e9",
+    "short_hash": "add79c1",
+    "author": "bigmistqke",
+    "date": "2026-03-02T01:10:19+01:00",
+    "message": "refactor: extract IntervalStructure class from duplicated insert/query logic",
+    "files_changed": 1
+  },
+  {
+    "hash": "5d3891ee6060f1fec79d39e280248fd1a0486e65",
+    "short_hash": "5d3891e",
+    "author": "bigmistqke",
+    "date": "2026-03-02T01:07:19+01:00",
+    "message": "refactor: rename xFwd, xExcl, and computeXExcl to descriptive names",
+    "files_changed": 1
+  },
+  {
+    "hash": "8a9ec738d16e35a6fa3cd042bd0cae32552178ec",
+    "short_hash": "8a9ec73",
+    "author": "bigmistqke",
+    "date": "2026-03-02T01:03:49+01:00",
+    "message": "refactor: rename rule-numbered functions to descriptive names in autoformat",
+    "files_changed": 1
+  },
+  {
+    "hash": "e582b71351aba4da5d6c4570acd7c7ccdb0398ed",
+    "short_hash": "e582b71",
+    "author": "bigmistqke",
+    "date": "2026-03-02T00:59:10+01:00",
+    "message": "refactor: clean up autoformat comments and remove unused parameters",
+    "files_changed": 1
+  },
+  {
+    "hash": "6ae9d12e2b2f514104e031c519a8a037d58a9b39",
+    "short_hash": "6ae9d12",
+    "author": "bigmistqke",
+    "date": "2026-03-01T18:44:30+01:00",
+    "message": "fix: edge output port position using stale reference in indexOf",
+    "files_changed": 1
+  },
+  {
+    "hash": "38fc5e6d872a65a019aa3f45a1fa022508853908",
+    "short_hash": "38fc5e6",
+    "author": "bigmistqke",
+    "date": "2026-03-01T18:40:17+01:00",
+    "message": "feat: add router to autoformat workshop, display single case",
+    "files_changed": 5
+  },
+  {
+    "hash": "94b9545de1a43ed4c6fa2c8920697a6f03a0990d",
+    "short_hash": "94b9545",
+    "author": "bigmistqke",
+    "date": "2026-03-01T18:31:23+01:00",
+    "message": "chore: sync deciduous graph",
+    "files_changed": 2
+  },
+  {
+    "hash": "058a40ca0b0a7c397f343bdb0eb02daca6aa00d9",
+    "short_hash": "058a40c",
+    "author": "bigmistqke",
+    "date": "2026-03-01T18:31:20+01:00",
+    "message": "test: add row placement test case, update expected positions",
+    "files_changed": 25
+  },
+  {
+    "hash": "30292bfff45399260a4e4c7bee900699d2f27552",
+    "short_hash": "30292bf",
+    "author": "bigmistqke",
+    "date": "2026-03-01T18:20:42+01:00",
+    "message": "refactor: split graph package into create-graph and svg-graph",
+    "files_changed": 77
+  },
+  {
+    "hash": "afd5f088dbb6d52e0fbbc7bb7b939ad15e454f82",
+    "short_hash": "afd5f08",
+    "author": "bigmistqke",
+    "date": "2026-03-01T03:53:55+01:00",
+    "message": "refactor: simplify autoformat test case expected format to Record<string, {x, y}>",
+    "files_changed": 22
+  },
+  {
+    "hash": "deac52ca23667915f19157fa329b3d54233b14e1",
+    "short_hash": "deac52c",
+    "author": "bigmistqke",
+    "date": "2026-03-01T02:53:36+01:00",
+    "message": "refactor: extract utils package, move autoformat workshop, fix type errors",
+    "files_changed": 37
+  },
+  {
+    "hash": "937c17bca347038978172962b9df9bfefe8ccdc4",
+    "short_hash": "937c17b",
+    "author": "bigmistqke",
+    "date": "2026-03-01T02:11:10+01:00",
+    "message": "refactor: restructure as monorepo with packages/graph, packages/autoformat, apps/app",
+    "files_changed": 167
+  },
+  {
+    "hash": "adf1427c29d8b702c5ecdb84f6563008d7697b94",
+    "short_hash": "adf1427",
+    "author": "bigmistqke",
+    "date": "2026-02-28T22:52:49+01:00",
+    "message": "test: add 6 autoformat edge-case tests, fix split traversal in Rule 4\n\nNew test cases covering previously untested behaviors:\n- Merge-split node (2 inputs, 2 outputs)\n- Secondary root with no downstream merge (islands, known failing)\n- Merge row reassignment: high-priority chain lowers merge row\n- Four branches from a single split\n- Rule 3 with 3 internal nodes\n- Three levels of nested splits\n\nBug fix: findBestRule4Pull now continues traversal through split\nboundaries to find deeper merge targets. Secondary roots are also\nprocessed before splits in applyRule4 so single-parent splits use\ntheir parent's updated x as the lower bound.\n\nGenerator: toEqual → toMatchObject so expected can be a partial\nsubset of nodes (root nodes can be omitted from expected).",
+    "files_changed": 11
+  },
+  {
+    "hash": "b34c377ac1e9baa3259c282f3a6c40737c3b23e8",
+    "short_hash": "b34c377",
+    "author": "bigmistqke",
+    "date": "2026-02-28T21:12:07+01:00",
+    "message": "perf: hoist infos.get() lookups in hot loops\n\nReplace map()+spread max patterns with explicit for loops in forwardPass\nand reconcilePass, caching infos.get() result once per iteration.\nEliminates redundant map lookups in Rule 2 and Rule 5 paths.",
+    "files_changed": 1
+  },
+  {
+    "hash": "3bbe77cff9f00df7534e96f356fd2eaeb86c2228",
+    "short_hash": "3bbe77c",
+    "author": "bigmistqke",
+    "date": "2026-02-28T21:10:54+01:00",
+    "message": "perf: precompute ancestor sets, replace recursive isDescendantOf\n\nbuildAncestorSets() computes full ancestor sets for all nodes in one\nO(n) topological pass. computeXExcl now uses Set.has() lookups instead\nof recursive descent with a memoization cache. Removes isDescendantOf.",
+    "files_changed": 1
+  },
+  {
+    "hash": "ac245d1b76a6ffda02453e902d6ecc0c3e711264",
+    "short_hash": "ac245d1",
+    "author": "bigmistqke",
+    "date": "2026-02-28T21:09:50+01:00",
+    "message": "perf: sort interval structure for early-exit queries in yPass\n\nIntervals are kept sorted by xStart via insertion sort on insert.\nqueryMaxBottomY now breaks early when iv.xStart >= xEnd, avoiding\nscanning the full interval list for every row placement.",
+    "files_changed": 1
+  },
+  {
+    "hash": "64da21c866c9207e0dc1d89c20002d84f09e511b",
+    "short_hash": "64da21c",
+    "author": "bigmistqke",
+    "date": "2026-02-28T21:09:14+01:00",
+    "message": "perf: precompute all chains once after topology analysis\n\nbuildChainMap() traces all boundary→child chains once upfront.\nassignRows, findBestRule4Pull, and computeRule3Map now use the\nlookup map instead of re-tracing the same paths on each call.",
+    "files_changed": 1
+  },
+  {
+    "hash": "721d7db36eeccfac6e0079948b018f592ab50c74",
+    "short_hash": "721d7db",
+    "author": "bigmistqke",
+    "date": "2026-02-28T21:08:02+01:00",
+    "message": "perf: thread descCache through applyRule4 and reconcilePass\n\nSingle cache created once per layout run instead of per-merge call,\neliminating redundant ancestor relationship recomputation.",
+    "files_changed": 1
+  },
+  {
+    "hash": "152b285eb6ce1f482814a71e5904df70ca642b06",
+    "short_hash": "152b285",
+    "author": "bigmistqke",
+    "date": "2026-02-28T20:47:34+01:00",
+    "message": "feat: implement Y-pass for autoformat, add y-position tests\n\n- Add buildDFSRowOrder + yPass with per-node interval structure\n- Fix assignRows: cross-row chain interiors open own row (not end's row)\n- Fix assignRows: higher-priority chains override merge row claims\n- Fix findBestRule4Pull: same-row merges are valid fallback pull targets\n- Update generate-autoformat-tests.ts to emit x-positions and y-positions describe blocks\n- Fix test case data: correct node heights in several cases",
+    "files_changed": 10
+  },
+  {
+    "hash": "e42f9d2fc3d9eb40d8ff7e6693066382cd17e6f4",
+    "short_hash": "e42f9d2",
+    "author": "bigmistqke",
+    "date": "2026-02-28T18:09:54+01:00",
+    "message": "feat: autoformat-route QOL — collapsible comments, sidebar nav, x-diff badge",
+    "files_changed": 2
+  },
+  {
+    "hash": "dba3d772c361f3e9e04c721b2f51398799b972da",
+    "short_hash": "dba3d77",
+    "author": "bigmistqke",
+    "date": "2026-02-28T18:00:10+01:00",
+    "message": "fix: remove row filter from Rule 2 — include all parents for merge placement",
+    "files_changed": 1
+  },
+  {
+    "hash": "0af9e3e462c5d6c3643c491db83554a1b5a6148e",
+    "short_hash": "0af9e3e",
+    "author": "bigmistqke",
+    "date": "2026-02-28T16:53:30+01:00",
+    "message": "docs: overhaul spec — DFS two-phase, primary root, Rule 2/3/4 clarifications\n\n- DFS starts from primary root (most top-left); secondary roots processed after in top-left order\n- Split traversal is two-phase: forward into branches, then post-order pull\n- Merges settled on first visit; cross-row arrivals from lower-priority rows don't reposition\n- Rule 2: only same-or-higher-priority parents contribute (cross-row parents excluded)\n- Rule 3: clarify \"lower row\" as higher-priority row (smaller row index)\n- Rule 4: target = nearest strictly higher-priority merge via multi-hop path through same-row boundaries; min_path_width includes intermediate boundary nodes; independence uses merge.x_excl (M's x excluding S's subtree)",
+    "files_changed": 1
+  },
+  {
+    "hash": "f6afbddbbb2c5108a45e292a613823ae43bc80e9",
+    "short_hash": "f6afbdd",
+    "author": "bigmistqke",
+    "date": "2026-02-28T15:09:12+01:00",
+    "message": "feat: add autoformat algorithm, test generator, and case titles",
+    "files_changed": 22
+  },
+  {
+    "hash": "293d48a0e304a1a89ec8d779d129246df64a5e2f",
+    "short_hash": "293d48a",
+    "author": "bigmistqke",
+    "date": "2026-02-26T02:49:35+01:00",
+    "message": "docs: update spec with pull rule refinements, add case #10 with analysis",
+    "files_changed": 4
+  },
+  {
+    "hash": "bd0f5ada2eca05aa9a22092e1bcada28f0c444eb",
+    "short_hash": "bd0f5ad",
+    "author": "bigmistqke",
+    "date": "2026-02-26T01:59:55+01:00",
+    "message": "feat: per-case files, chat comment thread, row numbers, min SVG height",
+    "files_changed": 15
+  },
+  {
+    "hash": "fef5d36262a3dc71c5abf28a13238841af45a4cc",
+    "short_hash": "fef5d36",
+    "author": "bigmistqke",
+    "date": "2026-02-26T01:27:39+01:00",
+    "message": "fix: default port color fallback to \"audio\", comment out metadata cleanup",
+    "files_changed": 2
+  },
+  {
+    "hash": "e385e289b0f53e024396914027768a2e246411bf",
+    "short_hash": "e385e28",
+    "author": "bigmistqke",
+    "date": "2026-02-26T00:18:08+01:00",
+    "message": "docs: add autoformat algorithm spec",
+    "files_changed": 1
+  },
+  {
+    "hash": "439ba55d49143c021cb4516df58395ab6a0fac0b",
+    "short_hash": "439ba55",
+    "author": "bigmistqke",
+    "date": "2026-02-23T22:12:14+01:00",
+    "message": "fix: resolve same-column overlap between branches from different fan-out groups",
+    "files_changed": 2
+  },
+  {
+    "hash": "e943f27323c2cc9ad490276b547ca1d84112292e",
+    "short_hash": "e943f27",
+    "author": "bigmistqke",
+    "date": "2026-02-23T21:43:55+01:00",
+    "message": "fix: tidy fan-in recursion preserves diamond topology positions",
+    "files_changed": 3
+  },
+  {
+    "hash": "e24302ca87f8506731d0f59fb479e0768edc7af8",
+    "short_hash": "e24302c",
+    "author": "bigmistqke",
+    "date": "2026-02-23T21:15:09+01:00",
+    "message": "fix: fan-in chain Y re-aligns to topmost upstream after fan-out re-alignment",
+    "files_changed": 3
+  },
+  {
+    "hash": "6a226e23da874d4832dc5fb6f3a26757b22b0e3b",
+    "short_hash": "6a226e2",
+    "author": "bigmistqke",
+    "date": "2026-02-23T21:07:43+01:00",
+    "message": "fix: fan-out right-alignment skips exclusive children, adds forward X re-propagation",
+    "files_changed": 3
+  },
+  {
+    "hash": "334f2049b3f0aafeeb503eac707ead8076bd2269",
+    "short_hash": "334f204",
+    "author": "bigmistqke",
+    "date": "2026-02-23T20:52:00+01:00",
+    "message": "fix: contour-based fan-out spacing, fan-in sibling realignment, anchor-based multi-island layout",
+    "files_changed": 2
+  },
+  {
+    "hash": "ee45b773295113e685ee0794304cf5d918d2c0ec",
+    "short_hash": "ee45b77",
+    "author": "bigmistqke",
+    "date": "2026-02-23T19:36:04+01:00",
+    "message": "fix: make autolayout idempotent with anchor-based island offsetting",
+    "files_changed": 2
+  },
+  {
+    "hash": "1e7d212fc6c63edcc23714e03c280e228604a785",
+    "short_hash": "1e7d212",
+    "author": "bigmistqke",
+    "date": "2026-02-23T18:52:24+01:00",
+    "message": "fix: fan-in upstream chains top-align with fan-in node and propagate recursively",
+    "files_changed": 2
+  },
+  {
+    "hash": "f42b9d214c6145dc77a1072377a586d142b62f55",
+    "short_hash": "f42b9d2",
+    "author": "bigmistqke",
+    "date": "2026-02-23T18:43:44+01:00",
+    "message": "fix: tightly stack fan-in upstream chains using subtree bounding box",
+    "files_changed": 2
+  },
+  {
+    "hash": "8bfc9ddaaf707e9c5343c7c04f49eebad2488627",
+    "short_hash": "8bfc9dd",
+    "author": "bigmistqke",
+    "date": "2026-02-23T18:37:32+01:00",
+    "message": "fix: autolayout right-aligns short chains toward fan-in, resolves overlaps",
+    "files_changed": 2
+  },
+  {
+    "hash": "2051e5a7f0823b79633a816a9462c8e345e9b2ea",
+    "short_hash": "2051e5a",
+    "author": "bigmistqke",
+    "date": "2026-02-23T18:28:06+01:00",
+    "message": "style: reduce spliceable edge hover opacity",
+    "files_changed": 1
+  },
+  {
+    "hash": "d70f827b8f5450be9454f9855488542f04e0349f",
+    "short_hash": "d70f827",
+    "author": "bigmistqke",
+    "date": "2026-02-23T18:28:00+01:00",
+    "message": "feat: add autolayout algorithm with tidy up button",
+    "files_changed": 6
+  },
+  {
+    "hash": "cc27200d746d49131c9a793dd0f22e349e664287",
+    "short_hash": "cc27200",
+    "author": "bigmistqke",
+    "date": "2026-02-23T14:52:57+01:00",
+    "message": "feat: option+click bridges edges through removed node before entering ghost mode",
+    "files_changed": 1
+  },
+  {
+    "hash": "b38f0f07d2cd0159a338dbf5d677fd8ca2ef0fb7",
+    "short_hash": "b38f0f0",
+    "author": "bigmistqke",
+    "date": "2026-02-23T14:52:52+01:00",
+    "message": "fix: pushDownstream only pushes nodes that actually overlap with upstream",
+    "files_changed": 1
+  },
+  {
+    "hash": "594a92fc8e859676c67f2c3cb5f41a1fba76bff0",
+    "short_hash": "594a92f",
+    "author": "bigmistqke",
+    "date": "2026-02-23T14:42:07+01:00",
+    "message": "feat: option+click node to pick up as ghost node",
+    "files_changed": 4
+  },
+  {
+    "hash": "b22b12ad42d8ee8e77d2c87a2f76469d86cfb9f4",
+    "short_hash": "b22b12a",
+    "author": "bigmistqke",
+    "date": "2026-02-23T14:34:14+01:00",
+    "message": "refactor: extract NodeShell and PortShell presentational components",
+    "files_changed": 5
+  },
+  {
+    "hash": "8976a494268885f26aa2ea952500aa8bdeee78a0",
+    "short_hash": "8976a49",
+    "author": "bigmistqke",
+    "date": "2026-02-23T14:24:46+01:00",
+    "message": "refactor: move ghost node from GraphEditor prop to app-level child component",
+    "files_changed": 2
+  },
+  {
+    "hash": "53f1b2700122ff04c2268d84788268f091c71f09",
+    "short_hash": "53f1b27",
+    "author": "bigmistqke",
+    "date": "2026-02-23T14:13:21+01:00",
+    "message": "feat: delete selected nodes with Backspace/Delete key",
+    "files_changed": 1
+  },
+  {
+    "hash": "57808157d21ff4d00482db79da264a28af5e79ad",
+    "short_hash": "5780815",
+    "author": "bigmistqke",
+    "date": "2026-02-23T14:13:16+01:00",
+    "message": "refactor: unify port event callbacks to single preventDefault pattern",
+    "files_changed": 4
+  },
+  {
+    "hash": "f68ccda804394dabaa64cd19816801725b1c3fe3",
+    "short_hash": "f68ccda",
+    "author": "bigmistqke",
+    "date": "2026-02-23T14:07:39+01:00",
+    "message": "fix: ghost node anchors at output port when hovering compatible input port",
+    "files_changed": 1
+  },
+  {
+    "hash": "50d72f5cd7505d9085f84240325116992d8c0f5f",
+    "short_hash": "50d72f5",
+    "author": "bigmistqke",
+    "date": "2026-02-23T14:04:54+01:00",
+    "message": "refactor: port event API with onPortHover, preventInteraction, preventDetach, preventLinking",
+    "files_changed": 5
+  },
+  {
+    "hash": "bc3d5f13114e20b54758ee2dc37070c1b5694412",
+    "short_hash": "bc3d5f1",
+    "author": "bigmistqke",
+    "date": "2026-02-23T13:28:21+01:00",
+    "message": "refactor: onPortDragStart uses preventDefault() to skip default edge behaviors",
+    "files_changed": 4
+  },
+  {
+    "hash": "edfaa45045cb614a46324bd6dcc8e440b7b27294",
+    "short_hash": "edfaa45",
+    "author": "bigmistqke",
+    "date": "2026-02-23T13:20:50+01:00",
+    "message": "refactor: simplify onPortDragStart to false | void, remove intercept codepath from port",
+    "files_changed": 4
+  },
+  {
+    "hash": "f154b79b28956bacc6900b4abb066a03369b5524",
+    "short_hash": "f154b79",
+    "author": "bigmistqke",
+    "date": "2026-02-23T13:15:51+01:00",
+    "message": "fix: block port drag on incompatible ports when node type is selected",
+    "files_changed": 4
+  },
+  {
+    "hash": "5823c96ae75fd197f2df1d4165a810b17a8ff59d",
+    "short_hash": "5823c96",
+    "author": "bigmistqke",
+    "date": "2026-02-23T13:08:15+01:00",
+    "message": "feat: ghost node snaps to edge center on hover during splice",
+    "files_changed": 4
+  },
+  {
+    "hash": "e6d73c35ca9e70ef3f2e5b7312072396e393639b",
+    "short_hash": "e6d73c3",
+    "author": "bigmistqke",
+    "date": "2026-02-23T12:52:37+01:00",
+    "message": "fix: canvas click placement matches ghost node port-anchor offset",
+    "files_changed": 1
+  },
+  {
+    "hash": "35d2a0c8950059884f291da21d5839eaef381bd8",
+    "short_hash": "35d2a0c",
+    "author": "bigmistqke",
+    "date": "2026-02-23T12:50:19+01:00",
+    "message": "fix: output-only ghost nodes anchor cursor at first output port",
+    "files_changed": 1
+  },
+  {
+    "hash": "fa36d465547132af8742721484cc17d7d16b9144",
+    "short_hash": "fa36d46",
+    "author": "bigmistqke",
+    "date": "2026-02-23T12:44:43+01:00",
+    "message": "refactor: replace JS distance hover with CSS :hover on hit-test line",
+    "files_changed": 2
+  },
+  {
+    "hash": "b41354a50b832958a795599088358f6b80bf6638",
+    "short_hash": "b41354a",
+    "author": "bigmistqke",
+    "date": "2026-02-23T12:32:19+01:00",
+    "message": "refactor: unify callback signatures to event object pattern, rename onPortDrag to onPortDragStart",
+    "files_changed": 5
+  },
+  {
+    "hash": "6ba6408f144cc4f7beb4a7c1eaa1bd3eb4538fff",
+    "short_hash": "6ba6408",
+    "author": "bigmistqke",
+    "date": "2026-02-23T12:20:15+01:00",
+    "message": "refactor: consolidate ghost node at application level, add edge hover highlight",
+    "files_changed": 5
+  },
+  {
+    "hash": "8b7118fcb6175947b04ebabee74033a54cea9b3a",
+    "short_hash": "8b7118f",
+    "author": "bigmistqke",
+    "date": "2026-02-23T12:06:16+01:00",
+    "message": "feat: drag from port with selected type to place and connect node with ghost preview",
+    "files_changed": 4
+  },
+  {
+    "hash": "afedb1eade14510f45aa140803c2cd0e7043f81f",
+    "short_hash": "afedb1e",
+    "author": "bigmistqke",
+    "date": "2026-02-23T11:50:47+01:00",
+    "message": "feat: click port with selected type to insert and connect node",
+    "files_changed": 5
+  },
+  {
+    "hash": "ce8ee68cf716c331d14682f033ce036ea85af2ee",
+    "short_hash": "ce8ee68",
+    "author": "bigmistqke",
+    "date": "2026-02-23T11:24:21+01:00",
+    "message": "fix: strip verbose registerProcessor prefix from worklet error messages",
+    "files_changed": 1
+  },
+  {
+    "hash": "da77071e7fe4e74f7e824af1f08d3786aff880a7",
+    "short_hash": "da77071",
+    "author": "bigmistqke",
+    "date": "2026-02-23T11:24:17+01:00",
+    "message": "fix: drop-on-edge splice only pushes surplus space and centers node horizontally",
+    "files_changed": 1
+  },
+  {
+    "hash": "0c36163fb577ad3ee048d408bf96699e758caf6d",
+    "short_hash": "0c36163",
+    "author": "bigmistqke",
+    "date": "2026-02-23T11:14:22+01:00",
+    "message": "feat: drop-on-edge to splice node into chain with port validation",
+    "files_changed": 4
+  },
+  {
+    "hash": "2217d1dd036d0473c9091cc58e5778e5abc96ee4",
+    "short_hash": "2217d1d",
+    "author": "bigmistqke",
+    "date": "2026-02-23T10:58:52+01:00",
+    "message": "feat: add spliceNodeIntoEdge and pushDownstream to GraphAPI",
+    "files_changed": 1
+  },
+  {
+    "hash": "c48d669ed14de0f1995e7832f67176d97b4c2a57",
+    "short_hash": "c48d669",
+    "author": "bigmistqke",
+    "date": "2026-02-23T00:38:49+01:00",
+    "message": "fix: use createResource.error for worklet error display, guard workletNode() read",
+    "files_changed": 1
+  },
+  {
+    "hash": "002e62a612d6434ee913618b8ad0bc7dd3072e0c",
+    "short_hash": "002e62a",
+    "author": "bigmistqke",
+    "date": "2026-02-23T00:08:42+01:00",
+    "message": "refactor: derive worklet error from resource via port message instead of state sync",
+    "files_changed": 2
+  },
+  {
+    "hash": "8e9c83ff6ac27958ee642495a7ef62ecbc1c21bf",
+    "short_hash": "8e9c83f",
+    "author": "bigmistqke",
+    "date": "2026-02-22T23:29:00+01:00",
+    "message": "refactor: rename ui to render, restructure audioworklet node with onCleanup",
+    "files_changed": 6
+  },
+  {
+    "hash": "d4829b4b8debbbabe2d040031ba8c4c8f1f1c9a7",
+    "short_hash": "d4829b4",
+    "author": "bigmistqke",
+    "date": "2026-02-22T23:20:48+01:00",
+    "message": "fix: show actual registerProcessor errors via ErrorReporter worklet fallback",
+    "files_changed": 3
+  },
+  {
+    "hash": "9491d3e593bb5c00725f5382a5a1154942352841",
+    "short_hash": "9491d3e",
+    "author": "bigmistqke",
+    "date": "2026-02-22T22:21:09+01:00",
+    "message": "fix: AudioWorklet recovery after registration failure, show error outline on textarea",
+    "files_changed": 3
+  },
+  {
+    "hash": "baa300eeaa20c59a4705aaf7984917bc50ba88ba",
+    "short_hash": "baa300e",
+    "author": "bigmistqke",
+    "date": "2026-02-22T19:01:41+01:00",
+    "message": "feat: multi-drag selected nodes, deselect on unselected node click",
+    "files_changed": 1
+  },
+  {
+    "hash": "a334b9bb3a48b5ddd2cb26759c85854131de344e",
+    "short_hash": "a334b9b",
+    "author": "bigmistqke",
+    "date": "2026-02-22T18:58:49+01:00",
+    "message": "feat: add multi-node selection box with shift+drag",
+    "files_changed": 5
+  },
+  {
+    "hash": "c4eb5f6b5cb363abde83d64136a0f809a4d663bb",
+    "short_hash": "c4eb5f6",
+    "author": "bigmistqke",
+    "date": "2026-02-22T16:05:43+01:00",
+    "message": "refactor: extract GraphContextType, fix edge connection timing, bump minni",
+    "files_changed": 6
+  },
+  {
+    "hash": "6d7414f1963ea606256356762e713ce2ff866f0b",
+    "short_hash": "6d7414f",
+    "author": "bigmistqke",
+    "date": "2026-02-22T15:48:57+01:00",
+    "message": "feat: lazy AudioWorklet loading with per-node module resolution",
+    "files_changed": 7
+  },
+  {
+    "hash": "51154135ff420e02750c6b15043e274c811409ae",
+    "short_hash": "5115413",
+    "author": "bigmistqke",
+    "date": "2026-02-22T15:48:52+01:00",
+    "message": "refactor: clean up leftover context flattening and orphaned CSS",
+    "files_changed": 2
+  },
+  {
+    "hash": "ea88492c52f3631b46275a34c3ec36dcff05196a",
+    "short_hash": "ea88492",
+    "author": "bigmistqke",
+    "date": "2026-02-22T15:14:58+01:00",
+    "message": "refactor: extract graph library to src/lib/graph, split audio-graph-editor",
+    "files_changed": 29
+  },
+  {
+    "hash": "6d075b732f6db40930876cae2b1078e04911329f",
+    "short_hash": "6d075b7",
+    "author": "bigmistqke",
+    "date": "2026-02-22T15:14:55+01:00",
+    "message": "feat: add tsconfig path aliases with vite-tsconfig-paths",
+    "files_changed": 4
+  },
+  {
+    "hash": "866586b505aa9af5e881cf3998a260492351106b",
+    "short_hash": "866586b",
+    "author": "bigmistqke",
+    "date": "2026-02-22T15:03:59+01:00",
+    "message": "refactor: use crypto.randomUUID() for node IDs",
+    "files_changed": 1
+  },
+  {
+    "hash": "a4368ac8ec0984e2098a314f1559d7ad5bc123ae",
+    "short_hash": "a4368ac",
+    "author": "bigmistqke",
+    "date": "2026-02-22T15:01:48+01:00",
+    "message": "refactor: extract TopRightHUD component, simplify app entry point",
+    "files_changed": 2
+  },
+  {
+    "hash": "e3aed8b8218f00317e21264b98dc4ef52454141c",
+    "short_hash": "e3aed8b",
+    "author": "bigmistqke",
+    "date": "2026-02-22T15:01:45+01:00",
+    "message": "chore: fix casing mismatches for App, Button, and Select files",
+    "files_changed": 8
+  },
+  {
+    "hash": "b9f2b641405c3de42a1ae73bd262272ccc990394",
+    "short_hash": "b9f2b64",
+    "author": "bigmistqke",
+    "date": "2026-02-22T14:50:45+01:00",
+    "message": "refactor: complete GraphContext flattening in graph components",
+    "files_changed": 6
+  },
+  {
+    "hash": "4d164dad83c3b7cbf764adc0d9184f8b5939aeb3",
+    "short_hash": "4d164da",
+    "author": "bigmistqke",
+    "date": "2026-02-22T14:11:54+01:00",
+    "message": "Rename createGraph to createGraphAPI, flatten GraphContext, polish GraphEditor\n\n- Rename create-graph to create-graph-api, createGraph to createGraphAPI\n- Rename graph to graphAPI in useGraph() consumers\n- Flatten GraphContext: merge GraphAPI directly into context via mergeProps\n- Rename internal store to UIState to avoid naming collision with graph store\n- Add style/class props to GraphEditor, use splitProps\n- Move worklet file initialization from GraphEditor to GraphRoute\n- Rename store/setStore props to graphStore/setGraphStore",
+    "files_changed": 10
+  },
+  {
+    "hash": "ce2cd469724a633d76f3c14d2448558e2aef6fdf",
+    "short_hash": "ce2cd46",
+    "author": "bigmistqke",
+    "date": "2026-02-22T13:40:25+01:00",
+    "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Move graph components into src/graph/ (editor, nodes, edges, ports, context, constants)\n- Split GraphRoute into src/routes/graph-route.tsx\n- Lowercase all filenames (Select→select, HorizontalSlider→horizontal-slider, etc.)\n- Move GraphNodeContent to src/ui/node-content.tsx\n- Delete unused lib/minni.ts and old GraphEditor.tsx",
+    "files_changed": 41
+  },
+  {
+    "hash": "95daa5143cc8cb5e24891f3fd5b37d91f4916593",
+    "short_hash": "95daa51",
+    "author": "bigmistqke",
+    "date": "2026-02-22T13:40:25+01:00",
+    "message": "Restructure project: lowercase filenames, split routes, move graph into subdir\n\n- Make GraphEditor generic and domain-agnostic: takes config, store,\n  context, and onClick as props with no audio/worklet knowledge\n- Extract GraphRoute (src/routes/graph-route.tsx) as the application\n  layer: sidebar, worklet setup, save callbacks, node placement\n- Move graph internals into src/graph/ (editor, nodes, edges, ports,\n  context, constants, create-graph)\n- Add graph/setGraph to ConstructProps so constructs can access the\n  store directly (e.g. audioworklet reads its own node type)\n- Move saveType/saveAsNewType from SolidJS GraphContext to\n  AudioGraphContext (construct context), keeping GraphContext pure UI\n- Extract GraphAPI type for typed references in component props\n- Rename props.ctx to props.context, audio to audioContext\n- Lowercase all filenames, simplify App.tsx to just routing",
+    "files_changed": 41
+  },
+  {
+    "hash": "edccdab35d69bfc97f172208bbff72fe9f656fb9",
+    "short_hash": "edccdab",
+    "author": "bigmistqke",
+    "date": "2026-02-21T21:08:04+01:00",
+    "message": "Move audioworklet to built-ins, extend context with workletFS\n\n- Define AudioGraphContext { audio, workletFS } and update all built-in\n  constructs from props.ctx.* to props.ctx.audio.*\n- Add audioworklet node definition to builtIns using ctx.workletFS\n- Drop savedTypes persistence, derive custom types from persisted nodes\n- Add saveType/saveAsNewType callbacks on GraphContext\n- Fix setState path bug: write to nodes[id].state.* not nodes[id].*",
+    "files_changed": 4
+  },
+  {
+    "hash": "807f5a84af9500ac00134643335e216ce2c64ce6",
+    "short_hash": "807f5a8",
+    "author": "bigmistqke",
+    "date": "2026-02-21T20:16:55+01:00",
+    "message": "Refactor graph store from node array to record, extract GraphEditor to own file\n\n- Nodes stored as Record<string, NodeInstance> for O(1) lookups\n- Node state merged into NodeInstance instead of separate store\n- createGraph now accepts store/setStore externally\n- Bump @bigmistqke/minni to ^0.0.10",
+    "files_changed": 13
+  },
+  {
+    "hash": "5d3221384503500774b5e87e217418cd352debb9",
+    "short_hash": "5d32213",
+    "author": "bigmistqke",
+    "date": "2026-02-20T18:58:52+01:00",
+    "message": "Extract built-in nodes to dedicated file, add createNodeDefFactory for state type inference\n\nMove all built-in audio node definitions from App.tsx into src/built-ins.tsx\nusing a new createNodeDefFactory<C>() utility that enables TypeScript to\ninfer the state type from the config object and flow it into construct props.\nUse props.ctx instead of audioCtx closure for better decoupling.",
+    "files_changed": 5
+  },
+  {
+    "hash": "916ffb062d819f7139811f0789391b6dd5a65d33",
+    "short_hash": "916ffb0",
+    "author": "bigmistqke",
+    "date": "2026-02-20T18:30:51+01:00",
+    "message": "Merge audio() and render() into single construct() per node type\n\nAudio nodes are now created and closed over directly by the ui function\nreturned from construct(), eliminating the audioData ReactiveMap and the\nRenderProps/AudioFactoryResult type threading that caused the data/props\nnaming bug. Each node type defines one construct(props) that returns\n{ in, out, ui }. audioContext removed from createGraph options since\nnodes close over it from their defining scope.",
+    "files_changed": 3
+  },
+  {
+    "hash": "02b9c754b7e118b09b2cc2d5741cb36089608175",
+    "short_hash": "02b9c75",
+    "author": "bigmistqke",
+    "date": "2026-02-20T10:00:05+01:00",
+    "message": "Fix worklet param UI by renaming data to props in audio factory return\n\nThe audio factory returned { data: { workletNode } } but the render\nprops expected { props: { workletNode } }, so the param sliders never\nreceived the AudioWorkletNode reference.",
+    "files_changed": 3
+  },
+  {
+    "hash": "721db61938b3b03aae5f3c878abbe8c5374b7ad5",
+    "short_hash": "721db61",
+    "author": "bigmistqke",
+    "date": "2026-02-20T09:50:20+01:00",
+    "message": "Move drag handler from node group to header, refine cursors\n\n- Drag handler moved from SVG <g> to nodeHeader div so dragging only\n  initiates from the header area, not the entire node body\n- cursor: move applied to header instead of whole node\n- Slider cursor changed to ew-resize on track, removed pointer on thumb",
+    "files_changed": 3
+  },
+  {
+    "hash": "74e41e8dd06775990f39ad4a7f7441185fa903e9",
+    "short_hash": "74e41e8",
+    "author": "bigmistqke",
+    "date": "2026-02-20T09:47:31+01:00",
+    "message": "Add extended port hit area, lowercase button labels, sync decision graph\n\n- Split GraphPort into two circles: larger transparent hit area for easier\n  edge connections and smaller visible port dot (pointer-events: none)\n- Move onPointerUp handler to extended circle for better UX\n- Lowercase button labels (\"new graph\", \"resume audio\")\n- Sync decision graph with missing commit history (30+ nodes added)",
+    "files_changed": 5
+  },
+  {
+    "hash": "b897cc7dbf2c6099c1ba3ccb5d13f024db58c1e8",
+    "short_hash": "b897cc7",
+    "author": "bigmistqke",
+    "date": "2026-02-20T00:54:34+01:00",
+    "message": "Add 10px grid with snap-to-grid and dot pattern\n\n- Visible dot grid via SVG pattern in userSpaceOnUse\n- Node drag and resize snap to 10px grid\n- addNode positions snap to grid\n- Meter width 33 -> 30 for grid alignment\n- Tuned layout constants for grid compatibility",
+    "files_changed": 6
+  },
+  {
+    "hash": "058c6ca10d70afb75df6cfcfcbbdfe7d29b4c26a",
+    "short_hash": "058c6ca",
+    "author": "bigmistqke",
+    "date": "2026-02-20T00:20:34+01:00",
+    "message": "Move sequencer to AudioWorklet for sample-accurate timing\n\nSequencer gate signal is now generated directly in the audio thread's\nprocess loop, eliminating rAF and look-ahead scheduling entirely. Both\nsequencer and envelope run as AudioWorklets with sample-accurate timing.",
+    "files_changed": 3
+  },
+  {
+    "hash": "c72a14e1902370874b6ff79af1c72457e54fc4d3",
+    "short_hash": "c72a14e",
+    "author": "bigmistqke",
+    "date": "2026-02-20T00:06:15+01:00",
+    "message": "Add Button CSS module and update local settings",
+    "files_changed": 3
+  },
+  {
+    "hash": "21c434c02389121f2177491478bb854708aec7bd",
+    "short_hash": "21c434c",
+    "author": "bigmistqke",
+    "date": "2026-02-19T23:53:50+01:00",
+    "message": "Replace setTimeout sequencer with global rAF tick + Web Audio look-ahead scheduling\n\nSequencer now uses a shared requestAnimationFrame loop and schedules gate\nchanges ahead via setValueAtTime for sample-accurate timing. Envelope\nreplaced with an AudioWorklet that detects gate transitions at sample rate\nand generates ADSR curves directly on the audio thread.",
+    "files_changed": 6
+  },
+  {
+    "hash": "723dfed4e294e0aeb4b22b06e45b2be1133b0a00",
+    "short_hash": "723dfed",
+    "author": "bigmistqke",
+    "date": "2026-02-19T22:18:48+01:00",
+    "message": "Merge audio projection into createGraph, eliminate side-channel Maps\n\nMove audio factory into NodeTypeDef alongside render, so each node type\nis self-contained. createGraph now accepts an optional audioContext and\nhandles audio node lifecycle + edge connections internally.\n\nAudio factory returns a `data` field exposed via RenderProps.audio,\nreplacing the 6 external Maps (analyserNodes, meterNodes, debugNodes,\nworkletNodes, envelopeTriggers, sequencerGates) that were used as\nside-channels between render and audio.\n\nDelete create-graph-projection.ts — its logic is absorbed into createGraph.",
+    "files_changed": 12
+  },
+  {
+    "hash": "12bab5e748f065455f547078e782d15603083318",
+    "short_hash": "12bab5e",
+    "author": "bigmistqke",
+    "date": "2026-02-19T19:48:41+01:00",
+    "message": "Refine heading/port layout constants and fix port vertical alignment\n\nAdd HEADING_PADDING_BLOCK/INLINE constants, use them for node title and\ndelete button positioning. Fix port cy to include PORT_RADIUS offset for\nproper vertical centering. Use transparent stroke on ports, fix indentation\nin GraphPort event handlers.",
+    "files_changed": 7
+  },
+  {
+    "hash": "446803e44630fe264e902be989473e6e7fb78eda",
+    "short_hash": "446803e",
+    "author": "bigmistqke",
+    "date": "2026-02-19T19:28:14+01:00",
+    "message": "Move node CSS to GraphNode.module.css, port labels to SVG text in GraphPort\n\nExtract node-related styles from App.module.css into GraphNode.module.css.\nMove port label rendering from HTML spans in GraphNode to SVG <text> elements\nin GraphPort. Rename constants for clarity (PORT_OFFSET→TITLE_HEIGHT,\nCONTENT_PADDING→CONTENT_PADDING_BLOCK/INLINE) and refine layout calculations.",
+    "files_changed": 8
+  },
+  {
+    "hash": "f9c60b652737bf4a5d2e4332ad056590542054fb",
+    "short_hash": "f9c60b6",
+    "author": "bigmistqke",
+    "date": "2026-02-19T18:49:57+01:00",
+    "message": "Add design system constants with height calculator, replace hardcoded values\n\nExtract ELEMENT_HEIGHT, CONTENT_GAP, CONTENT_PADDING into constants.ts with\nheaderHeight() and calcNodeHeight() functions. Pass values as CSS variables\nand use them in component styles. Replace CSS composes with clsx.",
+    "files_changed": 6
+  },
+  {
+    "hash": "b93730b23f3cd3663a9e3ea0375a45139db42751",
+    "short_hash": "b93730b",
+    "author": "bigmistqke",
+    "date": "2026-02-19T18:38:06+01:00",
+    "message": "Refactor GraphNode to single foreignObject HTML body, remove NodeUI\n\nNode body (header, title, labels, delete button, content, resize\nhandle) is now all HTML inside one foreignObject. Only SVG port\ncircles remain as SVG. NodeUI wrapper removed and all render\nfunctions inlined.",
+    "files_changed": 3
+  },
+  {
+    "hash": "8b4f395b764a4a3c5a108904fd13d1275097becc",
+    "short_hash": "8b4f395",
+    "author": "bigmistqke",
+    "date": "2026-02-19T18:24:46+01:00",
+    "message": "Move title to NodeTypeDef and render in GraphNode, lighter borders\n\nTitle is now part of the node type config and rendered by GraphNode\ndirectly. NodeUI simplified to just a foreignObject wrapper. Borders\nand separator lines use lighter color-mix. Includes user CSS tweaks\nto port labels, foreignObject sizing, and UI components.",
+    "files_changed": 8
+  },
+  {
+    "hash": "398eb68756c1ac2f474be17e3d1365a4e2da7029",
+    "short_hash": "398eb68",
+    "author": "bigmistqke",
+    "date": "2026-02-19T15:43:44+01:00",
+    "message": "White background for node UI content area, colored header for ports",
+    "files_changed": 1
+  },
+  {
+    "hash": "8e89b596cb57de7e96308abb3835db924cadd515",
+    "short_hash": "8e89b59",
+    "author": "bigmistqke",
+    "date": "2026-02-19T15:41:54+01:00",
+    "message": "Redesign node layout: UI content below ports with always-visible labels\n\nMove node UI content beneath port area using contentY, add separator\nline between ports and content, show port labels inside nodes at all\ntimes, and derive non-resizable node dimensions from template config.",
+    "files_changed": 4
+  },
+  {
+    "hash": "a6b395db3f8888e63130d1975d2ab0ba0877e89e",
+    "short_hash": "a6b395d",
+    "author": "bigmistqke",
+    "date": "2026-02-19T14:39:06+01:00",
+    "message": "Move drag handler to group element, add pointer event blocking for sliders",
+    "files_changed": 6
+  },
+  {
+    "hash": "3c38ca26548ebe2f6f8c7f72dddc2468dc6fbae8",
+    "short_hash": "3c38ca2",
+    "author": "bigmistqke",
+    "date": "2026-02-19T14:37:36+01:00",
+    "message": "Add volume meter node with RMS level bar\n\nPass-through audio with a vertical bar showing RMS level.\nGreen below 0.5, yellow below 0.8, red above.",
+    "files_changed": 1
+  },
+  {
+    "hash": "d504c976b9b0830a75b3fdcdb93f528c3579e86d",
+    "short_hash": "d504c97",
+    "author": "bigmistqke",
+    "date": "2026-02-19T11:39:16+01:00",
+    "message": "Zero AudioParam intrinsic value when signal is connected\n\nWeb Audio connections are additive, so the connected signal was being\nadded to the slider value. Now the param value is saved and zeroed on\nconnect, and restored on disconnect.",
+    "files_changed": 1
+  },
+  {
+    "hash": "5a2148837a35936b7693920adf88cf66b54e9dc1",
+    "short_hash": "5a21488",
+    "author": "bigmistqke",
+    "date": "2026-02-19T11:35:25+01:00",
+    "message": "Add debug node that displays param signal value as live text\n\nReads incoming signal via AnalyserNode and polls with\nrequestAnimationFrame to show the current value.",
+    "files_changed": 1
+  },
+  {
+    "hash": "9ca62e749b249d740d6c1e2050c1d2a58a604ef1",
+    "short_hash": "9ca62e7",
+    "author": "bigmistqke",
+    "date": "2026-02-19T10:59:48+01:00",
+    "message": "Deselect sidebar node type after placing and start with none selected",
+    "files_changed": 1
+  },
+  {
+    "hash": "8be8f1b9d1dfa84185f8bd79072ffe55f5187ca7",
+    "short_hash": "8be8f1b",
+    "author": "bigmistqke",
+    "date": "2026-02-19T10:49:26+01:00",
+    "message": "Color temporary edge by source port kind",
+    "files_changed": 1
+  },
+  {
+    "hash": "2d51e73765220d70f4fbb105b2fc84a5b6c9802f",
+    "short_hash": "2d51e73",
+    "author": "bigmistqke",
+    "date": "2026-02-19T10:45:29+01:00",
+    "message": "Use --color-node CSS variable for node and button colors\n\nSet --color-node on elements and derive fill/stroke/background/border\nvia color-mix in CSS instead of inline style computation.",
+    "files_changed": 3
+  },
+  {
+    "hash": "7510af8c93f8d332ecb28065abfebb9c18d2988b",
+    "short_hash": "7510af8",
+    "author": "bigmistqke",
+    "date": "2026-02-19T10:38:51+01:00",
+    "message": "Color node and button borders by first output port kind\n\nUse dynamic var(--color-port-${kind}) for node rect stroke, sidebar\nbutton border, and edge stroke. Lightened with color-mix for borders.",
+    "files_changed": 3
+  },
+  {
+    "hash": "a55a4560e31469bd33117b581d67e4a253e01420",
+    "short_hash": "a55a456",
+    "author": "bigmistqke",
+    "date": "2026-02-19T02:41:55+01:00",
+    "message": "Use CSS variables for port and edge colors\n\nDefine --color-port-audio, --color-port-param, --color-port-output\nand derive port strokes with color-mix.",
+    "files_changed": 2
+  },
+  {
+    "hash": "8070cb19f22bc8544d593e6bc25138a9590567d8",
+    "short_hash": "8070cb1",
+    "author": "bigmistqke",
+    "date": "2026-02-19T02:40:09+01:00",
+    "message": "Color edges to match their output port kind\n\nBlue for audio, red for param, green for output.",
+    "files_changed": 1
+  },
+  {
+    "hash": "e822afc13ec7b0b3c32fc3d753168b59e94de8fa",
+    "short_hash": "e822afc",
+    "author": "bigmistqke",
+    "date": "2026-02-19T02:26:56+01:00",
+    "message": "Fix envelope to properly reach zero using setTargetAtTime\n\nReplace linearRampToValueAtTime with setTargetAtTime which works from\nthe current automated value without needing to read src.offset.value\n(which only returns the intrinsic value, not the scheduled one).",
+    "files_changed": 1
+  },
+  {
+    "hash": "aec86b70e361c6c0a018c3485c804768834821f1",
+    "short_hash": "aec86b7",
+    "author": "bigmistqke",
+    "date": "2026-02-19T02:15:21+01:00",
+    "message": "Fix sequencer BPM to update in real-time without resetting position\n\nReplace setInterval with recursive setTimeout so each step reads the\ncurrent BPM value when scheduling the next tick.",
+    "files_changed": 1
+  },
+  {
+    "hash": "24742f1a27725ca541edb9aa762a062e8beb0c1a",
+    "short_hash": "24742f1",
+    "author": "bigmistqke",
+    "date": "2026-02-19T02:08:07+01:00",
+    "message": "Add Select component and use it for oscillator type switching",
+    "files_changed": 2
+  },
+  {
+    "hash": "bfe666e5687f618cefc1fa94420aab5ea804ca8f",
+    "short_hash": "bfe666e",
+    "author": "bigmistqke",
+    "date": "2026-02-19T02:02:19+01:00",
+    "message": "Add step sequencer node with gate output and envelope gate input\n\nSequencer has a 16-step grid with play/stop and BPM control, outputting\na gate signal (0/1). Envelope now accepts a gate input that detects\ntransitions via AnalyserNode polling — gate high triggers attack/decay/\nsustain, gate low triggers release.",
+    "files_changed": 1
+  },
+  {
+    "hash": "fe2dc815b92d27751a1f65f4b4a7c5f86d11a67a",
+    "short_hash": "fe2dc81",
+    "author": "bigmistqke",
+    "date": "2026-02-19T01:53:47+01:00",
+    "message": "Add scale and range modulation nodes\n\nScale multiplies a signal by a factor. Range maps a [-1,1] signal to a\n[min,max] range using gain + constant source offset, making it easy to\nroute an LFO to meaningful parameter ranges like filter frequency.",
+    "files_changed": 1
+  },
+  {
+    "hash": "83877ce58b012d97ec507df34e44ce449d6f7fbf",
+    "short_hash": "83877ce",
+    "author": "bigmistqke",
+    "date": "2026-02-19T01:45:06+01:00",
+    "message": "Allow deselecting node type by clicking active sidebar button\n\nClicking an already-selected button deselects it. Clicking the canvas\nwith no type selected no longer spawns a node.",
+    "files_changed": 1
+  },
+  {
+    "hash": "0705ca7ab5523751e83ddea59d9aa5cb3efe7fa9",
+    "short_hash": "0705ca7",
+    "author": "bigmistqke",
+    "date": "2026-02-19T01:37:50+01:00",
+    "message": "Style sidebar as single column with left scrollbar and backdrop blur",
+    "files_changed": 2
+  },
+  {
+    "hash": "69f9ddf336535cca78a32a46190001124bc4330e",
+    "short_hash": "69f9ddf",
+    "author": "bigmistqke",
+    "date": "2026-02-19T01:26:43+01:00",
+    "message": "Add reverb, waveshaper, and analyser nodes\n\nReverb uses ConvolverNode with algorithmic impulse response (decay + dry/wet mix).\nWaveshaper provides distortion via WaveShaperNode with 4x oversampling.\nAnalyser renders a live oscilloscope waveform on canvas, passing audio through.\nAlso passes nodeId to projection factories so analyser can register itself.",
+    "files_changed": 2
+  },
+  {
+    "hash": "a7981e45bd43ead66fc1d139999590d04d3754c6",
+    "short_hash": "a7981e4",
+    "author": "bigmistqke",
+    "date": "2026-02-19T01:20:08+01:00",
+    "message": "Add filter, delay, panner, compressor, and noise nodes",
+    "files_changed": 1
+  },
+  {
+    "hash": "6f27501b86dd73fc158ce5b7bd7cc712264587e8",
+    "short_hash": "6f27501",
+    "author": "bigmistqke",
+    "date": "2026-02-19T01:06:23+01:00",
+    "message": "Add persistence with makePersisted and routing with @solidjs/router\n\n- Graph topology and node states persisted to localStorage via makePersisted\n- Each route /:graphName is a separate persisted graph\n- Custom types persisted globally, reconstructed with render functions on load\n- Worklet files initialized from persisted state on graph load\n- createGraph accepts persistName option, uses consolidated store for nodeStates\n- Replaced ReactiveMap with store-based adapter in createGraph for serializability\n- App split into thin route wrapper + GraphEditor (re-mounts on graph switch)\n- HUD shows graph name, \"New Graph\" button navigates to new route",
+    "files_changed": 5
+  },
+  {
+    "hash": "6427cee98d9b282744817c638dc54b8899e9930d",
+    "short_hash": "6427cee",
+    "author": "bigmistqke",
+    "date": "2026-02-19T00:50:03+01:00",
+    "message": "Add save custom node as reusable type with reactive shared source\n\n- Config is now a reactive store (createStore), new types appear in toolbar\n- Custom nodes get \"Save as Type\" button that prompts for name and registers type\n- Saved nodes show \"Save\" (updates all instances) and \"Save as\" (new type)\n- Saving transforms the current node into the saved type\n- Projection uses Proxy fallback to custom factory for dynamic types\n- GraphNode typeDef is now reactive to support type switching\n- RenderProps includes node id, updateNode accepts type changes",
+    "files_changed": 3
+  },
+  {
+    "hash": "f408fd0605ea148c9873f4b29256da9ae4dd9da2",
+    "short_hash": "f408fd0",
+    "author": "bigmistqke",
+    "date": "2026-02-19T00:18:07+01:00",
+    "message": "Add deciduous decision graph, Claude Code config, and GitHub workflows",
+    "files_changed": 16
+  },
+  {
+    "hash": "ba34a4f3034eaf70baaa6db43d6f5303d5e30234",
+    "short_hash": "ba34a4f",
+    "author": "bigmistqke",
+    "date": "2026-02-19T00:10:54+01:00",
+    "message": "Add HUD overlay for toolbar, refine styling and port label positioning\n\nMove toolbar to absolute-positioned HUD overlay with pointer-events\npassthrough. Use PORT_RADIUS for port label offsets. Lighten stroke\ncolor, use edge color for temporary edges.",
+    "files_changed": 4
+  },
+  {
+    "hash": "7e7754c87a48d920b8a174e6a5ce9f494ae1d2b4",
+    "short_hash": "7e7754c",
+    "author": "bigmistqke",
+    "date": "2026-02-18T23:59:51+01:00",
+    "message": "Add CSS variables for colors, use clsx for toolbar buttons, reformat styles\n\nExtract stroke/text colors into CSS custom properties. Use clsx for\ntoolbar button class toggling. Add nodeButton styles to CSS module.\nReformat App.module.css indentation to 2 spaces.",
+    "files_changed": 8
+  },
+  {
+    "hash": "958939a821e5243ddda3efd623843ad22ff48c7f",
+    "short_hash": "958939a",
+    "author": "bigmistqke",
+    "date": "2026-02-18T23:51:24+01:00",
+    "message": "Add resizable nodes with bottom-right drag handle\n\nNew resizable flag on NodeTypeDef. GraphNode renders a diagonal line\nhandle with a transparent triangle hit area at the bottom-right corner.\nCustom node is resizable by default.",
+    "files_changed": 4
+  },
+  {
+    "hash": "3b3eff1dd110d23b90f12eeb1f88cd872cdac718",
+    "short_hash": "3b3eff1",
+    "author": "bigmistqke",
+    "date": "2026-02-18T23:37:12+01:00",
+    "message": "Use HorizontalSlider for worklet params, add min/max/step props, adjust layout\n\nRefactor param UI to reuse HorizontalSlider with configurable min/max/step.\nSimplify NodeUI layout calculations and set PORT_INSET to 0.",
+    "files_changed": 3
+  },
+  {
+    "hash": "8baa92b97241bac0d4b5b4fe6696338fa1617d64",
+    "short_hash": "8baa92b",
+    "author": "bigmistqke",
+    "date": "2026-02-18T23:28:53+01:00",
+    "message": "Auto-generate UI for worklet parameters and add gain to boilerplate\n\nDiscover AudioParam entries from the AudioWorkletNode at runtime and\nrender sliders for each parameter. Boilerplate now includes a gain\nparameter with parameterDescriptors to demonstrate the feature.",
+    "files_changed": 2
+  },
+  {
+    "hash": "8e0f7b52b24a7c1411d02c9c9c7ee9a88bd66471",
+    "short_hash": "8e0f7b5",
+    "author": "bigmistqke",
+    "date": "2026-02-18T23:14:59+01:00",
+    "message": "Auto-generate custom node name and guard against missing input\n\nRemove name prompt for custom nodes — name is auto-generated from node ID.\nFix crash when deleting a connected custom node by guarding against\nundefined input channels in the worklet processor boilerplate.",
+    "files_changed": 2
+  },
+  {
+    "hash": "cdcd21af21631b2ecc80ae044345574222226cd5",
+    "short_hash": "cdcd21a",
+    "author": "bigmistqke",
+    "date": "2026-02-18T22:57:37+01:00",
+    "message": "Separate worklet source and entry files\n\nUser code uses export default class convention in /<name>/source.js.\nGenerated /<name>/worklet.js imports from it and calls registerProcessor.\nThe transform resolves the import path to the source blob URL reactively.",
+    "files_changed": 2
+  },
+  {
+    "hash": "a62c3dce1dc448183b292046fdc7f5e97272b21e",
+    "short_hash": "a62c3dc",
+    "author": "bigmistqke",
+    "date": "2026-02-18T22:52:55+01:00",
+    "message": "Add custom AudioWorklet node with live code editing\n\nIntroduces a virtual file system (ReactiveMap + createFileUrlSystem) for\ndynamically compiling and loading AudioWorklet processors. Users can create\ncustom nodes, name them, and edit processor code in a textarea. Worklets\nhot-reload on edit using versioned processor names.",
+    "files_changed": 2
+  },
+  {
+    "hash": "5ff421229af350150c43cda5ac0fc49a076d97b9",
+    "short_hash": "5ff4212",
+    "author": "bigmistqke",
+    "date": "2026-02-18T22:29:58+01:00",
+    "message": "Extract HorizontalSlider component and adjust node UI layout",
+    "files_changed": 2
+  },
+  {
+    "hash": "22a75e73ae9cc24f11dd1b7e0a205e7c834a5894",
+    "short_hash": "22a75e7",
+    "author": "bigmistqke",
+    "date": "2026-02-18T22:16:28+01:00",
+    "message": "Keep port labels visible while dragging from a port",
+    "files_changed": 1
+  },
+  {
+    "hash": "06dc2b8d307a3a7ce73d90bbaf02cba499bf62c8",
+    "short_hash": "06dc2b8",
+    "author": "bigmistqke",
+    "date": "2026-02-18T22:13:39+01:00",
+    "message": "Reveal port names on cursor proximity to nodes\n\nPort labels appear outside the node (left for inputs, right for outputs)\nwhen the cursor approaches within 60px. Labels fade in instantly and\nlinger for 1s before fading out over 1s.",
+    "files_changed": 4
+  },
+  {
+    "hash": "90ccc61ed4f15ae268d5f7a797b545e62588cded",
+    "short_hash": "90ccc61",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:58:08+01:00",
+    "message": "Add constant node, isInputConnected, and rename edge fields to output/input\n\nAdd ConstantSourceNode type for driving AudioParams externally. Add\nisInputConnected to RenderProps so sliders disable when port is connected.\nRename Edge fields from from/to to output/input for clarity.",
+    "files_changed": 6
+  },
+  {
+    "hash": "23675742273293df109659e2cbfc47a6c0d1b030",
+    "short_hash": "2367574",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:51:01+01:00",
+    "message": "Refactor createNodeComponent into NodeUI component\n\nReplace factory function with a proper Solid component that receives\nrender props and renders title and foreignObject wrapper. Node type\ndefinitions now use inline render with NodeUI.",
+    "files_changed": 1
+  },
+  {
+    "hash": "e8294d8d56e86cd4ea732b7339f4b2a26cc16c38",
+    "short_hash": "e8294d8",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:43:46+01:00",
+    "message": "Move create-graph and create-node-component into lib directory\n\nReorganize file structure, moving core graph modules under src/lib.\nUpdate all imports accordingly.",
+    "files_changed": 10
+  },
+  {
+    "hash": "56c0f02326543cd475d82b85e4d43bd42753c34f",
+    "short_hash": "56c0f02",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:40:47+01:00",
+    "message": "Improve projection factory typings to infer state from graph config\n\nUse StateOf utility type to extract each node type's state type from\nthe graph config, replacing the untyped any parameter.",
+    "files_changed": 1
+  },
+  {
+    "hash": "3c4820d40c8b52567da9dbd549340ef1255b629c",
+    "short_hash": "3c4820d",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:35:49+01:00",
+    "message": "Add per-node dimensions with setDimensions in render props\n\nStore dimensions on each node instance instead of reading from the type\ndefinition. Add setDimensions to RenderProps so render functions can\nresize their own node. Update all components to read dimensions from\nthe node instance.",
+    "files_changed": 5
+  },
+  {
+    "hash": "d9b8d26cb97af8a89a6c153c35fe07fd59eae065",
+    "short_hash": "d9b8d26",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:21:14+01:00",
+    "message": "Refactor App.tsx into separate modules\n\nExtract constants, contexts, and components into their own files.\nApp.tsx now only contains the graph config, audio projection, and\ncanvas layout.",
+    "files_changed": 8
+  },
+  {
+    "hash": "c5d5b329ff68ca742a420011c31de31319d54d3b",
+    "short_hash": "c5d5b32",
+    "author": "bigmistqke",
+    "date": "2026-02-18T21:18:15+01:00",
+    "message": "Add createNodeComponent factory and use props object for render\n\nChange render signature to receive a props object with state, setState,\nand dimensions. Add createNodeComponent factory that handles title and\nforeignObject boilerplate so node definitions only provide inner content.",
+    "files_changed": 2
+  },
+  {
+    "hash": "88b6c12e4eb719c4c42397f81acb3fd2bb7c9edb",
+    "short_hash": "88b6c12",
+    "author": "bigmistqke",
+    "date": "2026-02-18T20:59:42+01:00",
+    "message": "Refine port layout, delete button, and foreignObject styling\n\nAdjust port spacing/offset/inset constants. Use foreignObject for delete\nbutton. Add foreignObject class to disable pointer-events on wrapper\nwhile allowing them on children. Align render content with port layout.",
+    "files_changed": 2
+  },
+  {
+    "hash": "3272b374314013d16fae9ddd97e407b71fe0de32",
+    "short_hash": "3272b37",
+    "author": "bigmistqke",
+    "date": "2026-02-18T20:37:24+01:00",
+    "message": "Add node deletion and edge re-dragging from in-ports\n\nAdd delete button (x) on nodes, visible on hover. Add unlink method to\ngraph. Dragging from an in-port with an existing edge detaches it and\nlets the user reconnect to another port or release to delete.",
+    "files_changed": 3
+  },
+  {
+    "hash": "ac8241f0ba3f48c60961c4e3272414b2c22b0bfb",
+    "short_hash": "ac8241f",
+    "author": "bigmistqke",
+    "date": "2026-02-18T20:30:04+01:00",
+    "message": "Validate port kind compatibility on link\n\nOnly allow connections between ports with matching kind values.",
+    "files_changed": 1
+  },
+  {
+    "hash": "08e925a979aad97244b2d3e78276a4b02ff628af",
+    "short_hash": "08e925a",
+    "author": "bigmistqke",
+    "date": "2026-02-18T20:26:59+01:00",
+    "message": "Add port kind styling and disable selection during drag\n\nColor ports by data-kind attribute (blue default, red param, green output).\nSet data-dragging on root SVG during any drag to disable user-select and\nclear existing selection.",
+    "files_changed": 2
+  },
+  {
+    "hash": "2332f3fc1a00274525f80ac1c080692d1492b435",
+    "short_hash": "2332f3f",
+    "author": "bigmistqke",
+    "date": "2026-02-18T20:20:16+01:00",
+    "message": "Add typed node registry, generic graph projection, and audio wiring\n\nRewrite createGraph to accept a node type config with dimensions, ports,\nstate, and render. Add createGraphProjection for reactive graph-to-domain\nmapping using mapArray + ReactiveMap. Wire up oscillator, gain, and\ndestination nodes with Web Audio as a projection.",
+    "files_changed": 3
+  },
+  {
+    "hash": "ad1d3d796b4ae3a1624cbece3d4c3c3dcb2b526a",
+    "short_hash": "ad1d3d7",
+    "author": "bigmistqke",
+    "date": "2026-02-18T19:41:02+01:00",
+    "message": "initial commit",
+    "files_changed": 0
+  }
+]
