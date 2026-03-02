@@ -131,9 +131,7 @@ function BadgeAxis(props: { diff: AxisDiff; axis: "x" | "y" }) {
               .join("\n")
       }
     >
-      {props.diff.pass
-        ? `✓ ${props.axis}`
-        : `✗ ${props.axis} (${props.diff.mismatches.length})`}
+      {props.diff.pass ? `✓ ${props.axis}` : `✗ ${props.axis}`}
     </span>
   );
 }
