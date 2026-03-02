@@ -119,9 +119,9 @@ function compare(expected: Graph, result: Graph): Diff {
 
 // ─── Diff badges ─────────────────────────────────────────────────────────────
 
-function AxisBadge(props: { diff: AxisDiff; axis: "x" | "y" }) {
+function BadgeAxis(props: { diff: AxisDiff; axis: "x" | "y" }) {
   return (
-    <div
+    <span
       class={props.diff.pass ? styles.diffPass : styles.diffFail}
       title={
         props.diff.pass
@@ -134,6 +134,15 @@ function AxisBadge(props: { diff: AxisDiff; axis: "x" | "y" }) {
       {props.diff.pass
         ? `✓ ${props.axis}`
         : `✗ ${props.axis} (${props.diff.mismatches.length})`}
+    </span>
+  );
+}
+
+function Badge(props: { diff: { x: AxisDiff; y: AxisDiff } }) {
+  return (
+    <div class={styles.badge}>
+      <BadgeAxis diff={props.diff.x} axis="x" />
+      <BadgeAxis diff={props.diff.y} axis="y" />
     </div>
   );
 }
@@ -307,8 +316,9 @@ export function App(props: ParentProps) {
           {(() => {
             const index = currentIndex;
             const c = () => cases[index()];
-            const [expanded, setExpanded] =
-              createSignal<"initial" | "expected" | "result" | null>(null);
+            const [expanded, setExpanded] = createSignal<
+              "initial" | "expected" | "result" | null
+            >(null);
 
             // Per-node sync: seed on add
             createEffect(() => {
@@ -329,15 +339,7 @@ export function App(props: ParentProps) {
               <div class={styles.cases}>
                 <div id={`case-${c().id}`} class={styles.row}>
                   <div class={styles.rowHeader}>
-                    <span class={styles.caseNumber}>#{index() + 1}</span>
-                    <Show when={diff()}>
-                      {(d) => (
-                        <>
-                          <AxisBadge diff={d().x} axis="x" />
-                          <AxisBadge diff={d().y} axis="y" />
-                        </>
-                      )}
-                    </Show>
+                    <Show when={diff()}>{(d) => <Badge diff={d()} />}</Show>
                     <input
                       class={styles.caseTitle}
                       placeholder="untitled"
