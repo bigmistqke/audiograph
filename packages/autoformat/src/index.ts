@@ -1,11 +1,5 @@
 import { analysis, buildTopology, findIslands } from "./analysis";
-import type {
-  AutoformatOptions,
-  Graph,
-  IslandLayout,
-  LayoutNode,
-  NodeInfo,
-} from "./types";
+import type { AutoformatOptions, Graph, IslandLayout, LayoutNode, NodeInfo } from "./types";
 import { xPass } from "./x-pass";
 import { resolveIslandCollisions, yPass } from "./y-pass";
 
@@ -19,41 +13,11 @@ const DEFAULT_GAP = 30;
 function layoutIsland(
   islandInfos: Map<string, NodeInfo>,
   options: AutoformatOptions,
-): {
-  xFinal: Map<string, number>;
-  yFinal: Map<string, number>;
-  rowOf: Map<string, number>;
-} {
-  const {
-    order,
-    chainMap,
-    ancestorSets,
-    primaryRoot,
-    rowOf,
-    mergeApproachMap,
-    rowOrder,
-  } = analysis(islandInfos);
-
-  const xFinal = xPass(
-    islandInfos,
-    primaryRoot.id,
-    order,
-    rowOf,
-    chainMap,
-    ancestorSets,
-    mergeApproachMap,
-    options,
-  );
-  const yFinal = yPass(
-    islandInfos,
-    xFinal,
-    rowOf,
-    rowOrder,
-    primaryRoot.id,
-    options,
-  );
-
-  return { xFinal, yFinal, rowOf };
+) {
+  const ctx = analysis(islandInfos);
+  const xFinal = xPass(ctx, options);
+  const yFinal = yPass(ctx, xFinal, options);
+  return { xFinal, yFinal, primaryRoot: ctx.primaryRoot };
 }
 
 export function computeLayoutMap(
@@ -69,11 +33,7 @@ export function computeLayoutMap(
 
   const islandLayouts: IslandLayout[] = islandGroups.map((nodeIds) => {
     const islandInfos = new Map(nodeIds.map((id) => [id, infos.get(id)!]));
-    const { xFinal, yFinal } = layoutIsland(islandInfos, { gap });
-
-    const primaryRoot = [...islandInfos.values()]
-      .filter((n) => n.role === "root")
-      .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
+    const { xFinal, yFinal, primaryRoot } = layoutIsland(islandInfos, { gap });
 
     return {
       nodeIds,

@@ -1,5 +1,10 @@
 import { assertedNotNullish } from "@audiograph/utils";
-import { isMergeLike, type AutoformatOptions, type NodeInfo } from "./types";
+import {
+  isMergeLike,
+  type AnalysisResult,
+  type AutoformatOptions,
+  type NodeInfo,
+} from "./types";
 
 /**
  * Compute provisional x-positions for all nodes in topological order.
@@ -9,19 +14,18 @@ import { isMergeLike, type AutoformatOptions, type NodeInfo } from "./types";
  *   - Merge/merge-split: max(parent.right for ALL parents) + gap (Merge Alignment rule).
  *   - All others: prev.right + gap; secondary roots start at 0 (Sequential rule).
  */
-export function computeInitialXPositions(
-  infos: Map<string, NodeInfo>,
-  primaryRootId: string,
-  order: string[],
+function computeInitialXPositions(
+  ctx: AnalysisResult,
   options: AutoformatOptions,
 ): Map<string, number> {
+  const { infos, order, primaryRoot } = ctx;
   const x = new Map<string, number>();
 
   for (const id of order) {
     const info = infos.get(id)!;
 
     // Anchor rule
-    if (id === primaryRootId) {
+    if (id === primaryRoot.id) {
       x.set(id, info.initialX);
       continue;
     }
@@ -81,13 +85,13 @@ export function computeInitialXPositions(
  * ```
  */
 function computeMergeXWithoutSubtree(
+  ctx: AnalysisResult,
   mergeId: string,
   splitId: string,
-  infos: Map<string, NodeInfo>,
   x: Map<string, number>,
-  ancestorSets: Map<string, Set<string>>,
   options: AutoformatOptions,
 ): number {
+  const { infos, ancestorSets } = ctx;
   let maxExternal = -Infinity;
 
   for (const pid of infos.get(mergeId)!.parents) {
@@ -162,14 +166,12 @@ function propagateSequential(
  * node right after currentBoundary.
  */
 function findMergePullTarget(
+  ctx: AnalysisResult,
   splitId: string,
-  infos: Map<string, NodeInfo>,
-  rowOf: Map<string, number>,
   x: Map<string, number>,
-  ancestorSets: Map<string, Set<string>>,
-  chainMap: Map<string, Map<string, string[]>>,
   options: AutoformatOptions,
 ): number {
+  const { infos, rowOf, chainMap } = ctx;
   const splitRow = rowOf.get(splitId) ?? 0;
   const splitWidth = infos.get(splitId)!.width;
 
@@ -214,11 +216,10 @@ function findMergePullTarget(
 
       const endRow = rowOf.get(endId) ?? 0;
       const xWithoutSubtree = computeMergeXWithoutSubtree(
+        ctx,
         endId,
         splitId,
-        infos,
         x,
-        ancestorSets,
         options,
       );
 
@@ -291,37 +292,25 @@ function findMergePullTarget(
  *    from already-placed earlier ones.
  * 2. Process splits in reverse topological order (post-order approximation).
  */
-export function pullSplitsTowardMerges(
-  infos: Map<string, NodeInfo>,
-  primaryRootId: string,
-  order: string[],
-  rowOf: Map<string, number>,
+function pullSplitsTowardMerges(
+  ctx: AnalysisResult,
   initialXPositions: Map<string, number>,
-  chainMap: Map<string, Map<string, string[]>>,
-  ancestorSets: Map<string, Set<string>>,
   options: AutoformatOptions,
 ): Map<string, number> {
+  const { infos, primaryRoot, order } = ctx;
   const x = new Map(initialXPositions);
 
   // Secondary roots: process first (y-order) so their splits see the updated x
   // when processed below. Each uses the current x map so it sees positions set
   // by earlier secondary roots.
   const secondaryRoots = [...infos.values()]
-    .filter((info) => info.role === "root" && info.id !== primaryRootId)
+    .filter((info) => info.role === "root" && info.id !== primaryRoot.id)
     .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX);
 
   for (const rootInfo of secondaryRoots) {
     const id = rootInfo.id;
 
-    const pull = findMergePullTarget(
-      id,
-      infos,
-      rowOf,
-      x,
-      ancestorSets,
-      chainMap,
-      options,
-    );
+    const pull = findMergePullTarget(ctx, id, x, options);
 
     if (pull === -Infinity) {
       continue;
@@ -352,15 +341,7 @@ export function pullSplitsTowardMerges(
       continue;
     }
 
-    const pull = findMergePullTarget(
-      id,
-      infos,
-      rowOf,
-      x,
-      ancestorSets,
-      chainMap,
-      options,
-    );
+    const pull = findMergePullTarget(ctx, id, x, options);
 
     if (pull === -Infinity) {
       continue;
@@ -398,25 +379,19 @@ export function pullSplitsTowardMerges(
  *
  * Fixed nodes (kept as-is): primary root, splits, secondary roots.
  */
-export function reconcileXPositions(
-  infos: Map<string, NodeInfo>,
-  order: string[],
-  primaryRootId: string,
+function reconcileXPositions(
+  ctx: AnalysisResult,
   x: Map<string, number>,
-  mergeApproachMap: Map<
-    string,
-    { endId: string; prevId: string; startId: string }
-  >,
-  ancestorSets: Map<string, Set<string>>,
   options: AutoformatOptions,
 ): Map<string, number> {
+  const { infos, order, primaryRoot, mergeApproachMap } = ctx;
   const result = new Map(x);
 
   for (const id of order) {
     const info = infos.get(id)!;
 
     // Fixed: primary root, splits, and secondary roots (placed by Anchor/Split Pull)
-    if (id === primaryRootId) {
+    if (id === primaryRoot.id) {
       continue;
     }
 
@@ -436,11 +411,10 @@ export function reconcileXPositions(
       const prevInfo = infos.get(prevId)!;
       const prevRight = result.get(prevId)! + prevInfo.width;
       const xWithoutSubtree = computeMergeXWithoutSubtree(
+        ctx,
         endId,
         startId,
-        infos,
         result,
-        ancestorSets,
         options,
       );
       const pullTarget =
@@ -490,33 +464,14 @@ export function reconcileXPositions(
  * Run the full x-positioning pipeline: initial placement → split pull → reconcile.
  */
 export function xPass(
-  infos: Map<string, NodeInfo>,
-  primaryRootId: string,
-  order: string[],
-  rowOf: Map<string, number>,
-  chainMap: Map<string, Map<string, string[]>>,
-  ancestorSets: Map<string, Set<string>>,
-  mergeApproachMap: Map<string, { endId: string; prevId: string; startId: string }>,
+  ctx: AnalysisResult,
   options: AutoformatOptions,
 ): Map<string, number> {
-  const initialXPositions = computeInitialXPositions(infos, primaryRootId, order, options);
+  const initialXPositions = computeInitialXPositions(ctx, options);
   const xAfterSplitPull = pullSplitsTowardMerges(
-    infos,
-    primaryRootId,
-    order,
-    rowOf,
+    ctx,
     initialXPositions,
-    chainMap,
-    ancestorSets,
     options,
   );
-  return reconcileXPositions(
-    infos,
-    order,
-    primaryRootId,
-    xAfterSplitPull,
-    mergeApproachMap,
-    ancestorSets,
-    options,
-  );
+  return reconcileXPositions(ctx, xAfterSplitPull, options);
 }

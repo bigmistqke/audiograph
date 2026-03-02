@@ -93,45 +93,6 @@ export function Port(props: {
 
         graph.setDragging(true);
 
-        // Detach existing edge from in-port and re-drag from upstream node
-        if (!defaultPrevented && props.kind === "in") {
-          const existingEdgeEntry = Object.entries(graph.edges).find(
-            ([, e]) => e.input.node === node.id && e.input.port === props.name,
-          );
-
-          if (existingEdgeEntry) {
-            const [edgeId, edge] = existingEdgeEntry;
-            graph.deleteEdge(edgeId);
-            const fromNode = graph.nodes[edge.output.node];
-            if (fromNode) {
-              const position = {
-                x: node.x + cx(),
-                y: node.y + cy(),
-              };
-
-              graph.setTemporaryEdge({
-                nodeId: fromNode.id,
-                kind: "out",
-                portId: edge.output.port,
-                x: position.x,
-                y: position.y,
-              });
-
-              await minni(event, (delta) => {
-                graph.updateTemporaryEdge(
-                  position.x + delta.x,
-                  position.y - delta.y,
-                );
-              });
-
-              graph.setTemporaryEdge(undefined);
-              graph.setDragging(false);
-
-              return;
-            }
-          }
-        }
-
         graph.setTemporaryEdge({
           nodeId: node.id,
           kind: props.kind,

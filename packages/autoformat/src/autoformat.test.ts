@@ -3030,6 +3030,170 @@ describe("autoformat — x-positions", () => {
           "E": 260
     });
   });
+
+  it("741a3c66-bf2a-4795-bbaf-a74b16a43bc5", () => {
+    const initial: Graph = {
+        "edges": {
+            "ca0f3857-8f8e-4164-8638-e24a7c0a94ea": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            },
+            "f239968c-bd78-4b42-9019-d0b4da0f60e7": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            "3b7970ce-5377-4eb2-bf6c-4ab45cf6483f": {
+                "output": {
+                    "node": "H",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "F",
+                    "port": "in"
+                }
+            },
+            "6f192d43-575b-4745-9131-bc9f9d71920d": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "F",
+                    "port": "in"
+                }
+            },
+            "b1755ee9-4c7a-4f61-a73e-c67c90d3972b": {
+                "output": {
+                    "node": "F",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "G",
+                    "port": "in"
+                }
+            },
+            "5ad4bac3-7eed-48e3-b125-c1ea430c5b7f": {
+                "output": {
+                    "node": "E",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "I",
+                    "port": "in"
+                }
+            },
+            "b8a800a8-e6d0-44b4-bb42-bcfb812868c0": {
+                "output": {
+                    "node": "I",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "J",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 140,
+                "y": 220,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": 270,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "G": {
+                "id": "G",
+                "type": "node",
+                "x": 400,
+                "y": 0,
+                "width": 100,
+                "height": 190,
+                "state": {}
+            },
+            "H": {
+                "id": "H",
+                "type": "node",
+                "x": 120,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "I": {
+                "id": "I",
+                "type": "node",
+                "x": 280,
+                "y": 220,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "J": {
+                "id": "J",
+                "type": "node",
+                "x": 410,
+                "y": 210,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 0,
+          "C": 130,
+          "D": 0,
+          "E": 130,
+          "F": 260,
+          "G": 390,
+          "H": 130,
+          "I": 260,
+          "J": 390,
+          "K": 110
+    });
+  });
 });
 
 describe("autoformat — y-positions", () => {
@@ -6034,6 +6198,170 @@ describe("autoformat — y-positions", () => {
           "C": 150,
           "D": 150,
           "E": 0
+    });
+  });
+
+  it("741a3c66-bf2a-4795-bbaf-a74b16a43bc5", () => {
+    const initial: Graph = {
+        "edges": {
+            "ca0f3857-8f8e-4164-8638-e24a7c0a94ea": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            },
+            "f239968c-bd78-4b42-9019-d0b4da0f60e7": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            "3b7970ce-5377-4eb2-bf6c-4ab45cf6483f": {
+                "output": {
+                    "node": "H",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "F",
+                    "port": "in"
+                }
+            },
+            "6f192d43-575b-4745-9131-bc9f9d71920d": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "F",
+                    "port": "in"
+                }
+            },
+            "b1755ee9-4c7a-4f61-a73e-c67c90d3972b": {
+                "output": {
+                    "node": "F",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "G",
+                    "port": "in"
+                }
+            },
+            "5ad4bac3-7eed-48e3-b125-c1ea430c5b7f": {
+                "output": {
+                    "node": "E",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "I",
+                    "port": "in"
+                }
+            },
+            "b8a800a8-e6d0-44b4-bb42-bcfb812868c0": {
+                "output": {
+                    "node": "I",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "J",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 140,
+                "y": 220,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": 270,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "G": {
+                "id": "G",
+                "type": "node",
+                "x": 400,
+                "y": 0,
+                "width": 100,
+                "height": 190,
+                "state": {}
+            },
+            "H": {
+                "id": "H",
+                "type": "node",
+                "x": 120,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "I": {
+                "id": "I",
+                "type": "node",
+                "x": 280,
+                "y": 220,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "J": {
+                "id": "J",
+                "type": "node",
+                "x": 410,
+                "y": 210,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 0,
+          "C": 0,
+          "D": 220,
+          "E": 220,
+          "F": 0,
+          "G": 0,
+          "H": 110,
+          "I": 220,
+          "J": 220,
+          "K": 140
     });
   });
 });

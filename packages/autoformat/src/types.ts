@@ -37,6 +37,17 @@ export interface AutoformatOptions {
   gap: number;
 }
 
+export interface AnalysisResult {
+  infos: Map<string, NodeInfo>;
+  order: string[];
+  chainMap: Map<string, Map<string, string[]>>;
+  ancestorSets: Map<string, Set<string>>;
+  primaryRoot: NodeInfo;
+  rowOf: Map<string, number>;
+  mergeApproachMap: Map<string, { endId: string; prevId: string; startId: string }>;
+  rowOrder: number[];
+}
+
 export interface IslandLayout {
   nodeIds: string[];
   infos: Map<string, NodeInfo>;

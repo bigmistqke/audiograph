@@ -1,5 +1,11 @@
 import { assertedNotNullish } from "@audiograph/utils";
-import { isBoundary, isMergeLike, type Graph, type NodeInfo } from "./types";
+import {
+  isBoundary,
+  isMergeLike,
+  type AnalysisResult,
+  type Graph,
+  type NodeInfo,
+} from "./types";
 
 /**
  * Island Detection
@@ -479,18 +485,27 @@ export function buildDFSRowOrder(
 /**
  * Run the full analysis pipeline for an island.
  */
-export function analysis(islandInfos: Map<string, NodeInfo>) {
-  const order = topologicalSort(islandInfos);
-  const chainMap = buildChainMap(islandInfos);
-  const ancestorSets = buildAncestorSets(islandInfos, order);
+export function analysis(infos: Map<string, NodeInfo>): AnalysisResult {
+  const order = topologicalSort(infos);
+  const chainMap = buildChainMap(infos);
+  const ancestorSets = buildAncestorSets(infos, order);
 
-  const primaryRoot = [...islandInfos.values()]
+  const primaryRoot = [...infos.values()]
     .filter((n) => n.role === "root")
     .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX)[0];
 
-  const rowOf = assignRows(islandInfos, order, chainMap);
-  const mergeApproachMap = buildMergeApproachMap(islandInfos, rowOf, chainMap);
-  const rowOrder = buildDFSRowOrder(islandInfos, rowOf, primaryRoot.id);
+  const rowOf = assignRows(infos, order, chainMap);
+  const mergeApproachMap = buildMergeApproachMap(infos, rowOf, chainMap);
+  const rowOrder = buildDFSRowOrder(infos, rowOf, primaryRoot.id);
 
-  return { order, chainMap, ancestorSets, primaryRoot, rowOf, mergeApproachMap, rowOrder };
+  return {
+    infos,
+    order,
+    chainMap,
+    ancestorSets,
+    primaryRoot,
+    rowOf,
+    mergeApproachMap,
+    rowOrder,
+  };
 }

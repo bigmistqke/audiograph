@@ -1,8 +1,8 @@
 import {
   IntervalStructure,
+  type AnalysisResult,
   type AutoformatOptions,
   type IslandLayout,
-  type NodeInfo,
 } from "./types";
 
 /**
@@ -12,13 +12,11 @@ import {
  * The interval structure is seeded so row 0 lands at primaryRoot.initialY.
  */
 export function yPass(
-  infos: Map<string, NodeInfo>,
+  ctx: AnalysisResult,
   xFinal: Map<string, number>,
-  rowOf: Map<string, number>,
-  rowOrder: number[],
-  primaryRootId: string,
   options: AutoformatOptions,
 ): Map<string, number> {
+  const { infos, rowOf, rowOrder, primaryRoot } = ctx;
   const yOut = new Map<string, number>();
 
   // Build row → nodes mapping
@@ -34,7 +32,7 @@ export function yPass(
 
   // Seed baseBottomY so that row 0 lands at primaryRoot.initialY
   const intervals = new IntervalStructure(
-    infos.get(primaryRootId)!.initialY - options.gap,
+    primaryRoot.initialY - options.gap,
   );
 
   for (const row of rowOrder) {
