@@ -4,7 +4,7 @@ import { GraphRoute } from "./routes/graph-route.tsx";
 
 const App: Component = () => {
   return (
-    <Router>
+    <Router base="./">
       <Route path="/:id" component={GraphRoute} />
       <Route
         path="/"
