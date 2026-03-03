@@ -29,3 +29,5 @@ Thumbs.db
 
 # Deciduous database (local)
 .deciduous/
+
+.claude/settings.local.json
