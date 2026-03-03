@@ -206,7 +206,7 @@ export function AudioGraphEditor(props: {
     "in" | "out" | undefined
   >();
   const [hoveredEdgeId, setHoveredEdgeId] = createSignal<string | undefined>();
-  const [autoformatEnabled, setAutoformatEnabled] = createSignal(false);
+  const [autoformatEnabled, setAutoformatEnabled] = createSignal(true);
   const [autoformatDrag, setAutoformatDrag] = createSignal<{
     draggedIds: Set<string>;
     snapshot: Record<string, { x: number; y: number }>;
