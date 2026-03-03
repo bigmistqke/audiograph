@@ -1,0 +1,176 @@
+{
+  "id": "551430d7-63d2-4190-932c-6064e93edfb0",
+  "title": "Nested split where inner split's spine merge was claimed by outer chain",
+  "initial": {
+    "nodes": {
+      "S1": {
+        "id": "S1",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": 130,
+        "y": -50,
+        "width": 100,
+        "height": 80
+      },
+      "S2": {
+        "id": "S2",
+        "type": "node",
+        "x": 260,
+        "y": -50,
+        "width": 100,
+        "height": 80
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": 390,
+        "y": -80,
+        "width": 100,
+        "height": 80
+      },
+      "C": {
+        "id": "C",
+        "type": "node",
+        "x": 390,
+        "y": -20,
+        "width": 100,
+        "height": 80
+      },
+      "M": {
+        "id": "M",
+        "type": "node",
+        "x": 520,
+        "y": -50,
+        "width": 100,
+        "height": 80
+      },
+      "D": {
+        "id": "D",
+        "type": "node",
+        "x": 130,
+        "y": 80,
+        "width": 100,
+        "height": 80
+      }
+    },
+    "edges": {
+      "S1:out->A:in": {
+        "output": {
+          "node": "S1",
+          "port": "out"
+        },
+        "input": {
+          "node": "A",
+          "port": "in"
+        }
+      },
+      "S1:out->D:in": {
+        "output": {
+          "node": "S1",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
+          "port": "in"
+        }
+      },
+      "A:out->S2:in": {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "S2",
+          "port": "in"
+        }
+      },
+      "S2:out->B:in": {
+        "output": {
+          "node": "S2",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      },
+      "S2:out->C:in": {
+        "output": {
+          "node": "S2",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
+          "port": "in"
+        }
+      },
+      "B:out->M:in": {
+        "output": {
+          "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "C:out->M:in": {
+        "output": {
+          "node": "C",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "D:out->M:in": {
+        "output": {
+          "node": "D",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      }
+    }
+  },
+  "expected": {
+    "S1": {
+      "x": 0,
+      "y": 0
+    },
+    "A": {
+      "x": 130,
+      "y": 0
+    },
+    "S2": {
+      "x": 260,
+      "y": 0
+    },
+    "B": {
+      "x": 390,
+      "y": 0
+    },
+    "C": {
+      "x": 390,
+      "y": 110
+    },
+    "M": {
+      "x": 520,
+      "y": 0
+    },
+    "D": {
+      "x": 130,
+      "y": 110
+    }
+  }
+}

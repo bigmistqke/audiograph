@@ -1,0 +1,156 @@
+{
+  "id": "a095e21c-a3ff-4dc7-a6f3-551a26721d79",
+  "title": "Merge-split hub with 3 inputs and 3 outputs",
+  "initial": {
+    "nodes": {
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": 0,
+        "y": 110,
+        "width": 100,
+        "height": 80
+      },
+      "C": {
+        "id": "C",
+        "type": "node",
+        "x": 0,
+        "y": 220,
+        "width": 100,
+        "height": 80
+      },
+      "MS": {
+        "id": "MS",
+        "type": "node",
+        "x": 200,
+        "y": 110,
+        "width": 100,
+        "height": 80
+      },
+      "D": {
+        "id": "D",
+        "type": "node",
+        "x": 400,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "E": {
+        "id": "E",
+        "type": "node",
+        "x": 400,
+        "y": 110,
+        "width": 100,
+        "height": 80
+      },
+      "F": {
+        "id": "F",
+        "type": "node",
+        "x": 400,
+        "y": 220,
+        "width": 100,
+        "height": 80
+      }
+    },
+    "edges": {
+      "A:out->MS:in": {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "MS",
+          "port": "in"
+        }
+      },
+      "B:out->MS:in": {
+        "output": {
+          "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "MS",
+          "port": "in"
+        }
+      },
+      "C:out->MS:in": {
+        "output": {
+          "node": "C",
+          "port": "out"
+        },
+        "input": {
+          "node": "MS",
+          "port": "in"
+        }
+      },
+      "MS:out->D:in": {
+        "output": {
+          "node": "MS",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
+          "port": "in"
+        }
+      },
+      "MS:out->E:in": {
+        "output": {
+          "node": "MS",
+          "port": "out"
+        },
+        "input": {
+          "node": "E",
+          "port": "in"
+        }
+      },
+      "MS:out->F:in": {
+        "output": {
+          "node": "MS",
+          "port": "out"
+        },
+        "input": {
+          "node": "F",
+          "port": "in"
+        }
+      }
+    }
+  },
+  "expected": {
+    "A": {
+      "x": 0,
+      "y": 0
+    },
+    "B": {
+      "x": 0,
+      "y": 110
+    },
+    "C": {
+      "x": 0,
+      "y": 220
+    },
+    "MS": {
+      "x": 130,
+      "y": 0
+    },
+    "D": {
+      "x": 260,
+      "y": 0
+    },
+    "E": {
+      "x": 260,
+      "y": 110
+    },
+    "F": {
+      "x": 260,
+      "y": 220
+    }
+  }
+}

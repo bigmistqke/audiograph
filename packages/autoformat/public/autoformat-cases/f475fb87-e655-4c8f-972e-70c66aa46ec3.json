@@ -1,0 +1,178 @@
+{
+  "id": "f475fb87-e655-4c8f-972e-70c66aa46ec3",
+  "title": "Orphaned split with only merge-ending chains (no leaf chains to rescue)",
+  "initial": {
+    "nodes": {
+      "R": {
+        "id": "R",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "S": {
+        "id": "S",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": 260,
+        "y": -50,
+        "width": 100,
+        "height": 80
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": 260,
+        "y": 50,
+        "width": 100,
+        "height": 80
+      },
+      "M1": {
+        "id": "M1",
+        "type": "node",
+        "x": 400,
+        "y": -50,
+        "width": 100,
+        "height": 80
+      },
+      "M2": {
+        "id": "M2",
+        "type": "node",
+        "x": 400,
+        "y": 50,
+        "width": 100,
+        "height": 80
+      },
+      "X": {
+        "id": "X",
+        "type": "node",
+        "x": 0,
+        "y": -100,
+        "width": 100,
+        "height": 80
+      },
+      "Y": {
+        "id": "Y",
+        "type": "node",
+        "x": 0,
+        "y": 150,
+        "width": 100,
+        "height": 80
+      }
+    },
+    "edges": {
+      "R:out->S:in": {
+        "output": {
+          "node": "R",
+          "port": "out"
+        },
+        "input": {
+          "node": "S",
+          "port": "in"
+        }
+      },
+      "S:out->A:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "A",
+          "port": "in"
+        }
+      },
+      "S:out->B:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      },
+      "A:out->M1:in": {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "M1",
+          "port": "in"
+        }
+      },
+      "B:out->M2:in": {
+        "output": {
+          "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "M2",
+          "port": "in"
+        }
+      },
+      "X:out->M1:in": {
+        "output": {
+          "node": "X",
+          "port": "out"
+        },
+        "input": {
+          "node": "M1",
+          "port": "in"
+        }
+      },
+      "Y:out->M2:in": {
+        "output": {
+          "node": "Y",
+          "port": "out"
+        },
+        "input": {
+          "node": "M2",
+          "port": "in"
+        }
+      }
+    }
+  },
+  "expected": {
+    "R": {
+      "x": -260,
+      "y": 10
+    },
+    "S": {
+      "x": -130,
+      "y": 10
+    },
+    "A": {
+      "x": 0,
+      "y": 10
+    },
+    "B": {
+      "x": 0,
+      "y": 120
+    },
+    "M1": {
+      "x": 130,
+      "y": -100
+    },
+    "M2": {
+      "x": 130,
+      "y": 230
+    },
+    "X": {
+      "x": 0,
+      "y": -100
+    },
+    "Y": {
+      "x": 0,
+      "y": 230
+    }
+  }
+}

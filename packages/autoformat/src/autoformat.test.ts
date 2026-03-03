@@ -1,5 +1,5 @@
 // AUTO-GENERATED — do not edit.
-// Run `pnpm generate:tests` to regenerate.
+// Run `pnpm generate-tests` to regenerate.
 
 import { describe, it, expect } from "vitest";
 import { autoformat } from ".";
@@ -6168,6 +6168,871 @@ describe("autoformat — x-positions", () => {
           "L": -280
     });
   });
+
+  it("Orphaned split with only merge-ending chains (no leaf chains to rescue)", () => {
+    const initial: Graph = {
+        "edges": {
+            "R:out->S:in": {
+                "output": {
+                    "node": "R",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "S",
+                    "port": "in"
+                }
+            },
+            "S:out->A:in": {
+                "output": {
+                    "node": "S",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "A",
+                    "port": "in"
+                }
+            },
+            "S:out->B:in": {
+                "output": {
+                    "node": "S",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "A:out->M1:in": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "B:out->M2:in": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            },
+            "X:out->M1:in": {
+                "output": {
+                    "node": "X",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "Y:out->M2:in": {
+                "output": {
+                    "node": "Y",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "R": {
+                "id": "R",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "S": {
+                "id": "S",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 260,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 260,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M1": {
+                "id": "M1",
+                "type": "node",
+                "x": 400,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M2": {
+                "id": "M2",
+                "type": "node",
+                "x": 400,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "X": {
+                "id": "X",
+                "type": "node",
+                "x": 0,
+                "y": -100,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "Y": {
+                "id": "Y",
+                "type": "node",
+                "x": 0,
+                "y": 150,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "R": -260,
+          "S": -130,
+          "A": 0,
+          "B": 0,
+          "M1": 130,
+          "M2": 130,
+          "X": 0,
+          "Y": 0
+    });
+  });
+
+  it("Merge-split hub with 3 inputs and 3 outputs", () => {
+    const initial: Graph = {
+        "edges": {
+            "A:out->MS:in": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS",
+                    "port": "in"
+                }
+            },
+            "B:out->MS:in": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS",
+                    "port": "in"
+                }
+            },
+            "C:out->MS:in": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS",
+                    "port": "in"
+                }
+            },
+            "MS:out->D:in": {
+                "output": {
+                    "node": "MS",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "MS:out->E:in": {
+                "output": {
+                    "node": "MS",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            },
+            "MS:out->F:in": {
+                "output": {
+                    "node": "MS",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "F",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 0,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 0,
+                "y": 220,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "MS": {
+                "id": "MS",
+                "type": "node",
+                "x": 200,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 400,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 400,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": 400,
+                "y": 220,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 0,
+          "C": 0,
+          "MS": 130,
+          "D": 260,
+          "E": 260,
+          "F": 260
+    });
+  });
+
+  it("Two secondary roots competing for the same merge target", () => {
+    const initial: Graph = {
+        "edges": {
+            "P:out->S:in": {
+                "output": {
+                    "node": "P",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "S",
+                    "port": "in"
+                }
+            },
+            "S:out->A:in": {
+                "output": {
+                    "node": "S",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "A",
+                    "port": "in"
+                }
+            },
+            "A:out->M:in": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            },
+            "R1:out->B:in": {
+                "output": {
+                    "node": "R1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "B:out->C:in": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            "C:out->M:in": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            },
+            "R2:out->D:in": {
+                "output": {
+                    "node": "R2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "D:out->E:in": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            },
+            "E:out->M:in": {
+                "output": {
+                    "node": "E",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "P": {
+                "id": "P",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "S": {
+                "id": "S",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 260,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M": {
+                "id": "M",
+                "type": "node",
+                "x": 520,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "R1": {
+                "id": "R1",
+                "type": "node",
+                "x": 0,
+                "y": 150,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 130,
+                "y": 150,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 260,
+                "y": 150,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "R2": {
+                "id": "R2",
+                "type": "node",
+                "x": 0,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 130,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 260,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "P": 0,
+          "S": 130,
+          "A": 260,
+          "M": 390,
+          "R1": 0,
+          "B": 130,
+          "C": 260,
+          "R2": 0,
+          "D": 130,
+          "E": 260
+    });
+  });
+
+  it("Nested split where inner split's spine merge was claimed by outer chain", () => {
+    const initial: Graph = {
+        "edges": {
+            "S1:out->A:in": {
+                "output": {
+                    "node": "S1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "A",
+                    "port": "in"
+                }
+            },
+            "S1:out->D:in": {
+                "output": {
+                    "node": "S1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "A:out->S2:in": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "S2",
+                    "port": "in"
+                }
+            },
+            "S2:out->B:in": {
+                "output": {
+                    "node": "S2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "S2:out->C:in": {
+                "output": {
+                    "node": "S2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            "B:out->M:in": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            },
+            "C:out->M:in": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            },
+            "D:out->M:in": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "S1": {
+                "id": "S1",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 130,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "S2": {
+                "id": "S2",
+                "type": "node",
+                "x": 260,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 390,
+                "y": -80,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 390,
+                "y": -20,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M": {
+                "id": "M",
+                "type": "node",
+                "x": 520,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 130,
+                "y": 80,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "S1": 0,
+          "A": 130,
+          "S2": 260,
+          "B": 390,
+          "C": 390,
+          "M": 520,
+          "D": 130
+    });
+  });
+
+  it("Chain of merge-splits with external inputs at each stage", () => {
+    const initial: Graph = {
+        "edges": {
+            "R:out->MS1:in": {
+                "output": {
+                    "node": "R",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS1",
+                    "port": "in"
+                }
+            },
+            "X1:out->MS1:in": {
+                "output": {
+                    "node": "X1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS1",
+                    "port": "in"
+                }
+            },
+            "MS1:out->MS2:in": {
+                "output": {
+                    "node": "MS1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS2",
+                    "port": "in"
+                }
+            },
+            "MS1:out->L1:in": {
+                "output": {
+                    "node": "MS1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "L1",
+                    "port": "in"
+                }
+            },
+            "X2:out->MS2:in": {
+                "output": {
+                    "node": "X2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS2",
+                    "port": "in"
+                }
+            },
+            "MS2:out->MS3:in": {
+                "output": {
+                    "node": "MS2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS3",
+                    "port": "in"
+                }
+            },
+            "MS2:out->L2:in": {
+                "output": {
+                    "node": "MS2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "L2",
+                    "port": "in"
+                }
+            },
+            "X3:out->MS3:in": {
+                "output": {
+                    "node": "X3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS3",
+                    "port": "in"
+                }
+            },
+            "MS3:out->OUT:in": {
+                "output": {
+                    "node": "MS3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "OUT",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "R": {
+                "id": "R",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "X1": {
+                "id": "X1",
+                "type": "node",
+                "x": 0,
+                "y": 120,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "MS1": {
+                "id": "MS1",
+                "type": "node",
+                "x": 200,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "X2": {
+                "id": "X2",
+                "type": "node",
+                "x": 0,
+                "y": 240,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "MS2": {
+                "id": "MS2",
+                "type": "node",
+                "x": 400,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "X3": {
+                "id": "X3",
+                "type": "node",
+                "x": 0,
+                "y": 360,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "MS3": {
+                "id": "MS3",
+                "type": "node",
+                "x": 600,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "L1": {
+                "id": "L1",
+                "type": "node",
+                "x": 300,
+                "y": 120,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "L2": {
+                "id": "L2",
+                "type": "node",
+                "x": 500,
+                "y": 240,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "OUT": {
+                "id": "OUT",
+                "type": "node",
+                "x": 800,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "R": 0,
+          "X1": 0,
+          "MS1": 130,
+          "X2": 130,
+          "MS2": 260,
+          "X3": 260,
+          "MS3": 390,
+          "L1": 260,
+          "L2": 390,
+          "OUT": 520
+    });
+  });
 });
 
 describe("autoformat — y-positions", () => {
@@ -12310,6 +13175,871 @@ describe("autoformat — y-positions", () => {
           "C": -380,
           "M": -600,
           "L": -600
+    });
+  });
+
+  it("Orphaned split with only merge-ending chains (no leaf chains to rescue)", () => {
+    const initial: Graph = {
+        "edges": {
+            "R:out->S:in": {
+                "output": {
+                    "node": "R",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "S",
+                    "port": "in"
+                }
+            },
+            "S:out->A:in": {
+                "output": {
+                    "node": "S",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "A",
+                    "port": "in"
+                }
+            },
+            "S:out->B:in": {
+                "output": {
+                    "node": "S",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "A:out->M1:in": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "B:out->M2:in": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            },
+            "X:out->M1:in": {
+                "output": {
+                    "node": "X",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "Y:out->M2:in": {
+                "output": {
+                    "node": "Y",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "R": {
+                "id": "R",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "S": {
+                "id": "S",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 260,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 260,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M1": {
+                "id": "M1",
+                "type": "node",
+                "x": 400,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M2": {
+                "id": "M2",
+                "type": "node",
+                "x": 400,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "X": {
+                "id": "X",
+                "type": "node",
+                "x": 0,
+                "y": -100,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "Y": {
+                "id": "Y",
+                "type": "node",
+                "x": 0,
+                "y": 150,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "R": 10,
+          "S": 10,
+          "A": 10,
+          "B": 120,
+          "M1": -100,
+          "M2": 230,
+          "X": -100,
+          "Y": 230
+    });
+  });
+
+  it("Merge-split hub with 3 inputs and 3 outputs", () => {
+    const initial: Graph = {
+        "edges": {
+            "A:out->MS:in": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS",
+                    "port": "in"
+                }
+            },
+            "B:out->MS:in": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS",
+                    "port": "in"
+                }
+            },
+            "C:out->MS:in": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS",
+                    "port": "in"
+                }
+            },
+            "MS:out->D:in": {
+                "output": {
+                    "node": "MS",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "MS:out->E:in": {
+                "output": {
+                    "node": "MS",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            },
+            "MS:out->F:in": {
+                "output": {
+                    "node": "MS",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "F",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 0,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 0,
+                "y": 220,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "MS": {
+                "id": "MS",
+                "type": "node",
+                "x": 200,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 400,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 400,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "F": {
+                "id": "F",
+                "type": "node",
+                "x": 400,
+                "y": 220,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 110,
+          "C": 220,
+          "MS": 0,
+          "D": 0,
+          "E": 110,
+          "F": 220
+    });
+  });
+
+  it("Two secondary roots competing for the same merge target", () => {
+    const initial: Graph = {
+        "edges": {
+            "P:out->S:in": {
+                "output": {
+                    "node": "P",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "S",
+                    "port": "in"
+                }
+            },
+            "S:out->A:in": {
+                "output": {
+                    "node": "S",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "A",
+                    "port": "in"
+                }
+            },
+            "A:out->M:in": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            },
+            "R1:out->B:in": {
+                "output": {
+                    "node": "R1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "B:out->C:in": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            "C:out->M:in": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            },
+            "R2:out->D:in": {
+                "output": {
+                    "node": "R2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "D:out->E:in": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "E",
+                    "port": "in"
+                }
+            },
+            "E:out->M:in": {
+                "output": {
+                    "node": "E",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "P": {
+                "id": "P",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "S": {
+                "id": "S",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 260,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M": {
+                "id": "M",
+                "type": "node",
+                "x": 520,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "R1": {
+                "id": "R1",
+                "type": "node",
+                "x": 0,
+                "y": 150,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 130,
+                "y": 150,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 260,
+                "y": 150,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "R2": {
+                "id": "R2",
+                "type": "node",
+                "x": 0,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 130,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "E": {
+                "id": "E",
+                "type": "node",
+                "x": 260,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "P": 0,
+          "S": 0,
+          "A": 0,
+          "M": 0,
+          "R1": 110,
+          "B": 110,
+          "C": 110,
+          "R2": 220,
+          "D": 220,
+          "E": 220
+    });
+  });
+
+  it("Nested split where inner split's spine merge was claimed by outer chain", () => {
+    const initial: Graph = {
+        "edges": {
+            "S1:out->A:in": {
+                "output": {
+                    "node": "S1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "A",
+                    "port": "in"
+                }
+            },
+            "S1:out->D:in": {
+                "output": {
+                    "node": "S1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "A:out->S2:in": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "S2",
+                    "port": "in"
+                }
+            },
+            "S2:out->B:in": {
+                "output": {
+                    "node": "S2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "S2:out->C:in": {
+                "output": {
+                    "node": "S2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            "B:out->M:in": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            },
+            "C:out->M:in": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            },
+            "D:out->M:in": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "S1": {
+                "id": "S1",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 130,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "S2": {
+                "id": "S2",
+                "type": "node",
+                "x": 260,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 390,
+                "y": -80,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 390,
+                "y": -20,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M": {
+                "id": "M",
+                "type": "node",
+                "x": 520,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 130,
+                "y": 80,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "S1": 0,
+          "A": 0,
+          "S2": 0,
+          "B": 0,
+          "C": 110,
+          "M": 0,
+          "D": 110
+    });
+  });
+
+  it("Chain of merge-splits with external inputs at each stage", () => {
+    const initial: Graph = {
+        "edges": {
+            "R:out->MS1:in": {
+                "output": {
+                    "node": "R",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS1",
+                    "port": "in"
+                }
+            },
+            "X1:out->MS1:in": {
+                "output": {
+                    "node": "X1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS1",
+                    "port": "in"
+                }
+            },
+            "MS1:out->MS2:in": {
+                "output": {
+                    "node": "MS1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS2",
+                    "port": "in"
+                }
+            },
+            "MS1:out->L1:in": {
+                "output": {
+                    "node": "MS1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "L1",
+                    "port": "in"
+                }
+            },
+            "X2:out->MS2:in": {
+                "output": {
+                    "node": "X2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS2",
+                    "port": "in"
+                }
+            },
+            "MS2:out->MS3:in": {
+                "output": {
+                    "node": "MS2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS3",
+                    "port": "in"
+                }
+            },
+            "MS2:out->L2:in": {
+                "output": {
+                    "node": "MS2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "L2",
+                    "port": "in"
+                }
+            },
+            "X3:out->MS3:in": {
+                "output": {
+                    "node": "X3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "MS3",
+                    "port": "in"
+                }
+            },
+            "MS3:out->OUT:in": {
+                "output": {
+                    "node": "MS3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "OUT",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "R": {
+                "id": "R",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "X1": {
+                "id": "X1",
+                "type": "node",
+                "x": 0,
+                "y": 120,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "MS1": {
+                "id": "MS1",
+                "type": "node",
+                "x": 200,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "X2": {
+                "id": "X2",
+                "type": "node",
+                "x": 0,
+                "y": 240,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "MS2": {
+                "id": "MS2",
+                "type": "node",
+                "x": 400,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "X3": {
+                "id": "X3",
+                "type": "node",
+                "x": 0,
+                "y": 360,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "MS3": {
+                "id": "MS3",
+                "type": "node",
+                "x": 600,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "L1": {
+                "id": "L1",
+                "type": "node",
+                "x": 300,
+                "y": 120,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "L2": {
+                "id": "L2",
+                "type": "node",
+                "x": 500,
+                "y": 240,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "OUT": {
+                "id": "OUT",
+                "type": "node",
+                "x": 800,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "R": 0,
+          "X1": 110,
+          "MS1": 0,
+          "X2": 110,
+          "MS2": 0,
+          "X3": 220,
+          "MS3": 0,
+          "L1": 110,
+          "L2": 110,
+          "OUT": 0
     });
   });
 });
