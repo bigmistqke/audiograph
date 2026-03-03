@@ -1,5 +1,5 @@
 // Generates src/autoformat.test.ts from public/autoformat-cases/*.json.
-// Run with: pnpm generate:tests
+// Run with: pnpm generate-tests
 
 import type { Edges, Nodes } from "@audiograph/create-graph";
 import { readFileSync, writeFileSync } from "fs";
@@ -108,7 +108,7 @@ const yCases = testCases.map(generateYCase);
 
 const output = `\
 // AUTO-GENERATED — do not edit.
-// Run \`pnpm generate:tests\` to regenerate.
+// Run \`pnpm generate-tests\` to regenerate.
 
 import { describe, it, expect } from "vitest";
 import { autoformat } from ".";
