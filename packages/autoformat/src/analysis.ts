@@ -4,7 +4,7 @@ import {
   type AnalysisResult,
   type Graph,
   type NodeInfo,
-} from "./types";
+} from "./types.ts";
 
 /**
  * Island Detection

@@ -34,7 +34,7 @@ import {
 } from "~/lib/worklet-file-system";
 import { Button } from "~/ui/button";
 import styles from "./audio-graph-editor.module.css";
-import { type AudioGraphContext, builtIns } from "./built-ins";
+import { type AudioGraphContext, builtIns } from "./built-ins.tsx";
 
 const audioContext = new AudioContext();
 

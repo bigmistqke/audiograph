@@ -1,5 +1,5 @@
 import { createSignal, type Accessor } from "solid-js";
-import { assertedNotNullish, isGeneratorFunction, isObject } from "./guards";
+import { assertedNotNullish, isGeneratorFunction, isObject } from "./guards.ts";
 
 /** Symbol to identify hold marker */
 export const $HOLD = Symbol("hold");

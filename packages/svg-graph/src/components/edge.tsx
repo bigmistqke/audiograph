@@ -5,8 +5,8 @@ import {
   PORT_RADIUS,
   PORT_SPACING,
   TITLE_HEIGHT,
-} from "../constants";
-import { useGraph } from "../context";
+} from "../constants.ts";
+import { useGraph } from "../context.ts";
 import styles from "./edge.module.css";
 
 function portY(index: number) {

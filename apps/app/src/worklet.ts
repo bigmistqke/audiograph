@@ -1,6 +1,6 @@
 /// <reference types="audioworklet" />
 
-import { RPCWorkletProcessor } from "./lib/rpc-worklet-processor";
+import { RPCWorkletProcessor } from "./lib/rpc-worklet-processor.ts";
 
 export class CustomProcessor extends RPCWorkletProcessor<{ volume: number }> {
     props = {

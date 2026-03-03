@@ -18,9 +18,9 @@ import {
   splitProps,
 } from "solid-js";
 import { createStore } from "solid-js/store";
-import { GraphEdge } from "./components/edge";
-import { GraphNode } from "./components/node";
-import { GraphTemporaryEdge } from "./components/temporary-edge";
+import { GraphEdge } from "./components/edge.tsx";
+import { GraphNode } from "./components/node.tsx";
+import { GraphTemporaryEdge } from "./components/temporary-edge.tsx";
 import {
   CONTENT_PADDING_BLOCK,
   CONTENT_PADDING_INLINE,
@@ -34,12 +34,12 @@ import {
   PORT_SPACING,
   snapToGrid,
   TITLE_HEIGHT,
-} from "./constants";
+} from "./constants.ts";
 import {
   GraphContext,
   type GraphContextType,
   type TemporaryEdge,
-} from "./context";
+} from "./context.ts";
 import styles from "./graph-editor.module.css";
 
 function getNodesInRect(

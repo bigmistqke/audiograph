@@ -1,11 +1,11 @@
 import type { Node } from "@audiograph/create-graph";
 import { minni } from "@bigmistqke/minni";
 import { Show } from "solid-js";
-import { snapToGrid } from "../constants";
-import { NodeContext, useGraph } from "../context";
-import { NodeShell } from "./node-shell";
+import { snapToGrid } from "../constants.ts";
+import { NodeContext, useGraph } from "../context.ts";
+import { NodeShell } from "./node-shell.tsx";
 import styles from "./node.module.css";
-import { Port } from "./port";
+import { Port } from "./port.tsx";
 
 export function GraphNode(props: { nodeId: string; node: Node }) {
   const graph = useGraph();

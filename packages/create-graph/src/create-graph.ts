@@ -8,7 +8,7 @@ import type {
   GraphConfig,
   InferStateFromGraphConfig,
   PortDefinition,
-} from "./types";
+} from "./types.ts";
 
 export function createGraph<TConfig extends GraphConfig>(
   graphOptions: CreateGraphAPIConfig<TConfig>,

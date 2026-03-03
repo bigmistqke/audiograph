@@ -1,6 +1,6 @@
 import { Route, Router, useNavigate } from "@solidjs/router";
 import { type Component } from "solid-js";
-import { GraphRoute } from "./routes/graph-route";
+import { GraphRoute } from "./routes/graph-route.tsx";
 
 const App: Component = () => {
   return (

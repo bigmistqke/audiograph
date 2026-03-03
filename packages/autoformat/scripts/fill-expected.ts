@@ -4,7 +4,7 @@
 // Usage: pnpm tsx scripts/fill-expected.ts <path-to-case.json>
 
 import { readFileSync, writeFileSync } from "fs";
-import { autoformat } from "../src";
+import { autoformat } from "../src/index.ts";
 
 const filePath = process.argv[2];
 

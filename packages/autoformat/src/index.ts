@@ -1,9 +1,9 @@
-import { analysis, buildTopology, findIslands } from "./analysis";
-import type { AutoformatOptions, Graph, IslandLayout, LayoutNode, NodeInfo } from "./types";
-import { xPass } from "./x-pass";
-import { resolveIslandCollisions, yPass } from "./y-pass";
+import { analysis, buildTopology, findIslands } from "./analysis.ts";
+import type { AutoformatOptions, Graph, IslandLayout, LayoutNode, NodeInfo } from "./types.ts";
+import { xPass } from "./x-pass.ts";
+import { resolveIslandCollisions, yPass } from "./y-pass.ts";
 
-export type { AutoformatOptions, LayoutNode } from "./types";
+export type { AutoformatOptions, LayoutNode } from "./types.ts";
 
 const DEFAULT_GAP = 30;
 

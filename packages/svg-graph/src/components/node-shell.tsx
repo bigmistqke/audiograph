@@ -1,7 +1,7 @@
 import type { JSX } from "solid-js";
-import { headerHeight } from "../constants";
+import { headerHeight } from "../constants.ts";
 import styles from "./node.module.css";
-import { PortShell } from "./port-shell";
+import { PortShell } from "./port-shell.tsx";
 
 export function NodeShell(props: {
   x: number;

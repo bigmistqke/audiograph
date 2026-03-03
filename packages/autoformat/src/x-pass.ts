@@ -4,7 +4,7 @@ import {
   type AnalysisResult,
   type AutoformatOptions,
   type NodeInfo,
-} from "./types";
+} from "./types.ts";
 
 /**
  * Compute provisional x-positions for all nodes in topological order.

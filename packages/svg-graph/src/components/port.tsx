@@ -6,9 +6,9 @@ import {
   PORT_RADIUS,
   PORT_SPACING,
   TITLE_HEIGHT,
-} from "../constants";
-import { useGraph, useNode } from "../context";
-import { PortShell } from "./port-shell";
+} from "../constants.ts";
+import { useGraph, useNode } from "../context.ts";
+import { PortShell } from "./port-shell.tsx";
 import styles from "./port.module.css";
 
 export function Port(props: {

@@ -1,2 +1,2 @@
-export * from "./create-graph";
-export * from "./types";
+export * from "./create-graph.ts";
+export * from "./types.ts";

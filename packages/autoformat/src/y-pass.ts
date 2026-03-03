@@ -3,7 +3,7 @@ import {
   type AnalysisResult,
   type AutoformatOptions,
   type IslandLayout,
-} from "./types";
+} from "./types.ts";
 
 /**
  * Assign y-positions using the pre-computed DFS row order.

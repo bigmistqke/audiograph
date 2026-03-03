@@ -7,7 +7,7 @@ import {
   PORT_RADIUS,
   PORT_SPACING,
   TITLE_HEIGHT,
-} from "../constants";
+} from "../constants.ts";
 import styles from "./port.module.css";
 
 export interface PortShellProps extends Omit<

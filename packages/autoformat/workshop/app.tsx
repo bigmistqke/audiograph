@@ -17,7 +17,7 @@ import {
   Show,
 } from "solid-js";
 import { produce } from "solid-js/store";
-import { autoformat } from "../src/index";
+import { autoformat } from "../src/index.ts";
 import styles from "./app.module.css";
 
 interface Graph {

@@ -4,8 +4,8 @@ import {
   PORT_RADIUS,
   PORT_SPACING,
   TITLE_HEIGHT,
-} from "../constants";
-import { useGraph, type TemporaryEdge } from "../context";
+} from "../constants.ts";
+import { useGraph, type TemporaryEdge } from "../context.ts";
 
 function portY(index: number) {
   return index * PORT_SPACING + TITLE_HEIGHT + PORT_RADIUS;
