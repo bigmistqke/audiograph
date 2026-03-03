@@ -1,0 +1,356 @@
+{
+  "id": "f4c4b698-4de8-477a-aff1-e22a96c36d27",
+  "title": "6-branch split (O(N²) interval insertions, dead rowHeight) (part 2)",
+  "initial": {
+    "nodes": {
+      "R": {
+        "id": "R",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "S": {
+        "id": "S",
+        "type": "node",
+        "x": 200,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": 400,
+        "y": -250,
+        "width": 100,
+        "height": 80
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": 400,
+        "y": -140,
+        "width": 100,
+        "height": 80
+      },
+      "C": {
+        "id": "C",
+        "type": "node",
+        "x": 400,
+        "y": -30,
+        "width": 100,
+        "height": 80
+      },
+      "D": {
+        "id": "D",
+        "type": "node",
+        "x": 400,
+        "y": 80,
+        "width": 100,
+        "height": 80
+      },
+      "E": {
+        "id": "E",
+        "type": "node",
+        "x": 400,
+        "y": 190,
+        "width": 100,
+        "height": 80
+      },
+      "F": {
+        "id": "F",
+        "type": "node",
+        "x": 400,
+        "y": 300,
+        "width": 100,
+        "height": 80
+      },
+      "LA": {
+        "id": "LA",
+        "type": "node",
+        "x": 600,
+        "y": -250,
+        "width": 100,
+        "height": 80
+      },
+      "LB": {
+        "id": "LB",
+        "type": "node",
+        "x": 600,
+        "y": -140,
+        "width": 100,
+        "height": 80
+      },
+      "LC": {
+        "id": "LC",
+        "type": "node",
+        "x": 600,
+        "y": -30,
+        "width": 100,
+        "height": 80
+      },
+      "LD": {
+        "id": "LD",
+        "type": "node",
+        "x": 600,
+        "y": 80,
+        "width": 100,
+        "height": 80
+      },
+      "LE": {
+        "id": "LE",
+        "type": "node",
+        "x": 600,
+        "y": 190,
+        "width": 100,
+        "height": 80
+      },
+      "LF": {
+        "id": "LF",
+        "type": "node",
+        "x": 600,
+        "y": 300,
+        "width": 100,
+        "height": 80
+      },
+      "G": {
+        "id": "G",
+        "type": "node",
+        "x": -130,
+        "y": -110,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "H": {
+        "id": "H",
+        "type": "node",
+        "x": 0,
+        "y": -110,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      }
+    },
+    "edges": {
+      "R:out->S:in": {
+        "output": {
+          "node": "R",
+          "port": "out"
+        },
+        "input": {
+          "node": "S",
+          "port": "in"
+        }
+      },
+      "S:out->A:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "A",
+          "port": "in"
+        }
+      },
+      "S:out->B:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      },
+      "S:out->C:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
+          "port": "in"
+        }
+      },
+      "S:out->D:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
+          "port": "in"
+        }
+      },
+      "S:out->E:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "E",
+          "port": "in"
+        }
+      },
+      "S:out->F:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "F",
+          "port": "in"
+        }
+      },
+      "A:out->LA:in": {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "LA",
+          "port": "in"
+        }
+      },
+      "B:out->LB:in": {
+        "output": {
+          "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "LB",
+          "port": "in"
+        }
+      },
+      "C:out->LC:in": {
+        "output": {
+          "node": "C",
+          "port": "out"
+        },
+        "input": {
+          "node": "LC",
+          "port": "in"
+        }
+      },
+      "D:out->LD:in": {
+        "output": {
+          "node": "D",
+          "port": "out"
+        },
+        "input": {
+          "node": "LD",
+          "port": "in"
+        }
+      },
+      "E:out->LE:in": {
+        "output": {
+          "node": "E",
+          "port": "out"
+        },
+        "input": {
+          "node": "LE",
+          "port": "in"
+        }
+      },
+      "F:out->LF:in": {
+        "output": {
+          "node": "F",
+          "port": "out"
+        },
+        "input": {
+          "node": "LF",
+          "port": "in"
+        }
+      },
+      "5dcf5be3-1f7c-4690-a159-ef38b08f49fb": {
+        "output": {
+          "node": "G",
+          "port": "out"
+        },
+        "input": {
+          "node": "R",
+          "port": "in"
+        }
+      },
+      "b31f5eae-1c61-4bdf-a4ab-74a52c349a8d": {
+        "output": {
+          "node": "G",
+          "port": "out"
+        },
+        "input": {
+          "node": "H",
+          "port": "in"
+        }
+      }
+    }
+  },
+  "expected": {
+    "R": {
+      "x": 0,
+      "y": 0
+    },
+    "S": {
+      "x": 130,
+      "y": 0
+    },
+    "A": {
+      "x": 260,
+      "y": 0
+    },
+    "B": {
+      "x": 260,
+      "y": 110
+    },
+    "C": {
+      "x": 260,
+      "y": 220
+    },
+    "D": {
+      "x": 260,
+      "y": 330
+    },
+    "E": {
+      "x": 260,
+      "y": 440
+    },
+    "F": {
+      "x": 260,
+      "y": 550
+    },
+    "LA": {
+      "x": 390,
+      "y": 0
+    },
+    "LB": {
+      "x": 390,
+      "y": 110
+    },
+    "LC": {
+      "x": 390,
+      "y": 220
+    },
+    "LD": {
+      "x": 390,
+      "y": 330
+    },
+    "LE": {
+      "x": 390,
+      "y": 440
+    },
+    "LF": {
+      "x": 390,
+      "y": 550
+    },
+    "G": {
+      "x": -130,
+      "y": -110
+    },
+    "H": {
+      "x": 0,
+      "y": -110
+    }
+  }
+}

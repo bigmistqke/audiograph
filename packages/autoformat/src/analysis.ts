@@ -456,21 +456,59 @@ export function buildMergeApproachMap(
 }
 
 /**
+ * Row Parent Map
+ *
+ * Determine which row spawned each child row by iterating boundaries
+ * in topological order. The first boundary (in topo order) to contain
+ * a chain node in a different row is the one that created that row.
+ */
+function buildRowParentMap(
+  chainMap: Map<string, Map<string, string[]>>,
+  rowOf: Map<string, number>,
+  order: string[],
+): Map<number, number> {
+  const rowParent = new Map<number, number>();
+
+  for (const id of order) {
+    if (!chainMap.has(id)) continue;
+    const parentRow = rowOf.get(id)!;
+
+    for (const chain of chainMap.get(id)!.values()) {
+      for (let i = 1; i < chain.length; i++) {
+        const nodeRow = rowOf.get(chain[i]);
+        if (
+          nodeRow !== undefined &&
+          nodeRow !== parentRow &&
+          nodeRow > parentRow &&
+          !rowParent.has(nodeRow)
+        ) {
+          rowParent.set(nodeRow, parentRow);
+        }
+      }
+    }
+  }
+
+  return rowParent;
+}
+
+/**
  * Row Order
  *
- * Sort rows by the initialY of the first node assigned to each row
- * (in topological order). This ensures the node that *created* the row
- * determines its vertical placement, rather than a downstream merge or
- * simple node that may have a very different initialY.
+ * Rows form a tree: the primary root's row is the tree root, and each
+ * split boundary spawns child rows. Process rows in DFS order (parent
+ * before children, siblings sorted by their starter node's initialY).
+ *
+ * This ensures a parent row is always placed before its sub-rows in
+ * the y-pass, so the interval structure has the parent's nodes when
+ * computing child row positions.
  */
 export function buildRowOrder(
   infos: Map<string, NodeInfo>,
   rowOf: Map<string, number>,
   order: string[],
   primaryRootRow: number,
+  chainMap: Map<string, Map<string, string[]>>,
 ): number[] {
-  // The first node in topological order for each row is the node that
-  // created/defined it. Use its initialY for ordering.
   const rowStarterY = new Map<number, number>();
 
   for (const id of order) {
@@ -481,16 +519,44 @@ export function buildRowOrder(
     }
   }
 
-  // The primary root's row must always come first: the y-pass seeds
-  // its interval structure at primaryRoot.initialY - gap, so the first
-  // row processed lands at primaryRoot.initialY. If a branch child has
-  // a lower initialY, its row would otherwise sort first and push the
-  // spine down.
-  return [...rowStarterY.keys()].sort((a, b) => {
-    if (a === primaryRootRow) return -1;
-    if (b === primaryRootRow) return 1;
-    return rowStarterY.get(a)! - rowStarterY.get(b)!;
-  });
+  const rowParent = buildRowParentMap(chainMap, rowOf, order);
+
+  // Build children map and sort siblings by starterY.
+  const rowChildren = new Map<number, number[]>();
+
+  for (const [child, parent] of rowParent) {
+    if (!rowChildren.has(parent)) rowChildren.set(parent, []);
+    rowChildren.get(parent)!.push(child);
+  }
+
+  // Orphan rows (e.g. secondary roots) aren't spawned by any chain, so
+  // they have no parent in the tree. Insert them as children of the
+  // primary root's row so the DFS interleaves them by starterY.
+  for (const row of rowStarterY.keys()) {
+    if (row !== primaryRootRow && !rowParent.has(row)) {
+      if (!rowChildren.has(primaryRootRow)) rowChildren.set(primaryRootRow, []);
+      rowChildren.get(primaryRootRow)!.push(row);
+    }
+  }
+
+  for (const children of rowChildren.values()) {
+    children.sort((a, b) => rowStarterY.get(a)! - rowStarterY.get(b)!);
+  }
+
+  // DFS from the primary root's row.
+  const result: number[] = [];
+
+  function dfs(row: number) {
+    result.push(row);
+
+    for (const child of rowChildren.get(row) ?? []) {
+      dfs(child);
+    }
+  }
+
+  dfs(primaryRootRow);
+
+  return result;
 }
 
 /**
@@ -507,7 +573,7 @@ export function analysis(infos: Map<string, NodeInfo>): AnalysisResult {
 
   const rowOf = assignRows(infos, order, chainMap);
   const mergeApproachMap = buildMergeApproachMap(infos, rowOf, chainMap);
-  const rowOrder = buildRowOrder(infos, rowOf, order, rowOf.get(primaryRoot.id)!);
+  const rowOrder = buildRowOrder(infos, rowOf, order, rowOf.get(primaryRoot.id)!, chainMap);
 
   return {
     infos,
