@@ -9,7 +9,14 @@ import type {
 import { createGraph } from "@audiograph/create-graph";
 import { minni } from "@bigmistqke/minni";
 import clsx from "clsx";
-import { For, type JSX, mergeProps, Show, splitProps } from "solid-js";
+import {
+  createUniqueId,
+  For,
+  type JSX,
+  mergeProps,
+  Show,
+  splitProps,
+} from "solid-js";
 import { createStore } from "solid-js/store";
 import { GraphEdge } from "./components/edge";
 import { GraphNode } from "./components/node";
@@ -117,6 +124,8 @@ export interface GraphEditorProps<
 export function GraphEditor<TConfig extends GraphConfig<Record<string, any>>>(
   props: GraphEditorProps<TConfig>,
 ) {
+  const gridId = `grid-${createUniqueId()}`;
+
   const [UIState, setUIState] = createStore<{
     origin: { x: number; y: number };
     dimensions: { width: number; height: number };
@@ -329,7 +338,7 @@ export function GraphEditor<TConfig extends GraphConfig<Record<string, any>>>(
       >
         <defs>
           <pattern
-            id="grid"
+            id={gridId}
             width={GRID}
             height={GRID}
             patternUnits="userSpaceOnUse"
@@ -342,7 +351,7 @@ export function GraphEditor<TConfig extends GraphConfig<Record<string, any>>>(
           y={UIState.origin.y}
           width={UIState.dimensions.width}
           height={UIState.dimensions.height}
-          fill="url(#grid)"
+          fill={`url(#${gridId})`}
           pointer-events="none"
         />
         <circle

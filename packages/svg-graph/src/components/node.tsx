@@ -73,7 +73,7 @@ export function GraphNode(props: { nodeId: string; node: Node }) {
                 for (const start of startPositions) {
                   graph.updateNode(start.id, (node) => {
                     node.x = snapToGrid(start.x + delta.x);
-                    node.y = snapToGrid(start.y + delta.y);
+                    node.y = snapToGrid(start.y - delta.y);
                   });
                 }
               });
