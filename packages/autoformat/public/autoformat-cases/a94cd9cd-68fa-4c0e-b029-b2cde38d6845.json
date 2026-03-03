@@ -1,0 +1,186 @@
+{
+  "id": "a94cd9cd-68fa-4c0e-b029-b2cde38d6845",
+  "title": "Split leaf should create a row",
+  "initial": {
+    "nodes": {
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 130,
+        "state": {}
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": 0,
+        "y": 160,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "C": {
+        "id": "C",
+        "type": "node",
+        "x": 130,
+        "y": 0,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "D": {
+        "id": "D",
+        "type": "node",
+        "x": 130,
+        "y": 160,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "E": {
+        "id": "E",
+        "type": "node",
+        "x": 260,
+        "y": 0,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "F": {
+        "id": "F",
+        "type": "node",
+        "x": 390,
+        "y": 0,
+        "width": 100,
+        "height": 140,
+        "state": {}
+      },
+      "G": {
+        "id": "G",
+        "type": "node",
+        "x": 260,
+        "y": 170,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      },
+      "H": {
+        "id": "H",
+        "type": "node",
+        "x": 390,
+        "y": 170,
+        "width": 100,
+        "height": 80,
+        "state": {}
+      }
+    },
+    "edges": {
+      "fd5e58a3-e36b-46e9-8f4d-54d18ef930ee": {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
+          "port": "in"
+        }
+      },
+      "39a4a640-24aa-47b1-b9aa-e745202ed75f": {
+        "output": {
+          "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
+          "port": "in"
+        }
+      },
+      "af7d12fa-f650-486f-87a7-d89d3c89862f": {
+        "output": {
+          "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
+          "port": "in"
+        }
+      },
+      "a79a8745-34ea-4f5d-84a2-da7854e3f412": {
+        "output": {
+          "node": "C",
+          "port": "out"
+        },
+        "input": {
+          "node": "E",
+          "port": "in"
+        }
+      },
+      "bfbf1d84-7b3d-4165-91f5-69b8ac446c67": {
+        "output": {
+          "node": "E",
+          "port": "out"
+        },
+        "input": {
+          "node": "F",
+          "port": "in"
+        }
+      },
+      "cec4fb6f-99db-4184-aa6a-2379fe479e1a": {
+        "output": {
+          "node": "G",
+          "port": "out"
+        },
+        "input": {
+          "node": "H",
+          "port": "in"
+        }
+      },
+      "7805a958-ce1f-4715-beb7-a8343348ba63": {
+        "output": {
+          "node": "G",
+          "port": "out"
+        },
+        "input": {
+          "node": "F",
+          "port": "in"
+        }
+      }
+    }
+  },
+  "expected": {
+    "A": {
+      "x": 0,
+      "y": 0
+    },
+    "B": {
+      "x": 0,
+      "y": 160
+    },
+    "C": {
+      "x": 130,
+      "y": 0
+    },
+    "D": {
+      "x": 130,
+      "y": 160
+    },
+    "E": {
+      "x": 260,
+      "y": 0
+    },
+    "F": {
+      "x": 390,
+      "y": 0
+    },
+    "G": {
+      "x": 260,
+      "y": 170
+    },
+    "H": {
+      "x": 390,
+      "y": 170
+    }
+  }
+}

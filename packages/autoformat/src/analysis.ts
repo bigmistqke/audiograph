@@ -343,6 +343,36 @@ export function assignRows(
     }
   }
 
+  // Post-process: when a boundary's spine was pulled to a higher-priority row,
+  // the boundary is left alone in its row. Move leaf-ending sibling chains
+  // into the boundary's row so they share vertical placement.
+  for (const [boundaryId, byFirstChild] of chainMap) {
+    const boundaryRow = rowOf.get(boundaryId)!;
+
+    // Check if any chain from this boundary still has nodes in its row.
+    let hasRowOccupants = false;
+    for (const chain of byFirstChild.values()) {
+      for (let i = 1; i < chain.length; i++) {
+        if (rowOf.get(chain[i]) === boundaryRow) {
+          hasRowOccupants = true;
+          break;
+        }
+      }
+      if (hasRowOccupants) break;
+    }
+
+    if (hasRowOccupants) continue;
+
+    // Boundary is orphaned — move leaf-ending chains to its row.
+    for (const chain of byFirstChild.values()) {
+      const endId = chain[chain.length - 1];
+      if (infos.get(endId)!.role !== "leaf") continue;
+      for (let i = 1; i < chain.length; i++) {
+        rowOf.set(chain[i], boundaryRow);
+      }
+    }
+  }
+
   // Post-process: push non-spine merges down to max(parent rows).
   // Spine merges are anchored to their spine parent's row and must not move.
   for (const id of order) {
