@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest",
+    "cases": "node scripts/cases.ts",
     "generate-tests": "node scripts/generate-autoformat-tests.ts",
     "typecheck": "tsc --noEmit"
   },
@@ -19,6 +20,7 @@
     "solid-js": "^1.9.5"
   },
   "devDependencies": {
+    "commander": "^14.0.3",
     "typescript": "^5.7.2",
     "vite": "^7.1.4",
     "vite-plugin-solid": "^2.11.8",

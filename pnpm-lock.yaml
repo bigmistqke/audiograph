@@ -84,6 +84,9 @@ importers:
         specifier: ^1.9.5
         version: 1.9.9
     devDependencies:
+      commander:
+        specifier: ^14.0.3
+        version: 14.0.3
       typescript:
         specifier: ^5.7.2
         version: 5.9.2
@@ -782,6 +785,10 @@ packages:
   clsx@2.1.1:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
+
+  commander@14.0.3:
+    resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
+    engines: {node: '>=20'}
 
   confbox@0.2.4:
     resolution: {integrity: sha512-ysOGlgTFbN2/Y6Cg3Iye8YKulHw+R2fNXHrgSmXISQdMnomY6eNDprVdW9R5xBguEqI954+S6709UyiO7B+6OQ==}
@@ -1797,6 +1804,8 @@ snapshots:
   citty@0.2.1: {}
 
   clsx@2.1.1: {}
+
+  commander@14.0.3: {}
 
   confbox@0.2.4: {}
 
