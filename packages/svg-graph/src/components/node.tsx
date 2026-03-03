@@ -57,13 +57,26 @@ export function GraphNode(props: { nodeId: string; node: Node }) {
             if (defaultPrevented) return;
 
             const isSelected = graph.selectedNodes.includes(props.node.id);
+            const isAccumulate = event.metaKey || event.ctrlKey;
 
-            if (!isSelected) {
+            if (isAccumulate) {
+              if (isSelected) {
+                // Cmd/Ctrl+click selected node: remove from selection
+                graph.setSelectedNodes(
+                  graph.selectedNodes.filter((id) => id !== props.node.id),
+                );
+                return;
+              }
+              // Cmd/Ctrl+click unselected node: add to selection
+              graph.setSelectedNodes([...graph.selectedNodes, props.node.id]);
+            } else if (!isSelected) {
               graph.setSelectedNodes([]);
             }
 
-            if (isSelected && graph.selectedNodes.length > 1) {
-              const startPositions = graph.selectedNodes.map((id) => ({
+            // Drag selected nodes (or just this one)
+            const selected = graph.selectedNodes;
+            if (selected.length > 1 && selected.includes(props.node.id)) {
+              const startPositions = selected.map((id) => ({
                 id,
                 x: graph.nodes[id]!.x,
                 y: graph.nodes[id]!.y,

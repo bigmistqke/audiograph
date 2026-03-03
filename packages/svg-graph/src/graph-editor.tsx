@@ -278,6 +278,11 @@ export function GraphEditor<TConfig extends GraphConfig<Record<string, any>>>(
             const svgRect = event.currentTarget.getBoundingClientRect();
             const startX = event.clientX - svgRect.left - UIState.origin.x;
             const startY = event.clientY - svgRect.top + UIState.origin.y;
+            // Cmd/Ctrl+Shift: accumulate with existing selection
+            const previousSelection =
+              event.metaKey || event.ctrlKey
+                ? [...UIState.selectedNodes]
+                : [];
 
             setUIState("selectionBox", {
               startX,
@@ -300,14 +305,15 @@ export function GraphEditor<TConfig extends GraphConfig<Record<string, any>>>(
               const width = Math.abs(box.endX - box.startX);
               const height = Math.abs(box.endY - box.startY);
 
+              const boxSelection = getNodesInRect(props.nodes, {
+                x,
+                y,
+                width,
+                height,
+              });
               setUIState(
                 "selectedNodes",
-                getNodesInRect(props.nodes, {
-                  x,
-                  y,
-                  width,
-                  height,
-                }),
+                [...new Set([...previousSelection, ...boxSelection])],
               );
             });
 
