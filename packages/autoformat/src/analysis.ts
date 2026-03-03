@@ -467,6 +467,7 @@ export function buildRowOrder(
   infos: Map<string, NodeInfo>,
   rowOf: Map<string, number>,
   order: string[],
+  primaryRootRow: number,
 ): number[] {
   // The first node in topological order for each row is the node that
   // created/defined it. Use its initialY for ordering.
@@ -480,9 +481,16 @@ export function buildRowOrder(
     }
   }
 
-  return [...rowStarterY.keys()].sort(
-    (a, b) => rowStarterY.get(a)! - rowStarterY.get(b)!,
-  );
+  // The primary root's row must always come first: the y-pass seeds
+  // its interval structure at primaryRoot.initialY - gap, so the first
+  // row processed lands at primaryRoot.initialY. If a branch child has
+  // a lower initialY, its row would otherwise sort first and push the
+  // spine down.
+  return [...rowStarterY.keys()].sort((a, b) => {
+    if (a === primaryRootRow) return -1;
+    if (b === primaryRootRow) return 1;
+    return rowStarterY.get(a)! - rowStarterY.get(b)!;
+  });
 }
 
 /**
@@ -499,7 +507,7 @@ export function analysis(infos: Map<string, NodeInfo>): AnalysisResult {
 
   const rowOf = assignRows(infos, order, chainMap);
   const mergeApproachMap = buildMergeApproachMap(infos, rowOf, chainMap);
-  const rowOrder = buildRowOrder(infos, rowOf, order);
+  const rowOrder = buildRowOrder(infos, rowOf, order, rowOf.get(primaryRoot.id)!);
 
   return {
     infos,
