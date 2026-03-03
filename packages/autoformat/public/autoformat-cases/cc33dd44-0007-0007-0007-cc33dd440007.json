@@ -1,0 +1,166 @@
+{
+  "id": "cc33dd44-0007-0007-0007-cc33dd440007",
+  "title": "Multi-row with varying heights (row: 0 hardcoded, dead rowHeight computed)",
+  "initial": {
+    "nodes": {
+      "R": {
+        "id": "R",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "S": {
+        "id": "S",
+        "type": "node",
+        "x": 200,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": 400,
+        "y": -50,
+        "width": 100,
+        "height": 150
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": 400,
+        "y": 200,
+        "width": 100,
+        "height": 40
+      },
+      "C": {
+        "id": "C",
+        "type": "node",
+        "x": 400,
+        "y": 300,
+        "width": 100,
+        "height": 200
+      },
+      "M": {
+        "id": "M",
+        "type": "node",
+        "x": 600,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "L": {
+        "id": "L",
+        "type": "node",
+        "x": 800,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      }
+    },
+    "edges": {
+      "R:out->S:in": {
+        "output": {
+          "node": "R",
+          "port": "out"
+        },
+        "input": {
+          "node": "S",
+          "port": "in"
+        }
+      },
+      "S:out->A:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "A",
+          "port": "in"
+        }
+      },
+      "S:out->B:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      },
+      "S:out->C:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
+          "port": "in"
+        }
+      },
+      "A:out->M:in": {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "B:out->M:in": {
+        "output": {
+          "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "M:out->L:in": {
+        "output": {
+          "node": "M",
+          "port": "out"
+        },
+        "input": {
+          "node": "L",
+          "port": "in"
+        }
+      }
+    }
+  },
+  "expected": {
+    "R": {
+      "x": 0,
+      "y": 0
+    },
+    "S": {
+      "x": 130,
+      "y": 0
+    },
+    "A": {
+      "x": 260,
+      "y": 0
+    },
+    "B": {
+      "x": 260,
+      "y": 180
+    },
+    "C": {
+      "x": 260,
+      "y": 250
+    },
+    "M": {
+      "x": 390,
+      "y": 0
+    },
+    "L": {
+      "x": 520,
+      "y": 0
+    }
+  }
+}

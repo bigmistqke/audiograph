@@ -1,0 +1,178 @@
+{
+  "id": "cc33dd44-0005-0005-0005-cc33dd440005",
+  "title": "6 roots merging into one node (O(N²) queue.shift in Kahn's)",
+  "initial": {
+    "nodes": {
+      "R1": {
+        "id": "R1",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "R2": {
+        "id": "R2",
+        "type": "node",
+        "x": 0,
+        "y": 110,
+        "width": 100,
+        "height": 80
+      },
+      "R3": {
+        "id": "R3",
+        "type": "node",
+        "x": 0,
+        "y": 220,
+        "width": 100,
+        "height": 80
+      },
+      "R4": {
+        "id": "R4",
+        "type": "node",
+        "x": 0,
+        "y": 330,
+        "width": 100,
+        "height": 80
+      },
+      "R5": {
+        "id": "R5",
+        "type": "node",
+        "x": 0,
+        "y": 440,
+        "width": 100,
+        "height": 80
+      },
+      "R6": {
+        "id": "R6",
+        "type": "node",
+        "x": 0,
+        "y": 550,
+        "width": 100,
+        "height": 80
+      },
+      "M": {
+        "id": "M",
+        "type": "node",
+        "x": 200,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "L": {
+        "id": "L",
+        "type": "node",
+        "x": 400,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      }
+    },
+    "edges": {
+      "R1:out->M:in": {
+        "output": {
+          "node": "R1",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "R2:out->M:in": {
+        "output": {
+          "node": "R2",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "R3:out->M:in": {
+        "output": {
+          "node": "R3",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "R4:out->M:in": {
+        "output": {
+          "node": "R4",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "R5:out->M:in": {
+        "output": {
+          "node": "R5",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "R6:out->M:in": {
+        "output": {
+          "node": "R6",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "M:out->L:in": {
+        "output": {
+          "node": "M",
+          "port": "out"
+        },
+        "input": {
+          "node": "L",
+          "port": "in"
+        }
+      }
+    }
+  },
+  "expected": {
+    "R1": {
+      "x": 0,
+      "y": 0
+    },
+    "R2": {
+      "x": 0,
+      "y": 110
+    },
+    "R3": {
+      "x": 0,
+      "y": 220
+    },
+    "R4": {
+      "x": 0,
+      "y": 330
+    },
+    "R5": {
+      "x": 0,
+      "y": 440
+    },
+    "R6": {
+      "x": 0,
+      "y": 550
+    },
+    "M": {
+      "x": 130,
+      "y": 0
+    },
+    "L": {
+      "x": 260,
+      "y": 0
+    }
+  }
+}

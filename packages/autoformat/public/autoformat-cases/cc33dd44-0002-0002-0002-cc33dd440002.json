@@ -1,0 +1,144 @@
+{
+  "id": "cc33dd44-0002-0002-0002-cc33dd440002",
+  "title": "Cycle A→B→C→A with valid root (silent node drop, rowOf ?? 0 fallback) [CYCLES NOT YET IMPLEMENTED]",
+  "initial": {
+    "nodes": {
+      "R": {
+        "id": "R",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": 200,
+        "y": -50,
+        "width": 100,
+        "height": 80
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": 400,
+        "y": -50,
+        "width": 100,
+        "height": 80
+      },
+      "C": {
+        "id": "C",
+        "type": "node",
+        "x": 300,
+        "y": 100,
+        "width": 100,
+        "height": 80
+      },
+      "D": {
+        "id": "D",
+        "type": "node",
+        "x": 200,
+        "y": 200,
+        "width": 100,
+        "height": 80
+      },
+      "L": {
+        "id": "L",
+        "type": "node",
+        "x": 400,
+        "y": 200,
+        "width": 100,
+        "height": 80
+      }
+    },
+    "edges": {
+      "R:out->A:in": {
+        "output": {
+          "node": "R",
+          "port": "out"
+        },
+        "input": {
+          "node": "A",
+          "port": "in"
+        }
+      },
+      "A:out->B:in": {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      },
+      "B:out->C:in": {
+        "output": {
+          "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
+          "port": "in"
+        }
+      },
+      "C:out->A:in": {
+        "output": {
+          "node": "C",
+          "port": "out"
+        },
+        "input": {
+          "node": "A",
+          "port": "in"
+        }
+      },
+      "R:out->D:in": {
+        "output": {
+          "node": "R",
+          "port": "out"
+        },
+        "input": {
+          "node": "D",
+          "port": "in"
+        }
+      },
+      "D:out->L:in": {
+        "output": {
+          "node": "D",
+          "port": "out"
+        },
+        "input": {
+          "node": "L",
+          "port": "in"
+        }
+      }
+    }
+  },
+  "expected": {
+    "R": {
+      "x": 0,
+      "y": 0
+    },
+    "A": {
+      "x": 200,
+      "y": -50
+    },
+    "B": {
+      "x": 400,
+      "y": -50
+    },
+    "C": {
+      "x": 300,
+      "y": 100
+    },
+    "D": {
+      "x": 200,
+      "y": 200
+    },
+    "L": {
+      "x": 400,
+      "y": 200
+    }
+  }
+}

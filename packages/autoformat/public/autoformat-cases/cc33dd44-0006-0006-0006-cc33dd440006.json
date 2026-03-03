@@ -1,0 +1,342 @@
+{
+  "id": "cc33dd44-0006-0006-0006-cc33dd440006",
+  "title": "Split with 10 chained simple nodes (recursive propagateSequential depth)",
+  "initial": {
+    "nodes": {
+      "R": {
+        "id": "R",
+        "type": "node",
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "S": {
+        "id": "S",
+        "type": "node",
+        "x": 200,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "n01": {
+        "id": "n01",
+        "type": "node",
+        "x": 400,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "n02": {
+        "id": "n02",
+        "type": "node",
+        "x": 550,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "n03": {
+        "id": "n03",
+        "type": "node",
+        "x": 700,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "n04": {
+        "id": "n04",
+        "type": "node",
+        "x": 850,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "n05": {
+        "id": "n05",
+        "type": "node",
+        "x": 1000,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "n06": {
+        "id": "n06",
+        "type": "node",
+        "x": 1150,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "n07": {
+        "id": "n07",
+        "type": "node",
+        "x": 1300,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "n08": {
+        "id": "n08",
+        "type": "node",
+        "x": 1450,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "n09": {
+        "id": "n09",
+        "type": "node",
+        "x": 1600,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "n10": {
+        "id": "n10",
+        "type": "node",
+        "x": 1750,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "X": {
+        "id": "X",
+        "type": "node",
+        "x": 400,
+        "y": 150,
+        "width": 100,
+        "height": 80
+      },
+      "M": {
+        "id": "M",
+        "type": "node",
+        "x": 1900,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      },
+      "L": {
+        "id": "L",
+        "type": "node",
+        "x": 2100,
+        "y": 0,
+        "width": 100,
+        "height": 80
+      }
+    },
+    "edges": {
+      "R:out->S:in": {
+        "output": {
+          "node": "R",
+          "port": "out"
+        },
+        "input": {
+          "node": "S",
+          "port": "in"
+        }
+      },
+      "S:out->n01:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "n01",
+          "port": "in"
+        }
+      },
+      "n01:out->n02:in": {
+        "output": {
+          "node": "n01",
+          "port": "out"
+        },
+        "input": {
+          "node": "n02",
+          "port": "in"
+        }
+      },
+      "n02:out->n03:in": {
+        "output": {
+          "node": "n02",
+          "port": "out"
+        },
+        "input": {
+          "node": "n03",
+          "port": "in"
+        }
+      },
+      "n03:out->n04:in": {
+        "output": {
+          "node": "n03",
+          "port": "out"
+        },
+        "input": {
+          "node": "n04",
+          "port": "in"
+        }
+      },
+      "n04:out->n05:in": {
+        "output": {
+          "node": "n04",
+          "port": "out"
+        },
+        "input": {
+          "node": "n05",
+          "port": "in"
+        }
+      },
+      "n05:out->n06:in": {
+        "output": {
+          "node": "n05",
+          "port": "out"
+        },
+        "input": {
+          "node": "n06",
+          "port": "in"
+        }
+      },
+      "n06:out->n07:in": {
+        "output": {
+          "node": "n06",
+          "port": "out"
+        },
+        "input": {
+          "node": "n07",
+          "port": "in"
+        }
+      },
+      "n07:out->n08:in": {
+        "output": {
+          "node": "n07",
+          "port": "out"
+        },
+        "input": {
+          "node": "n08",
+          "port": "in"
+        }
+      },
+      "n08:out->n09:in": {
+        "output": {
+          "node": "n08",
+          "port": "out"
+        },
+        "input": {
+          "node": "n09",
+          "port": "in"
+        }
+      },
+      "n09:out->n10:in": {
+        "output": {
+          "node": "n09",
+          "port": "out"
+        },
+        "input": {
+          "node": "n10",
+          "port": "in"
+        }
+      },
+      "n10:out->M:in": {
+        "output": {
+          "node": "n10",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "S:out->X:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "X",
+          "port": "in"
+        }
+      },
+      "X:out->M:in": {
+        "output": {
+          "node": "X",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "M:out->L:in": {
+        "output": {
+          "node": "M",
+          "port": "out"
+        },
+        "input": {
+          "node": "L",
+          "port": "in"
+        }
+      }
+    }
+  },
+  "expected": {
+    "R": {
+      "x": 0,
+      "y": 0
+    },
+    "S": {
+      "x": 130,
+      "y": 0
+    },
+    "n01": {
+      "x": 260,
+      "y": 0
+    },
+    "n02": {
+      "x": 390,
+      "y": 0
+    },
+    "n03": {
+      "x": 520,
+      "y": 0
+    },
+    "n04": {
+      "x": 650,
+      "y": 0
+    },
+    "n05": {
+      "x": 780,
+      "y": 0
+    },
+    "n06": {
+      "x": 910,
+      "y": 0
+    },
+    "n07": {
+      "x": 1040,
+      "y": 0
+    },
+    "n08": {
+      "x": 1170,
+      "y": 0
+    },
+    "n09": {
+      "x": 1300,
+      "y": 0
+    },
+    "n10": {
+      "x": 1430,
+      "y": 0
+    },
+    "X": {
+      "x": 260,
+      "y": 110
+    },
+    "M": {
+      "x": 1560,
+      "y": 0
+    },
+    "L": {
+      "x": 1690,
+      "y": 0
+    }
+  }
+}

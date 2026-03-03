@@ -1,0 +1,166 @@
+{
+  "id": "cc33dd44-0008-0008-0008-cc33dd440008",
+  "title": "All-negative coordinates split-merge (potential non-negative assumptions)",
+  "initial": {
+    "nodes": {
+      "R": {
+        "id": "R",
+        "type": "node",
+        "x": -800,
+        "y": -600,
+        "width": 100,
+        "height": 80
+      },
+      "S": {
+        "id": "S",
+        "type": "node",
+        "x": -600,
+        "y": -600,
+        "width": 100,
+        "height": 80
+      },
+      "A": {
+        "id": "A",
+        "type": "node",
+        "x": -400,
+        "y": -700,
+        "width": 100,
+        "height": 80
+      },
+      "B": {
+        "id": "B",
+        "type": "node",
+        "x": -400,
+        "y": -500,
+        "width": 100,
+        "height": 80
+      },
+      "C": {
+        "id": "C",
+        "type": "node",
+        "x": -400,
+        "y": -400,
+        "width": 100,
+        "height": 80
+      },
+      "M": {
+        "id": "M",
+        "type": "node",
+        "x": -200,
+        "y": -600,
+        "width": 100,
+        "height": 80
+      },
+      "L": {
+        "id": "L",
+        "type": "node",
+        "x": 0,
+        "y": -600,
+        "width": 100,
+        "height": 80
+      }
+    },
+    "edges": {
+      "R:out->S:in": {
+        "output": {
+          "node": "R",
+          "port": "out"
+        },
+        "input": {
+          "node": "S",
+          "port": "in"
+        }
+      },
+      "S:out->A:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "A",
+          "port": "in"
+        }
+      },
+      "S:out->B:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "B",
+          "port": "in"
+        }
+      },
+      "S:out->C:in": {
+        "output": {
+          "node": "S",
+          "port": "out"
+        },
+        "input": {
+          "node": "C",
+          "port": "in"
+        }
+      },
+      "A:out->M:in": {
+        "output": {
+          "node": "A",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "B:out->M:in": {
+        "output": {
+          "node": "B",
+          "port": "out"
+        },
+        "input": {
+          "node": "M",
+          "port": "in"
+        }
+      },
+      "M:out->L:in": {
+        "output": {
+          "node": "M",
+          "port": "out"
+        },
+        "input": {
+          "node": "L",
+          "port": "in"
+        }
+      }
+    }
+  },
+  "expected": {
+    "R": {
+      "x": -800,
+      "y": -600
+    },
+    "S": {
+      "x": -670,
+      "y": -600
+    },
+    "A": {
+      "x": -540,
+      "y": -600
+    },
+    "B": {
+      "x": -540,
+      "y": -490
+    },
+    "C": {
+      "x": -540,
+      "y": -380
+    },
+    "M": {
+      "x": -410,
+      "y": -600
+    },
+    "L": {
+      "x": -280,
+      "y": -600
+    }
+  }
+}
