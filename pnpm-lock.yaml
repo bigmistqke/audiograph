@@ -6,14 +6,7 @@ settings:
 
 importers:
 
-  .:
-    dependencies:
-      '@bigmistqke/repl':
-        specifier: '@bigmistqke/repl@0.2.8'
-        version: link:@bigmistqke/repl@0.2.8
-      solid-js:
-        specifier: 1.9.9
-        version: 1.9.9
+  .: {}
 
   apps/app:
     dependencies:
