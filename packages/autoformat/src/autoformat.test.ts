@@ -7033,6 +7033,699 @@ describe("autoformat — x-positions", () => {
           "OUT": 520
     });
   });
+
+  it("Topo sort cross-subtree ordering: lower-y node enqueued after higher-y node", () => {
+    const initial: Graph = {
+        "edges": {
+            "A:out->C:in": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            "B:out->D:in": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "C:out->M:in": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            },
+            "D:out->M:in": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 0,
+                "y": 100,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 200,
+                "y": 200,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 200,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M": {
+                "id": "M",
+                "type": "node",
+                "x": 400,
+                "y": 100,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 0,
+          "C": 130,
+          "D": 130,
+          "M": 260
+    });
+  });
+
+  it("Same-priority merge skipped when deeper target found with less pull", () => {
+    const initial: Graph = {
+        "edges": {
+            "S:out->A:in": {
+                "output": {
+                    "node": "S",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "A",
+                    "port": "in"
+                }
+            },
+            "A:out->M1:in": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "M1:out->B:in": {
+                "output": {
+                    "node": "M1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "B:out->M2:in": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            },
+            "X1:out->M1:in": {
+                "output": {
+                    "node": "X1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "X2:out->M2:in": {
+                "output": {
+                    "node": "X2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            },
+            "S:out->X1:in": {
+                "output": {
+                    "node": "S",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "X1",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "S": {
+                "id": "S",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M1": {
+                "id": "M1",
+                "type": "node",
+                "x": 260,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 390,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M2": {
+                "id": "M2",
+                "type": "node",
+                "x": 520,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "X1": {
+                "id": "X1",
+                "type": "node",
+                "x": 130,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "X2": {
+                "id": "X2",
+                "type": "node",
+                "x": 260,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "S": 0,
+          "A": 130,
+          "M1": 260,
+          "B": 390,
+          "M2": 520,
+          "X1": 130,
+          "X2": 390
+    });
+  });
+
+  it("Deep cascading splits: 4 nested split-merge pairs testing reconcile convergence", () => {
+    const initial: Graph = {
+        "edges": {
+            "S1:out->B1:in": {
+                "output": {
+                    "node": "S1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B1",
+                    "port": "in"
+                }
+            },
+            "S1:out->C1:in": {
+                "output": {
+                    "node": "S1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C1",
+                    "port": "in"
+                }
+            },
+            "B1:out->M1:in": {
+                "output": {
+                    "node": "B1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "C1:out->M1:in": {
+                "output": {
+                    "node": "C1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "M1:out->S2:in": {
+                "output": {
+                    "node": "M1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "S2",
+                    "port": "in"
+                }
+            },
+            "S2:out->B2:in": {
+                "output": {
+                    "node": "S2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B2",
+                    "port": "in"
+                }
+            },
+            "S2:out->C2:in": {
+                "output": {
+                    "node": "S2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C2",
+                    "port": "in"
+                }
+            },
+            "B2:out->M2:in": {
+                "output": {
+                    "node": "B2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            },
+            "C2:out->M2:in": {
+                "output": {
+                    "node": "C2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            },
+            "M2:out->S3:in": {
+                "output": {
+                    "node": "M2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "S3",
+                    "port": "in"
+                }
+            },
+            "S3:out->B3:in": {
+                "output": {
+                    "node": "S3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B3",
+                    "port": "in"
+                }
+            },
+            "S3:out->C3:in": {
+                "output": {
+                    "node": "S3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C3",
+                    "port": "in"
+                }
+            },
+            "B3:out->M3:in": {
+                "output": {
+                    "node": "B3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M3",
+                    "port": "in"
+                }
+            },
+            "C3:out->M3:in": {
+                "output": {
+                    "node": "C3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M3",
+                    "port": "in"
+                }
+            },
+            "M3:out->S4:in": {
+                "output": {
+                    "node": "M3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "S4",
+                    "port": "in"
+                }
+            },
+            "S4:out->B4:in": {
+                "output": {
+                    "node": "S4",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B4",
+                    "port": "in"
+                }
+            },
+            "S4:out->C4:in": {
+                "output": {
+                    "node": "S4",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C4",
+                    "port": "in"
+                }
+            },
+            "B4:out->M4:in": {
+                "output": {
+                    "node": "B4",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M4",
+                    "port": "in"
+                }
+            },
+            "C4:out->M4:in": {
+                "output": {
+                    "node": "C4",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M4",
+                    "port": "in"
+                }
+            },
+            "EXT1:out->M1:in": {
+                "output": {
+                    "node": "EXT1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "EXT2:out->M2:in": {
+                "output": {
+                    "node": "EXT2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            },
+            "EXT3:out->M3:in": {
+                "output": {
+                    "node": "EXT3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M3",
+                    "port": "in"
+                }
+            },
+            "EXT4:out->M4:in": {
+                "output": {
+                    "node": "EXT4",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M4",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "S1": {
+                "id": "S1",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B1": {
+                "id": "B1",
+                "type": "node",
+                "x": 200,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C1": {
+                "id": "C1",
+                "type": "node",
+                "x": 200,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M1": {
+                "id": "M1",
+                "type": "node",
+                "x": 400,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "S2": {
+                "id": "S2",
+                "type": "node",
+                "x": 500,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B2": {
+                "id": "B2",
+                "type": "node",
+                "x": 700,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C2": {
+                "id": "C2",
+                "type": "node",
+                "x": 700,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M2": {
+                "id": "M2",
+                "type": "node",
+                "x": 900,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "S3": {
+                "id": "S3",
+                "type": "node",
+                "x": 1000,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B3": {
+                "id": "B3",
+                "type": "node",
+                "x": 1200,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C3": {
+                "id": "C3",
+                "type": "node",
+                "x": 1200,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M3": {
+                "id": "M3",
+                "type": "node",
+                "x": 1400,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "S4": {
+                "id": "S4",
+                "type": "node",
+                "x": 1500,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B4": {
+                "id": "B4",
+                "type": "node",
+                "x": 1700,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C4": {
+                "id": "C4",
+                "type": "node",
+                "x": 1700,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M4": {
+                "id": "M4",
+                "type": "node",
+                "x": 1900,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "EXT1": {
+                "id": "EXT1",
+                "type": "node",
+                "x": 0,
+                "y": 200,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "EXT2": {
+                "id": "EXT2",
+                "type": "node",
+                "x": 0,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "EXT3": {
+                "id": "EXT3",
+                "type": "node",
+                "x": 0,
+                "y": 400,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "EXT4": {
+                "id": "EXT4",
+                "type": "node",
+                "x": 0,
+                "y": 500,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelX(autoformat(initial))).toMatchObject({
+          "S1": 0,
+          "B1": 130,
+          "C1": 130,
+          "M1": 260,
+          "S2": 390,
+          "B2": 520,
+          "C2": 520,
+          "M2": 650,
+          "S3": 780,
+          "B3": 910,
+          "C3": 910,
+          "M3": 1040,
+          "S4": 1170,
+          "B4": 1300,
+          "C4": 1300,
+          "M4": 1430,
+          "EXT1": 130,
+          "EXT2": 520,
+          "EXT3": 910,
+          "EXT4": 1300
+    });
+  });
 });
 
 describe("autoformat — y-positions", () => {
@@ -14040,6 +14733,699 @@ describe("autoformat — y-positions", () => {
           "L1": 110,
           "L2": 110,
           "OUT": 0
+    });
+  });
+
+  it("Topo sort cross-subtree ordering: lower-y node enqueued after higher-y node", () => {
+    const initial: Graph = {
+        "edges": {
+            "A:out->C:in": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C",
+                    "port": "in"
+                }
+            },
+            "B:out->D:in": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "D",
+                    "port": "in"
+                }
+            },
+            "C:out->M:in": {
+                "output": {
+                    "node": "C",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            },
+            "D:out->M:in": {
+                "output": {
+                    "node": "D",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 0,
+                "y": 100,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C": {
+                "id": "C",
+                "type": "node",
+                "x": 200,
+                "y": 200,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "D": {
+                "id": "D",
+                "type": "node",
+                "x": 200,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M": {
+                "id": "M",
+                "type": "node",
+                "x": 400,
+                "y": 100,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "A": 0,
+          "B": 110,
+          "C": 0,
+          "D": 110,
+          "M": 0
+    });
+  });
+
+  it("Same-priority merge skipped when deeper target found with less pull", () => {
+    const initial: Graph = {
+        "edges": {
+            "S:out->A:in": {
+                "output": {
+                    "node": "S",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "A",
+                    "port": "in"
+                }
+            },
+            "A:out->M1:in": {
+                "output": {
+                    "node": "A",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "M1:out->B:in": {
+                "output": {
+                    "node": "M1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B",
+                    "port": "in"
+                }
+            },
+            "B:out->M2:in": {
+                "output": {
+                    "node": "B",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            },
+            "X1:out->M1:in": {
+                "output": {
+                    "node": "X1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "X2:out->M2:in": {
+                "output": {
+                    "node": "X2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            },
+            "S:out->X1:in": {
+                "output": {
+                    "node": "S",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "X1",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "S": {
+                "id": "S",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "A": {
+                "id": "A",
+                "type": "node",
+                "x": 130,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M1": {
+                "id": "M1",
+                "type": "node",
+                "x": 260,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B": {
+                "id": "B",
+                "type": "node",
+                "x": 390,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M2": {
+                "id": "M2",
+                "type": "node",
+                "x": 520,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "X1": {
+                "id": "X1",
+                "type": "node",
+                "x": 130,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "X2": {
+                "id": "X2",
+                "type": "node",
+                "x": 260,
+                "y": 110,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "S": 0,
+          "A": 0,
+          "M1": 0,
+          "B": 0,
+          "M2": 0,
+          "X1": 110,
+          "X2": 110
+    });
+  });
+
+  it("Deep cascading splits: 4 nested split-merge pairs testing reconcile convergence", () => {
+    const initial: Graph = {
+        "edges": {
+            "S1:out->B1:in": {
+                "output": {
+                    "node": "S1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B1",
+                    "port": "in"
+                }
+            },
+            "S1:out->C1:in": {
+                "output": {
+                    "node": "S1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C1",
+                    "port": "in"
+                }
+            },
+            "B1:out->M1:in": {
+                "output": {
+                    "node": "B1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "C1:out->M1:in": {
+                "output": {
+                    "node": "C1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "M1:out->S2:in": {
+                "output": {
+                    "node": "M1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "S2",
+                    "port": "in"
+                }
+            },
+            "S2:out->B2:in": {
+                "output": {
+                    "node": "S2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B2",
+                    "port": "in"
+                }
+            },
+            "S2:out->C2:in": {
+                "output": {
+                    "node": "S2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C2",
+                    "port": "in"
+                }
+            },
+            "B2:out->M2:in": {
+                "output": {
+                    "node": "B2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            },
+            "C2:out->M2:in": {
+                "output": {
+                    "node": "C2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            },
+            "M2:out->S3:in": {
+                "output": {
+                    "node": "M2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "S3",
+                    "port": "in"
+                }
+            },
+            "S3:out->B3:in": {
+                "output": {
+                    "node": "S3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B3",
+                    "port": "in"
+                }
+            },
+            "S3:out->C3:in": {
+                "output": {
+                    "node": "S3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C3",
+                    "port": "in"
+                }
+            },
+            "B3:out->M3:in": {
+                "output": {
+                    "node": "B3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M3",
+                    "port": "in"
+                }
+            },
+            "C3:out->M3:in": {
+                "output": {
+                    "node": "C3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M3",
+                    "port": "in"
+                }
+            },
+            "M3:out->S4:in": {
+                "output": {
+                    "node": "M3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "S4",
+                    "port": "in"
+                }
+            },
+            "S4:out->B4:in": {
+                "output": {
+                    "node": "S4",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "B4",
+                    "port": "in"
+                }
+            },
+            "S4:out->C4:in": {
+                "output": {
+                    "node": "S4",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "C4",
+                    "port": "in"
+                }
+            },
+            "B4:out->M4:in": {
+                "output": {
+                    "node": "B4",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M4",
+                    "port": "in"
+                }
+            },
+            "C4:out->M4:in": {
+                "output": {
+                    "node": "C4",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M4",
+                    "port": "in"
+                }
+            },
+            "EXT1:out->M1:in": {
+                "output": {
+                    "node": "EXT1",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M1",
+                    "port": "in"
+                }
+            },
+            "EXT2:out->M2:in": {
+                "output": {
+                    "node": "EXT2",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M2",
+                    "port": "in"
+                }
+            },
+            "EXT3:out->M3:in": {
+                "output": {
+                    "node": "EXT3",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M3",
+                    "port": "in"
+                }
+            },
+            "EXT4:out->M4:in": {
+                "output": {
+                    "node": "EXT4",
+                    "port": "out"
+                },
+                "input": {
+                    "node": "M4",
+                    "port": "in"
+                }
+            }
+        },
+        "nodes": {
+            "S1": {
+                "id": "S1",
+                "type": "node",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B1": {
+                "id": "B1",
+                "type": "node",
+                "x": 200,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C1": {
+                "id": "C1",
+                "type": "node",
+                "x": 200,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M1": {
+                "id": "M1",
+                "type": "node",
+                "x": 400,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "S2": {
+                "id": "S2",
+                "type": "node",
+                "x": 500,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B2": {
+                "id": "B2",
+                "type": "node",
+                "x": 700,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C2": {
+                "id": "C2",
+                "type": "node",
+                "x": 700,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M2": {
+                "id": "M2",
+                "type": "node",
+                "x": 900,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "S3": {
+                "id": "S3",
+                "type": "node",
+                "x": 1000,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B3": {
+                "id": "B3",
+                "type": "node",
+                "x": 1200,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C3": {
+                "id": "C3",
+                "type": "node",
+                "x": 1200,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M3": {
+                "id": "M3",
+                "type": "node",
+                "x": 1400,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "S4": {
+                "id": "S4",
+                "type": "node",
+                "x": 1500,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "B4": {
+                "id": "B4",
+                "type": "node",
+                "x": 1700,
+                "y": -50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "C4": {
+                "id": "C4",
+                "type": "node",
+                "x": 1700,
+                "y": 50,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "M4": {
+                "id": "M4",
+                "type": "node",
+                "x": 1900,
+                "y": 0,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "EXT1": {
+                "id": "EXT1",
+                "type": "node",
+                "x": 0,
+                "y": 200,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "EXT2": {
+                "id": "EXT2",
+                "type": "node",
+                "x": 0,
+                "y": 300,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "EXT3": {
+                "id": "EXT3",
+                "type": "node",
+                "x": 0,
+                "y": 400,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            },
+            "EXT4": {
+                "id": "EXT4",
+                "type": "node",
+                "x": 0,
+                "y": 500,
+                "width": 100,
+                "height": 80,
+                "state": {}
+            }
+        }
+    };
+    expect(labelY(autoformat(initial))).toMatchObject({
+          "S1": 0,
+          "B1": 0,
+          "C1": 110,
+          "M1": 0,
+          "S2": 0,
+          "B2": 0,
+          "C2": 110,
+          "M2": 0,
+          "S3": 0,
+          "B3": 0,
+          "C3": 110,
+          "M3": 0,
+          "S4": 0,
+          "B4": 0,
+          "C4": 110,
+          "M4": 0,
+          "EXT1": 220,
+          "EXT2": 220,
+          "EXT3": 220,
+          "EXT4": 220
     });
   });
 });
