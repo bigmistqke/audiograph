@@ -1,13 +1,13 @@
 ---
 name: debug-autoformat
-description: Analyze the autoformat algorithm for potential bugs and generate test case JSON files that exercise edge cases
+description: Analyze the autoformat algorithm for potential bugs and edge cases
 argument-hint: [focus area or specific concern]
-allowed-tools: Read, Grep, Glob, Bash(pnpm:*), Bash(cd:*), Write, Edit
+allowed-tools: Read, Grep, Glob, Bash(cd:*), Bash(pnpm:*)
 ---
 
 # Debug Autoformat
 
-Analyze the autoformat layout algorithm for potential bugs and create test case JSON files that exercise the identified edge cases.
+Analyze the autoformat layout algorithm for potential bugs, edge cases, or divergences from intended behavior.
 
 ## Algorithm Overview
 
@@ -25,13 +25,18 @@ Key rules: Anchor (primary root), Sequential (simple/leaf from parent), Merge Al
 
 When invoked:
 
-1. **Read the algorithm source files** to understand the current implementation:
+1. **Read the algorithm source files**:
    - `packages/autoformat/src/analysis.ts` — topology, row assignment, chain building
    - `packages/autoformat/src/x-pass.ts` — x-positioning pipeline
    - `packages/autoformat/src/y-pass.ts` — y-positioning and island collisions
    - `packages/autoformat/src/types.ts` — types and IntervalStructure
 
-2. **Identify potential edge cases or bugs**, focusing on `$ARGUMENTS` if provided. Look for:
+2. **List existing test cases** to understand what's already covered:
+   ```bash
+   cd packages/autoformat && pnpm cases list
+   ```
+
+3. **Identify potential edge cases or bugs**, focusing on `$ARGUMENTS` if provided. Look for:
    - Boundary conditions in row assignment (orphaned rows, spine conflicts)
    - Split pull finding wrong or missing merge targets
    - Merge approach miscalculation
@@ -45,70 +50,12 @@ When invoked:
    - Diamond patterns (split → ... → merge from multiple paths)
    - Deep nesting of splits within splits
 
-3. **For each identified edge case**, create a test case JSON file.
-
-## Test Case JSON Format
-
-```json
-{
-  "id": "<uuid>",
-  "title": "<descriptive title explaining what this tests>",
-  "initial": {
-    "nodes": {
-      "A": { "id": "A", "type": "node", "x": 0, "y": 0, "width": 100, "height": 80 },
-      "B": { "id": "B", "type": "node", "x": 200, "y": 0, "width": 100, "height": 80 }
-    },
-    "edges": {
-      "A:out->B:in": {
-        "output": { "node": "A", "port": "out" },
-        "input": { "node": "B", "port": "in" }
-      }
-    }
-  },
-  "expected": {}
-}
-```
-
-Conventions:
-- **Node IDs**: Use short alphabetic labels (A, B, C, ...) for readability
-- **Edge IDs**: Use semantic `"Source:port->Target:port"` format
-- **Dimensions**: Default to `width: 100, height: 80` unless testing size-dependent behavior
-- **Initial positions**: Set `x` and `y` to plausible pre-format positions. The initial y-values influence row ordering (children sorted by initialY), so set them intentionally to test the desired ordering. x=0,y=0 for the primary root is typical.
-- **`expected`**: Leave as `{}` — it will be filled by the script
-
-## Workflow
-
-For each test case:
-
-1. **Generate a UUID** for the case:
-   ```bash
-   uuidgen | tr '[:upper:]' '[:lower:]'
-   ```
-
-2. **Write the JSON** to `packages/autoformat/public/autoformat-cases/<uuid>.json` with `"expected": {}`
-
-3. **Fill expected** by running autoformat on the initial graph:
-   ```bash
-   cd packages/autoformat && pnpm tsx scripts/fill-expected.ts public/autoformat-cases/<uuid>.json
-   ```
-
-4. **Add the UUID** to `packages/autoformat/public/autoformat-cases/index.json`
-
-5. **Regenerate tests**:
-   ```bash
-   cd packages/autoformat && pnpm generate:tests
-   ```
-
-6. **Run tests** to verify they pass:
-   ```bash
-   cd packages/autoformat && pnpm test
-   ```
-
 ## Output
 
-After creating all cases, summarize:
-- What edge cases you identified and why they could be problematic
-- Which test case files you created
-- Whether all tests pass (if a test fails, that's interesting — it might indicate a real bug)
+For each identified issue, report:
+- **What**: The specific code path or condition
+- **Why**: Why it could produce incorrect results
+- **Graph**: An ASCII diagram of a graph topology that would trigger it
+- **Severity**: Whether it's a likely real bug, a theoretical edge case, or a cosmetic issue
 
-The user will then review the cases visually in the autoformat workshop (`autoformat/workshop`) and correct any `expected` values that represent buggy behavior.
+If the user wants to turn findings into test cases, suggest using `/create-autoformat-case` with the appropriate topology.
