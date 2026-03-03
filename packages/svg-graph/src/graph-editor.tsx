@@ -260,6 +260,14 @@ export function GraphEditor<TConfig extends GraphConfig<Record<string, any>>>(
           rest.onCursorMove?.(undefined);
         }}
         onKeyDown={(event) => {
+          if (
+            (event.metaKey || event.ctrlKey) &&
+            event.key === "a"
+          ) {
+            event.preventDefault();
+            setUIState("selectedNodes", Object.keys(props.nodes));
+            return;
+          }
           if (event.key === "Backspace" || event.key === "Delete") {
             const selected = UIState.selectedNodes;
             if (selected.length === 0) return;
