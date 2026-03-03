@@ -1,4 +1,4 @@
-import { computeLayoutMap } from "@audiograph/autoformat";
+import { autoformat, computeLayoutMap } from "@audiograph/autoformat";
 import type {
   EdgeHandle,
   Edges,
@@ -17,8 +17,16 @@ import {
 } from "@audiograph/svg-graph";
 import { makePersisted } from "@solid-primitives/storage";
 import clsx from "clsx";
-import { batch, createSignal, For, type Setter, Show } from "solid-js";
-import { createStore, produce } from "solid-js/store";
+import {
+  batch,
+  createEffect,
+  createSignal,
+  For,
+  on,
+  type Setter,
+  Show,
+} from "solid-js";
+import { createStore, produce, reconcile } from "solid-js/store";
 import {
   createWorkletFileSystem,
   getSourceBoilerplate,
@@ -441,6 +449,13 @@ export function AudioGraphEditor(props: {
     }
   }
 
+  createEffect(
+    on(autoformatEnabled, (autoformatEnabled) => {
+      if (!autoformatEnabled) return;
+      setGraphStore(reconcile(autoformat(graphStore)));
+    }),
+  );
+
   return (
     <>
       <SideBar
@@ -459,22 +474,86 @@ export function AudioGraphEditor(props: {
         config={config}
         nodes={graphStore.nodes}
         edges={graphStore.edges}
-        onEdgeAdd={({ edgeId, edge }) => setGraphStore("edges", edgeId, edge)}
-        onEdgeDelete={({ edgeId }) =>
+        onEdgeAdd={({ edgeId, edge }) => {
+          setGraphStore("edges", edgeId, edge);
+          if (autoformatEnabled()) {
+            setGraphStore(reconcile(autoformat(graphStore)));
+          }
+        }}
+        onEdgeDelete={({ edgeId }) => {
           setGraphStore(
             "edges",
             produce((edges) => delete edges[edgeId]),
-          )
-        }
-        onNodeAdd={({ nodeId, node }) => setGraphStore("nodes", nodeId, node)}
-        onNodeDelete={({ nodeId }) =>
+          );
+          if (autoformatEnabled()) {
+            setGraphStore(reconcile(autoformat(graphStore)));
+          }
+        }}
+        onEdgeHover={({ edgeId }) => {
+          setHoveredEdgeId(edgeId);
+        }}
+        onEdgeClick={({ edgeId, graph }) => {
+          spliceSelectedOntoEdge(edgeId, graph);
+
+          if (autoformatEnabled()) {
+            setGraphStore(reconcile(autoformat(graphStore)));
+          }
+        }}
+        onEdgeSpliceValidate={({ edge }) => {
+          const type = selectedNodeType();
+          if (!type) return false;
+
+          const typeDef = config[type];
+          if (!typeDef) return false;
+
+          const firstIn = typeDef.ports.in?.[0];
+          const firstOut = typeDef.ports.out?.[0];
+          if (!firstIn || !firstOut) return false;
+
+          // Check output side of existing edge matches new node's first input
+          const outputPortDef = (() => {
+            const outputNode = graphStore.nodes[edge.output.node];
+            if (!outputNode) return undefined;
+            return config[outputNode.type]?.ports.out?.find(
+              (p) => p.name === edge.output.port,
+            );
+          })();
+
+          // Check input side of existing edge matches new node's first output
+          const inputPortDef = (() => {
+            const inputNode = graphStore.nodes[edge.input.node];
+            if (!inputNode) return undefined;
+            return config[inputNode.type]?.ports.in?.find(
+              (p) => p.name === edge.input.port,
+            );
+          })();
+
+          if (!outputPortDef || !inputPortDef) return false;
+
+          return (
+            outputPortDef.kind === firstIn.kind &&
+            firstOut.kind === inputPortDef.kind
+          );
+        }}
+        onNodeAdd={({ nodeId, node }) => {
+          setGraphStore("nodes", nodeId, node);
+          if (autoformatEnabled()) {
+            setGraphStore(reconcile(autoformat(graphStore)));
+          }
+        }}
+        onNodeDelete={({ nodeId }) => {
           setGraphStore(
             "nodes",
             produce((nodes) => delete nodes[nodeId]),
-          )
-        }
+          );
+          if (autoformatEnabled()) {
+            setGraphStore(reconcile(autoformat(graphStore)));
+          }
+        }}
         onNodePointerDown={({ node }) => {
-          if (!autoformatEnabled()) return;
+          if (!autoformatEnabled()) {
+            return;
+          }
 
           const snapshot: Record<string, { x: number; y: number }> = {};
           for (const [id, n] of Object.entries(graphStore.nodes)) {
@@ -538,7 +617,6 @@ export function AudioGraphEditor(props: {
           });
         }}
         onCursorMove={setCursorPos}
-        onEdgeHover={({ edgeId }) => setHoveredEdgeId(edgeId)}
         onClick={({ x, y, graph }) => {
           const type = selectedNodeType();
           if (!type) return;
@@ -576,45 +654,6 @@ export function AudioGraphEditor(props: {
             workletFS.writeFile(`/${name}/worklet.js`, getWorkletEntry(name));
           }
           setSelectedNodeType(undefined);
-        }}
-        onEdgeClick={({ edgeId, graph }) => {
-          spliceSelectedOntoEdge(edgeId, graph);
-        }}
-        onEdgeSpliceValidate={({ edge }) => {
-          const type = selectedNodeType();
-          if (!type) return false;
-
-          const typeDef = config[type];
-          if (!typeDef) return false;
-
-          const firstIn = typeDef.ports.in?.[0];
-          const firstOut = typeDef.ports.out?.[0];
-          if (!firstIn || !firstOut) return false;
-
-          // Check output side of existing edge matches new node's first input
-          const outputPortDef = (() => {
-            const outputNode = graphStore.nodes[edge.output.node];
-            if (!outputNode) return undefined;
-            return config[outputNode.type]?.ports.out?.find(
-              (p) => p.name === edge.output.port,
-            );
-          })();
-
-          // Check input side of existing edge matches new node's first output
-          const inputPortDef = (() => {
-            const inputNode = graphStore.nodes[edge.input.node];
-            if (!inputNode) return undefined;
-            return config[inputNode.type]?.ports.in?.find(
-              (p) => p.name === edge.input.port,
-            );
-          })();
-
-          if (!outputPortDef || !inputPortDef) return false;
-
-          return (
-            outputPortDef.kind === firstIn.kind &&
-            firstOut.kind === inputPortDef.kind
-          );
         }}
         onPortHover={({ handle, kind, preventDefault: preventInteraction }) => {
           const type = selectedNodeType();
